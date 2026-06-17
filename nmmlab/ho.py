@@ -71,7 +71,7 @@ def resonance_curve(omega0, gamma, F0, omega_range):
     Returns amplitude |X| and phase angle(X).
     """
     H = F0 / (omega0**2 - omega_range**2 + 2j * gamma * omega_range)
-    return np.abs(H)
+    return np.abs(H), np.angle(H, deg=True)
 
 
 #──── COUPLED DHO ──────────────────────────────────────────────────────────────
@@ -94,3 +94,7 @@ def coupled_dho(alphas, omegas, C, G, z0, t, F, noise_std=0.0, rng=None):
             coupling = G * (C @ z_ - z_ * C_rowsum)
             return (alphas + 1j * omegas) * z_ + coupling + F
         return euler_maruyama(f, z0, t, noise_std=noise_std, rng=rng)
+
+
+
+
