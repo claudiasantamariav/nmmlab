@@ -49,6 +49,26 @@ def ho(omega, alpha, z0, t, noise_std=0.0, rng=None):
             return (alpha + 1j * omega) * z_
         return euler_maruyama(f, z0, t, noise_std=noise_std, rng=rng)
 
+#──── KURAMOTO ──────────────────────────────────────────────────────────────
+def kuramoto(omegas, G, t, C=None, noise_std=0.0, rng=None):
+    N = len(omegas)
+    if rng is None:
+        rng = np.random.default_rng(42)
+    if C is None:
+        C = np.ones((N, N))
+        np.fill_diagonal(C, 0)
+        C = C / N  # all-to-all, row-normalised
+    dt = t[1] - t[0]
+    theta = np.empty((len(t), N))
+    theta[0] = rng.uniform(0, 2 * np.pi, N)
+    for k in range(len(t) - 1):
+        diffs = theta[k][np.newaxis, :] - theta[k][:, np.newaxis]  # [i,j] = θ_j - θ_i
+        coupling = G * np.sum(C * np.sin(diffs), axis=1)
+        noise = noise_std * rng.standard_normal(N) * np.sqrt(dt)
+        theta[k + 1] = theta[k] + (omegas + coupling) * dt + noise
+    R = np.abs(np.mean(np.exp(1j * theta), axis=1))
+    return theta, R
+
 
 # ─── DHO WITH SINUSOIDAL FORCING───────────────────────────────────────────────────────────────
 
