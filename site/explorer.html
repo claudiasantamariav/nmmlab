@@ -1,0 +1,1949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Model Explorer — Rosetta Stone of NMMs</title>
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue: #002878;
+  --coral: #FF6657;
+  --light: #e8edf7;
+  --bg: #f4f6fb;
+  --text: #1a1a2e;
+  --muted: #666;
+  --border: #d0d8ea;
+}
+body { font-family: sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+nav.topnav {
+  background: var(--blue); color: white;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.8rem 1.4rem; flex-wrap: wrap; gap: 6px;
+}
+nav.topnav .brand { font-weight: 700; font-size: 0.95rem; }
+nav.topnav .links a {
+  color: #a0b4e0; text-decoration: none; margin-left: 1.4rem; font-size: 0.88rem;
+  padding-bottom: 3px; border-bottom: 2px solid transparent; transition: color .15s;
+}
+nav.topnav .links a:hover { color: white; }
+nav.topnav .links a.active { color: white; border-bottom-color: var(--coral); }
+
+.model-tabs {
+  background: var(--blue);
+  display: flex; border-top: 1px solid rgba(255,255,255,0.12); overflow-x: auto;
+}
+.model-tab {
+  padding: 0.65rem 1.3rem; cursor: pointer; font-size: 0.9rem; font-weight: 600;
+  color: #a0b4e0; border: none; background: none; white-space: nowrap;
+  border-bottom: 3px solid transparent; transition: color 0.15s, border-color 0.15s;
+}
+.model-tab:hover { color: white; }
+.model-tab.active { color: white; border-bottom-color: var(--coral); }
+
+.page-tabs {
+  background: white; padding: 0 1.4rem;
+  display: flex; gap: 0.2rem; border-bottom: 1px solid var(--border);
+}
+.page-tab {
+  padding: 0.7rem 1.1rem; cursor: pointer; font-size: 0.85rem; font-weight: 700;
+  color: var(--muted); border: none; background: none;
+  border-bottom: 3px solid transparent; transition: color 0.15s, border-color 0.15s;
+}
+.page-tab:hover { color: var(--blue); }
+.page-tab.active { color: var(--blue); border-bottom-color: var(--coral); }
+
+.info-panel { max-width: 860px; margin: 0 auto; padding: 2.2rem 1.5rem 4rem; }
+.info-panel h2 { color: var(--blue); font-size: 1.55rem; margin-bottom: 0.3rem; }
+.info-panel .tagline { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.5; }
+.info-section { margin-bottom: 2.2rem; }
+.info-section h3 {
+  font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+  margin-bottom: 0.9rem; border-bottom: 1px solid var(--border); padding-bottom: 0.45rem;
+}
+.info-eq-box {
+  background: var(--light); border-left: 3px solid var(--blue); border-radius: 8px;
+  padding: 0.9rem 1.2rem; margin-bottom: 0.8rem;
+}
+.info-eq-box .eq-name {
+  font-size: 0.72rem; font-weight: 700; color: var(--blue); text-transform: uppercase;
+  letter-spacing: 0.05em; margin-bottom: 0.35rem;
+}
+.info-eq-box .eq-main { font-family: Georgia, 'Times New Roman', serif; font-size: 0.98rem; line-height: 1.85; color: var(--text); }
+.info-eq-box .eq-note { font-size: 0.78rem; color: var(--muted); margin-top: 0.3rem; line-height: 1.5; }
+.info-prose { font-size: 0.92rem; line-height: 1.75; color: #333; }
+.info-prose p { margin-bottom: 0.8rem; }
+.param-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; background: white; border-radius: 8px; overflow: hidden; }
+.param-table th { background: var(--blue); color: white; text-align: left; padding: 0.55rem 0.8rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.param-table td { padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+.param-table tr:last-child td { border-bottom: none; }
+.param-table tr:nth-child(even) td { background: #f7f9fd; }
+.param-table td:first-child { font-weight: 700; color: var(--blue); white-space: nowrap; }
+.info-about { background: var(--light); border-radius: 10px; padding: 1.2rem 1.4rem; font-size: 0.9rem; line-height: 1.75; color: #333; }
+.info-about strong { color: var(--blue); }
+
+.breakdown-item { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.7rem; overflow: hidden; background: white; }
+.breakdown-header { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.1rem; cursor: pointer; user-select: none; }
+.breakdown-header:hover { background: var(--light); }
+.breakdown-header .bd-title { font-weight: 700; color: var(--blue); font-size: 0.92rem; }
+.breakdown-chevron { font-size: 0.7rem; color: var(--muted); transition: transform 0.2s; flex-shrink: 0; margin-left: 0.8rem; }
+.breakdown-chevron.open { transform: rotate(180deg); }
+.breakdown-body { display: none; padding: 0 1.1rem 1.1rem; }
+.breakdown-body.visible { display: block; }
+.breakdown-prose { font-size: 0.88rem; line-height: 1.65; color: #333; margin-bottom: 0.9rem; }
+.mini-demo-slider { margin-bottom: 0.8rem; }
+.mini-demo-plots { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+@media (max-width: 640px) { .mini-demo-plots { grid-template-columns: 1fr; } }
+.mini-demo-plots .plot-box { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: white; }
+
+.variant-bar {
+  background: var(--light); padding: 0.6rem 1.4rem;
+  display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+.variant-label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.pill {
+  padding: 0.32rem 0.9rem; border-radius: 20px; font-size: 0.82rem; font-weight: 600;
+  cursor: pointer; border: 2px solid var(--border); background: white; color: var(--muted);
+  transition: all 0.15s;
+}
+.pill:hover { border-color: var(--blue); color: var(--blue); }
+.pill.active { background: var(--coral); border-color: var(--coral); color: white; }
+
+.workspace { display: grid; grid-template-columns: 300px 1fr; min-height: calc(100vh - 130px); }
+@media (max-width: 700px) { .workspace { grid-template-columns: 1fr; } }
+
+.left-panel { background: white; border-right: 1px solid var(--border); padding: 1.2rem; overflow-y: auto; }
+
+.eq-box {
+  background: var(--light); border-radius: 8px; padding: 0.9rem 1.1rem;
+  margin-bottom: 1rem; border-left: 3px solid var(--blue);
+}
+.eq-main {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.92rem; line-height: 1.8; color: var(--text);
+  margin-bottom: 0.15rem;
+}
+.eq-sub {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 0.8rem; line-height: 1.6; color: var(--muted);
+  padding-left: 0.8rem;
+}
+.eq-hr { border: none; border-top: 1px solid var(--border); margin: 0.5rem 0; }
+sup { font-size: 0.7em; }
+sub { font-size: 0.7em; }
+
+.param-explain {
+  font-size: 0.83rem; color: var(--muted); line-height: 1.6;
+  margin-bottom: 1.2rem; border-left: 3px solid var(--coral); padding-left: 0.7rem;
+}
+.slider-group { margin-bottom: 0.6rem; }
+.slider-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.2rem; }
+.slider-row label { font-size: 0.82rem; font-weight: 600; color: var(--blue); }
+.slider-row .val { font-size: 0.82rem; color: var(--coral); font-weight: 700; min-width: 3.6rem; text-align: right; }
+input[type=range] { width: 100%; accent-color: var(--blue); cursor: pointer; margin-bottom: 0.4rem; }
+
+.network-section { margin-top: 0.4rem; padding-top: 0.9rem; border-top: 1px dashed var(--border); }
+.network-label {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--blue); margin-bottom: 0.5rem;
+}
+.network-note.param-explain { border-left-color: var(--blue); font-size: 0.78rem; margin-bottom: 0.9rem; }
+.network-note a { color: var(--blue); }
+
+.right-panel { padding: 1rem 1.2rem; overflow-y: auto; }
+
+.explain-bar { background: var(--light); border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--border); overflow: hidden; }
+.explain-header { display: flex; align-items: center; justify-content: space-between; padding: 0.65rem 1rem; cursor: pointer; user-select: none; }
+.explain-header span { font-size: 0.85rem; font-weight: 700; color: var(--blue); }
+.chevron { font-size: 0.7rem; color: var(--muted); transition: transform 0.25s; }
+.chevron.open { transform: rotate(180deg); }
+.explain-body { display: none; padding: 0 1rem 0.9rem; font-size: 0.82rem; color: var(--muted); line-height: 1.7; }
+.explain-body.visible { display: block; }
+.explain-body p { margin-bottom: 0.4rem; }
+
+.plot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 1rem; }
+.plot-box { border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background: white; }
+.plot-box.wide { grid-column: 1 / -1; }
+.plot-caption { font-size: 0.78rem; line-height: 1.5; padding: 0.45rem 0.6rem; color: var(--muted); border-top: 1px solid var(--border); }
+.dyn { color: var(--coral); font-weight: 600; }
+
+.snapshot-ctrl { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.6rem; background: var(--light); border-bottom: 1px solid var(--border); }
+.snapshot-ctrl label { font-size: 0.76rem; color: var(--blue); font-weight: 600; white-space: nowrap; }
+.snapshot-ctrl input[type=range] { margin-bottom: 0; }
+.play-btn {
+  border: none; background: var(--blue); color: white; border-radius: 5px; padding: 0.25rem 0.6rem;
+  font-size: 0.75rem; cursor: pointer; font-weight: 700;
+}
+.play-btn:hover { opacity: 0.85; }
+
+.coming-soon { text-align: center; padding: 5rem 2rem; color: var(--muted); }
+.coming-soon h2 { color: var(--blue); font-size: 1.5rem; margin-bottom: 0.8rem; }
+.coming-soon .badge {
+  display: inline-block; margin-top: 1.2rem; background: var(--light); color: var(--blue);
+  padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="brand">Rosetta Stone of Neural Mass Models</div>
+  <div class="links">
+    <a href="index.html">Home</a>
+    <a href="tutorial.html">Tutorial</a>
+    <a href="explorer.html" class="active">Explore</a>
+    <a href="compare.html">Compare</a>
+  </div>
+</nav>
+
+<div class="model-tabs" id="modelTabs">
+  <button class="model-tab active" data-model="ho">HO</button>
+  <button class="model-tab" data-model="sl">Stuart–Landau</button>
+  <button class="model-tab" data-model="wilco">WILCO</button>
+  <button class="model-tab" data-model="nmm1">NMM1</button>
+  <button class="model-tab" data-model="nmm2">NMM2</button>
+</div>
+
+<div class="page-tabs" id="pageTabs">
+  <button class="page-tab" data-tab="info" onclick="selectTab('info')">Info</button>
+  <button class="page-tab active" data-tab="demo" onclick="selectTab('demo')">Demo</button>
+</div>
+
+<div class="variant-bar" id="variantBar"></div>
+
+<div class="workspace" id="workspace">
+  <div class="left-panel" id="leftPanel"></div>
+  <div class="right-panel" id="rightPanel"></div>
+</div>
+
+<div class="info-panel" id="infoPanel" style="display:none;"></div>
+
+<script>
+// ============================================================
+// RK4 integrator (shared by every model)
+// ============================================================
+function rk4step(f, y, t, dt) {
+  const k1 = f(t, y);
+  const k2 = f(t+dt/2, y.map((v,i)=>v+dt/2*k1[i]));
+  const k3 = f(t+dt/2, y.map((v,i)=>v+dt/2*k2[i]));
+  const k4 = f(t+dt,   y.map((v,i)=>v+dt*k3[i]));
+  return y.map((v,i)=>v+dt/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]));
+}
+// integrate for `steps` steps of size dt, returns {ts, ys}.
+// `sub` runs several finer RK4 substeps per recorded point (dt/sub each) so fast
+// oscillations (large omega with a coarse dt) don't pick up visible numerical drift —
+// the recorded time grid is still spaced by dt, only the internal accuracy improves.
+function integrate(f, y0, steps, dt, sub=1) {
+  const ts=new Array(steps+1), ys=new Array(steps+1);
+  let y=y0.slice(), t=0;
+  ts[0]=0; ys[0]=y.slice();
+  const subdt=dt/sub;
+  for(let i=0;i<steps;i++){
+    for(let s=0;s<sub;s++){ y=rk4step(f,y,t,subdt); t+=subdt; }
+    ts[i+1]=t; ys[i+1]=y.slice();
+  }
+  return {ts, ys};
+}
+function downsample(arr, target) {
+  const step=Math.max(1,Math.floor(arr.length/target));
+  const out=[]; for(let i=0;i<arr.length;i+=step) out.push(arr[i]);
+  return out;
+}
+
+// ── seeded PRNG (mulberry32) — deterministic, reproducible per (seed) ──
+function makeRng(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// ── Radix-2 FFT (recursive, simple) ──
+// Iterative in-place radix-2 FFT (Cooley-Tukey with bit-reversal). The Arnold tongue
+// needs ~1200 FFTs back to back — a recursive version that allocates 4 new arrays per
+// call adds enough GC pressure to make that sweep take tens of seconds; this variant
+// does no per-call allocation and is roughly an order of magnitude faster.
+function fft(re, im) {
+  const n=re.length;
+  for(let i=1,j=0;i<n;i++){
+    let bit=n>>1;
+    for(;j&bit;bit>>=1) j^=bit;
+    j^=bit;
+    if(i<j){ let t=re[i];re[i]=re[j];re[j]=t; t=im[i];im[i]=im[j];im[j]=t; }
+  }
+  for(let len=2;len<=n;len<<=1){
+    const ang=-2*Math.PI/len, wr0=Math.cos(ang), wi0=Math.sin(ang);
+    for(let i=0;i<n;i+=len){
+      let wr=1, wi=0;
+      for(let k=0;k<len/2;k++){
+        const ur=re[i+k], ui=im[i+k];
+        const vr=re[i+k+len/2]*wr-im[i+k+len/2]*wi;
+        const vi=re[i+k+len/2]*wi+im[i+k+len/2]*wr;
+        re[i+k]=ur+vr; im[i+k]=ui+vi;
+        re[i+k+len/2]=ur-vr; im[i+k+len/2]=ui-vi;
+        const nwr=wr*wr0-wi*wi0, nwi=wr*wi0+wi*wr0;
+        wr=nwr; wi=nwi;
+      }
+    }
+  }
+}
+// signal: real array, dtSeconds: sample spacing in seconds. Returns {freqs, power} (positive half only)
+// A Hann window is applied before the FFT: without it, the sharp edge where the real
+// signal meets the zero-padding acts like a step discontinuity and "leaks" energy into
+// a noisy comb of sidelobes across every bin (the "freaky", spiky-looking spectrum).
+// The window tapers both ends smoothly to zero so the padding is seamless.
+function powerSpectrum(signal, dtSeconds) {
+  let n=1; while(n<signal.length) n<<=1;
+  const mean = signal.reduce((a,b)=>a+b,0)/signal.length;
+  const re=new Array(n).fill(0), im=new Array(n).fill(0);
+  const L=signal.length;
+  for(let i=0;i<L;i++){
+    const w=0.5-0.5*Math.cos(2*Math.PI*i/(L-1));
+    re[i]=(signal[i]-mean)*w;
+  }
+  fft(re,im);
+  const half=n/2, freqs=new Array(half), power=new Array(half);
+  for(let k=0;k<half;k++){ freqs[k]=k/(n*dtSeconds); power[k]=re[k]*re[k]+im[k]*im[k]; }
+  return {freqs, power};
+}
+// Phase-portrait trace: a thin single line normally. If the trajectory has actually
+// collapsed to a fixed point (near-zero extent), a lines-only trace draws nothing at
+// all, so we fall back to a single visible dot instead. Markers are NOT added on top
+// of a moving trajectory — with hundreds of tightly-packed points on a small loop,
+// per-point markers overlap into a painted band instead of a crisp thin circle.
+function ppTrace(x, y, color, extra) {
+  const xr = Math.max(...x)-Math.min(...x), yr = Math.max(...y)-Math.min(...y);
+  if (xr < 1e-3 && yr < 1e-3) {
+    return Object.assign({x:[x[x.length-1]], y:[y[y.length-1]], mode:'markers', marker:{color, size:7}}, extra);
+  }
+  return Object.assign({x, y, mode:'lines', line:{color, width:1.2}}, extra);
+}
+function peakFreq(freqs, power, fMax) {
+  let best=-1, bestP=-Infinity;
+  for(let i=1;i<freqs.length;i++){
+    if(fMax && freqs[i]>fMax) break;
+    if(power[i]>bestP){bestP=power[i]; best=i;}
+  }
+  return best>=0 ? freqs[best] : 0;
+}
+function formatAmp(a) {
+  return a < 0.01 ? 'a barely-visible ~0' : `≈ ${a.toFixed(2)}`;
+}
+// linear power axis, anchored at 0 (what people expect from a spectrum) and capped
+// just above the peak so the dominant rhythm is clearly visible.
+function powerLayout(maxP){
+  return {yaxis:{range:[0, Math.max(maxP,1e-9)*1.15], gridcolor:'#e0e4ef', title:'Power'}};
+}
+function bandInfo(f) {
+  if (f<4)  return {name:'delta band',  note:'slow-wave, deep-sleep-like activity'};
+  if (f<8)  return {name:'theta band',  note:'memory / navigation rhythm'};
+  if (f<13) return {name:'alpha band',  note:'relaxed wakefulness rhythm'};
+  if (f<30) return {name:'beta band',   note:'active concentration rhythm'};
+  return       {name:'gamma band',   note:'typical of active cortex'};
+}
+
+// ── Colours ──
+const BLUE='#002878', CORAL='#FF6657';
+const PALETTE=['#002878','#FF6657','#00A676','#FFC145','#7B2CBF','#0EA5B7'];
+const PCFG={responsive:true,displayModeBar:false};
+
+function lay(title, xl, yl, extra) {
+  return Object.assign({
+    title:{text:title,font:{size:11,color:BLUE}},
+    margin:{t:32,b:36,l:46,r:10},
+    paper_bgcolor:'white', plot_bgcolor:'#f8f9fc',
+    font:{size:10}, showlegend:true,
+    legend:{x:0.6,y:1,font:{size:9}},
+    xaxis:{gridcolor:'#e0e4ef',title:xl||''},
+    yaxis:{gridcolor:'#e0e4ef',title:yl||''},
+  }, extra||{});
+}
+function layPP(title, xl, yl) {
+  const L=lay(title,xl,yl);
+  L.yaxis.scaleanchor='x'; L.yaxis.scaleratio=1;
+  return L;
+}
+
+// N stacked small-multiple subplots sharing one x-axis — one row per node, instead of
+// overlaying N wiggly lines/spectra on top of each other (which is very hard to read
+// once they cross). Matches the reference notebook's own per-node stacked layout.
+// traceSets: array (one per row) of Plotly trace arrays.
+function stackedTraces(traceSets, colors, rowLabels, xlabel){
+  const n=traceSets.length, gap=0.05;
+  const rowH=(1-gap*(n-1))/n;
+  const layout={
+    margin:{t:32,b:36,l:56,r:10},
+    paper_bgcolor:'white', plot_bgcolor:'#f8f9fc',
+    font:{size:10}, showlegend:false,
+  };
+  const data=[];
+  for(let i=0;i<n;i++){
+    const top=1-i*(rowH+gap), bottom=top-rowH;
+    const xKey=i===0?'xaxis':`xaxis${i+1}`, yKey=i===0?'yaxis':`yaxis${i+1}`;
+    const xName=i===0?'x':`x${i+1}`, yName=i===0?'y':`y${i+1}`;
+    layout[xKey]={domain:[0,1], anchor:yName, gridcolor:'#e0e4ef',
+      matches: i===0?undefined:'x', showticklabels: i===n-1, title: i===n-1?{text:xlabel,font:{size:10}}:''};
+    layout[yKey]={domain:[bottom,top], anchor:xName, gridcolor:'#e0e4ef', title:{text:rowLabels[i],font:{size:9,color:colors[i]}}};
+    traceSets[i].forEach(tr=>data.push(Object.assign({xaxis:xName,yaxis:yName},tr)));
+  }
+  return {data, layout};
+}
+
+// ============================================================
+// HARMONIC OSCILLATORS
+// state = [Re z, Im z]  (or concatenated per-oscillator for networks)
+// dt = 0.01 s throughout, per spec
+// ============================================================
+const TWO_PI = 2*Math.PI;
+
+const HO = {
+  variants:['Oscillator','Phase-only (Kuramoto)'],
+  cfg:{
+    Oscillator:{
+      eqHtml:`<div class="eq-main">dz/dt = (α + iω) z + F₀ e<sup>iΩt</sup></div>
+        <hr class="eq-hr">
+        <div class="eq-sub">α = 0 → undamped &nbsp;·&nbsp; F₀ = 0 → unforced</div>`,
+      explain:'ω sets the spin rate and α the growth/decay rate — set α = 0 for a lossless circle, negative to decay, positive to grow. F₀/Ω add a periodic push (set F₀ = 0 to remove it).',
+      params:[
+        {id:'omega',       label:'ω  (rad/s)', min:1, max:100, step:0.5, def:TWO_PI*1},
+        {id:'alpha',       label:'α  (growth/damping)', min:-1, max:1, step:0.01, def:-0.1},
+        {id:'F0',          label:'F₀  (drive amplitude, 0 = off)', min:0, max:2, step:0.05, def:0},
+        {id:'omega_drive', label:'Ω  (drive frequency)', min:1, max:100, step:0.5, def:TWO_PI*0.7},
+        {id:'z0r',         label:'z₀ (start radius)', min:0.1, max:2, step:0.05, def:1},
+      ],
+      network:{
+        note:`<span class="eq-sub" style="display:block;margin-bottom:0.35rem;">+ G(z̄ − zᵢ) added to the equation above, z̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the single oscillator above</span>Nodes get a slightly different ω so coupling has something to synchronize; the F₀/Ω drive above is applied to every node. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>`,
+        params:[
+          {id:'N', label:'N  (network size)', min:1, max:6, step:1, def:1},
+          {id:'G', label:'G  (coupling strength)', min:0, max:5, step:0.05, def:0},
+        ]
+      }
+    },
+    'Phase-only (Kuramoto)':{
+      eqHtml:`<div class="eq-main">dθ<sub>i</sub>/dt = ω<sub>i</sub> + (G/N) Σ<sub>j</sub> sin(θ<sub>j</sub> − θ<sub>i</sub>)</div>
+        <hr class="eq-hr">
+        <div class="eq-sub">r = |1/N · Σ e<sup>iθ</sup>|   (order parameter)</div>`,
+      explain:'Each oscillator now has only a phase θ, no amplitude. The coupling nudges every oscillator toward the average phase of the group; above a critical G, they snap into synchrony.',
+      params:[
+        {id:'N',      label:'N  (oscillators)',     min:2, max:20, step:1, def:10},
+        {id:'G',      label:'G  (coupling strength)',min:0, max:5, step:0.1, def:2.0},
+        {id:'spread', label:'frequency spread',     min:0, max:2, step:0.05, def:0.5},
+      ]
+    },
+  },
+
+  simulate(variant, p){
+    if(variant==='Oscillator'){
+      const {omega,alpha,F0,omega_drive,z0r,N,G}=p;
+      if(N<=1){
+        return integrate((t,[re,im])=>[
+          alpha*re-omega*im+F0*Math.cos(omega_drive*t),
+          omega*re+alpha*im+F0*Math.sin(omega_drive*t),
+        ], [z0r,0], 1000, 0.01, 8);
+      }
+      // Networked: N copies of the oscillator above, each nudged toward the
+      // network mean by G(z̄−zᵢ); the same F₀/Ω drive is applied to every node.
+      // A small ω spread across nodes is the only structural difference, so
+      // coupling has something to visibly synchronize.
+      const omegas=Array.from({length:N},(_,i)=>omega*(1+0.12*(i-(N-1)/2)));
+      const rng=makeRng(42);
+      const z0=[];
+      for(let i=0;i<N;i++){ const ph=rng()*TWO_PI; z0.push(z0r*Math.cos(ph), z0r*Math.sin(ph)); }
+      const f=(t,y)=>{
+        const out=new Array(2*N);
+        let sx=0, sy=0;
+        for(let i=0;i<N;i++){ sx+=y[2*i]; sy+=y[2*i+1]; }
+        const zxBar=sx/N, zyBar=sy/N;
+        const driveRe=F0*Math.cos(omega_drive*t), driveIm=F0*Math.sin(omega_drive*t);
+        for(let i=0;i<N;i++){
+          const re=y[2*i], im=y[2*i+1];
+          out[2*i]  = alpha*re - omegas[i]*im + G*(zxBar-re) + driveRe;
+          out[2*i+1]= omegas[i]*re + alpha*im + G*(zyBar-im) + driveIm;
+        }
+        return out;
+      };
+      const sim=integrate(f,z0,1000,0.01,8);
+      sim.N=N; sim.omegas=omegas;
+      return sim;
+    }
+    if(variant==='Phase-only (Kuramoto)'){
+      const {N,G,spread}=p;
+      const rng=makeRng(42);
+      const theta0=Array.from({length:N},()=>rng()*TWO_PI);
+      const omegas=Array.from({length:N},()=>TWO_PI*(1+spread*(2*rng()-1)));
+      const f=(t,theta)=>theta.map((th_i,i)=>{
+        let s=0; for(let j=0;j<N;j++) s+=Math.sin(theta[j]-th_i);
+        return omegas[i]+(G/N)*s;
+      });
+      const sim=integrate(f,theta0,1000,0.01,4);
+      sim.N=N; sim.omegas=omegas;
+      return sim;
+    }
+  },
+
+  plots(variant, p, sim){
+    const {ts,ys}=sim;
+
+    if(variant==='Oscillator' && p.N<=1){
+      const {omega,alpha,F0,omega_drive,z0r}=p;
+      const isForced=F0>0.001;
+      const re=ys.map(y=>y[0]), im=ys.map(y=>y[1]);
+      const tD=downsample(ts,1500), reD=downsample(re,1500), imD=downsample(im,1500);
+      const rate=Math.abs(alpha)>1e-9?(Math.LN2/Math.abs(alpha)).toFixed(2):null;
+
+      // Steady-state driven amplitude (only meaningful when alpha<0; otherwise the
+      // growing/neutral homogeneous part dominates and there is no true steady state).
+      const gamma=alpha;
+      const denomAtDrive=Math.max((omega*omega-omega_drive*omega_drive)**2+(2*gamma*omega_drive)**2, 1e-6);
+      const ampAtDrive=F0/Math.sqrt(denomAtDrive);
+      const nearRes=Math.abs(omega_drive-omega)<0.1*omega;
+
+      let tsCap;
+      if(!isForced){
+        tsCap = alpha<0
+          ? `Decaying oscillation at ω/2π = ${(omega/TWO_PI).toFixed(2)} Hz — amplitude half-life ≈ ${rate} s.`
+          : alpha>0
+          ? `Growing (unstable) oscillation at ω/2π = ${(omega/TWO_PI).toFixed(2)} Hz — amplitude doubles every ≈ ${rate} s.`
+          : `Neutral (α = 0, undamped) — amplitude stays fixed at z₀ = ${z0r.toFixed(2)}.`;
+      } else if(alpha<0){
+        tsCap = nearRes
+          ? `Driving near the natural frequency (Ω ≈ ω) — the response has grown to amplitude ${formatAmp(ampAtDrive)} (resonance).`
+          : `Driven, off-resonance — steady-state amplitude settles to ${formatAmp(ampAtDrive)}.`;
+      } else {
+        tsCap = `Forced on top of a ${alpha===0?'neutral':'growing (unstable)'} oscillator — the drive doesn't stop the amplitude from ${alpha===0?'staying constant regardless':'growing without bound'}.`;
+      }
+
+      // Phase portrait uses only the first ~15 revolutions — at a fast ω over the full
+      // 10 s window there can be 100+ overlapping windings only ~1% apart in radius,
+      // genuinely unresolvable at any line width, not a rendering bug.
+      const periodSamples=Math.max(1,Math.round((TWO_PI/omega)/0.01));
+      const nShow=Math.min(re.length, 15*periodSamples+1);
+      const rePP=downsample(re.slice(0,nShow),1200), imPP=downsample(im.slice(0,nShow),1200);
+
+      let ppCap;
+      if(!isForced){
+        ppCap = alpha<0
+          ? `Inward spiral — each revolution loses a factor e^(α·2π/ω) of its amplitude (α = ${alpha.toFixed(2)}).`
+          : alpha>0
+          ? `Outward spiral — each revolution gains a factor e^(α·2π/ω) in amplitude (α = ${alpha.toFixed(2)}). This is an unstable oscillator: real systems always have α ≤ 0.`
+          : `Perfect circle — α = 0, no energy loss.`;
+      } else if(alpha<0){
+        ppCap = `Spirals inward toward a forced, off-centre steady orbit instead of the origin — forcing shifts where the oscillator settles.`;
+      } else {
+        ppCap = `Forcing can't tame this oscillator — with α ≥ 0 the orbit keeps drifting outward (or stays put) on top of the drive.`;
+      }
+
+      // Resonance curve — an intrinsic property of (α, ω), always shown. When F0 = 0
+      // it's plotted for a unit drive to illustrate the response shape you'd get if
+      // you turned forcing on.
+      const F0eff=isForced?F0:1;
+      const oms=[]; for(let om=1; om<=100; om+=0.5) oms.push(om);
+      const amps=oms.map(Om=>{
+        const rePart=omega*omega-Om*Om, imPart=2*gamma*Om;
+        return F0eff/Math.sqrt(Math.max(rePart*rePart+imPart*imPart,1e-6));
+      });
+      const ampAtDriveShown=isForced?ampAtDrive:F0eff/Math.sqrt(denomAtDrive);
+
+      return [
+        {data:[{x:tD,y:reD,line:{color:BLUE,width:1.4},showlegend:false}],
+          layout:lay('Time series','t (s)','Re(z)'),
+          capS:'Real part of z(t) over time.',
+          capD:tsCap},
+        {data:[ppTrace(rePP,imPP,BLUE,{showlegend:false})],
+          layout:layPP(isForced?'Phase portrait':'Phase portrait (first ~15 turns)','Re(z)','Im(z)'),
+          capS:'Trajectory of z in the complex plane — spirals inward when damped, outward when growing.',
+          capD:ppCap},
+        {data:[
+          {x:oms,y:amps,mode:'lines',line:{color:BLUE,width:2},name:'|H(Ω)| (analytic)'},
+          {x:[omega,omega],y:[0,Math.max(...amps)*1.05],mode:'lines',line:{color:'#999',width:1.5,dash:'dash'},name:'ω (natural freq.)'},
+          {x:[omega_drive],y:[ampAtDriveShown],mode:'markers',marker:{color:CORAL,size:12,line:{color:'white',width:1.5}},name:'your Ω (slider)'},
+        ], layout:{...lay('Resonance curve (analytical)','Ω  (drive frequency, rad/s)',isForced?'Steady-state amplitude':'Response per unit drive'),
+            annotations:[{x:omega_drive,y:ampAtDriveShown,text:'your Ω →',showarrow:false,xanchor:'right',yanchor:'bottom',font:{color:CORAL,size:10,family:'sans-serif'}}]},
+          capS: isForced
+            ? 'Steady-state amplitude as the driving frequency Ω is swept (computed analytically). The coral dot marks where your current Ω slider sits on this curve.'
+            : 'Forcing is off (F₀ = 0), so this shows the response shape for a unit drive — turn up F₀ to actually apply it.',
+          capD: isForced
+            ? (nearRes
+              ? `Ω = ${omega_drive.toFixed(1)} rad/s sits right on the resonance peak at ω = ${omega.toFixed(1)} rad/s.`
+              : `Ω = ${omega_drive.toFixed(1)} rad/s is away from the resonance at ω = ${omega.toFixed(1)} rad/s.`)
+            : `If you turned on forcing near Ω = ω = ${omega.toFixed(1)} rad/s, the response would peak here.`},
+      ];
+    }
+
+    if(variant==='Oscillator'){
+      const {G,alpha}=p;
+      const N=sim.N, omegas=sim.omegas;
+      const reAll=Array.from({length:N},(_,k)=>downsample(ys.map(y=>y[2*k]),1200));
+      const imAll=Array.from({length:N},(_,k)=>downsample(ys.map(y=>y[2*k+1]),1200));
+      const tD=downsample(ts,1200);
+      const ampFinal=Array.from({length:N},(_,k)=>{
+        const re=ys[ys.length-1][2*k], im=ys[ys.length-1][2*k+1];
+        return Math.sqrt(re*re+im*im);
+      });
+      const spread=Math.max(...ampFinal)-Math.min(...ampFinal);
+      const synced = G>1 && spread<0.2;
+      const kuraNote = 'In the limit of identical frequencies and fixed amplitude, this network reduces to the Kuramoto model.';
+      return [
+        {data:reAll.map((r,k)=>({x:tD,y:r,name:`z${k+1} (ω=${omegas[k].toFixed(2)})`,line:{color:PALETTE[k%PALETTE.length],width:1.3}})),
+          layout:lay('Time series (each oscillator)','t (s)','Re(z)'),
+          capS:'Real part of each oscillator\'s trajectory.',
+          capD: synced
+            ? `Strong coupling (G = ${G.toFixed(2)}) — the oscillators have locked to a shared rhythm. ${kuraNote}`
+            : `Weak-to-moderate coupling (G = ${G.toFixed(2)}) — each oscillator still keeps much of its own rhythm.`},
+        {data:reAll.map((r,k)=>ppTrace(r,imAll[k],PALETTE[k%PALETTE.length],{name:`z${k+1}`})),
+          layout:layPP('Phase portraits (overlaid)','Re(z)','Im(z)'),
+          capS:'Phase portraits of all oscillators overlaid — Re(z) vs Im(z).',
+          capD: synced
+            ? 'Orbits overlap almost perfectly — synchronised.'
+            : 'Orbits stay distinct — not yet synchronised.'},
+      ];
+    }
+
+    if(variant==='Phase-only (Kuramoto)'){
+      const {N,G,spread}=p;
+      const orderR=ys.map(theta=>{
+        let re=0,im=0; for(let i=0;i<N;i++){re+=Math.cos(theta[i]);im+=Math.sin(theta[i]);}
+        return Math.sqrt(re*re+im*im)/N;
+      });
+      const finalR=orderR[orderR.length-1];
+      const tD=downsample(ts,1500);
+      const traceColor = G>1 ? 'rgba(255,102,87,0.25)' : 'rgba(0,40,120,0.2)';
+      const cosTraces=Array.from({length:N},(_,i)=>({
+        x:tD, y:downsample(ys.map(th=>Math.cos(th[i])),1500),
+        mode:'lines', line:{color:traceColor,width:0.8}, showlegend:false, hoverinfo:'skip',
+      }));
+      cosTraces.push({x:tD, y:downsample(orderR,1500), mode:'lines', line:{color:'black',width:2.5}, name:'R(t)'});
+
+      // synchronisation curve: mean R over the last half, sweeping G (same N/spread/seed)
+      const rng0=makeRng(42);
+      const theta0=Array.from({length:N},()=>rng0()*TWO_PI);
+      const omegas0=Array.from({length:N},()=>TWO_PI*(1+spread*(2*rng0()-1)));
+      const Gmax=5, nG=25;
+      const Gvals=[], Rmeans=[];
+      for(let gi=0;gi<=nG;gi++){
+        const Gv=Gmax*gi/nG;
+        const fG=(t,theta)=>theta.map((th_i,i)=>{ let s=0; for(let j=0;j<N;j++) s+=Math.sin(theta[j]-th_i); return omegas0[i]+(Gv/N)*s; });
+        const simG=integrate(fG, theta0, 400, 0.02, 2); // 8 s, coarser — this is a cheap sweep, not the main view
+        const tail=simG.ys.slice(Math.floor(simG.ys.length*0.5));
+        const rTail=tail.map(th=>{ let re=0,im=0; for(let j=0;j<N;j++){re+=Math.cos(th[j]);im+=Math.sin(th[j]);} return Math.sqrt(re*re+im*im)/N; });
+        Gvals.push(Gv); Rmeans.push(rTail.reduce((a,b)=>a+b,0)/rTail.length);
+      }
+      const gcIdx=Rmeans.findIndex(r=>r>0.5);
+      const Gc=gcIdx>=0?Gvals[gcIdx].toFixed(2):`> ${Gmax}`;
+
+      return [
+        {data:cosTraces,
+          layout:{...lay(`cos θᵢ(t) and R(t) — G = ${G.toFixed(2)}`,'t (s)','cos θᵢ  /  R(t)'), yaxis:{range:[-1.05,1.05],gridcolor:'#e0e4ef',title:'cos θᵢ  /  R(t)'}},
+          capS:'Thin lines: cos(θᵢ) for each oscillator. Bold black line: order parameter R(t).',
+          capD: finalR>0.9 ? 'The thin lines have locked into a single shared rhythm — fully synchronised.'
+              : finalR>0.3 ? 'The thin lines are drifting into rough alignment — partial synchrony.'
+              : 'The thin lines run at their own pace with no shared rhythm — incoherent.'},
+        {data:[
+          {x:tD,y:downsample(orderR,1500),mode:'lines',line:{color:CORAL,width:2},showlegend:false},
+        ], layout:{...lay('Order parameter r(t)','t (s)','r'), yaxis:{range:[0,1.05],gridcolor:'#e0e4ef',title:'r'}},
+          capS:'r measures synchrony. r=1 fully in sync, r=0 incoherent.',
+          capD: finalR>0.9 ? `r ≈ ${finalR.toFixed(2)} — fully synchronised.`
+              : finalR>0.3 ? `r ≈ ${finalR.toFixed(2)} — partially synchronised.`
+              : `r ≈ ${finalR.toFixed(2)} — incoherent, oscillators running independently.`},
+        {data:[
+          {x:Gvals,y:Rmeans,mode:'lines+markers',line:{color:BLUE,width:2},marker:{color:BLUE,size:4},showlegend:false},
+          {x:[G,G],y:[0,1.05],mode:'lines',line:{color:CORAL,width:2,dash:'dash'},name:`your G = ${G.toFixed(2)}`},
+        ], layout:{...lay('Synchronisation curve','Coupling G','⟨R⟩ (mean order parameter)'), yaxis:{range:[0,1.05],gridcolor:'#e0e4ef',title:'⟨R⟩'}},
+          capS:'Mean order parameter as coupling G is swept from 0 to 5. The coral line marks your current G.',
+          capD: `Synchrony switches on around G ≈ ${Gc}. Your G = ${G.toFixed(2)} gives ⟨R⟩ ≈ ${Rmeans[Math.min(nG,Math.round(G/Gmax*nG))]?.toFixed(2)}.`},
+      ];
+    }
+  }
+};
+
+// ============================================================
+// STUART–LANDAU OSCILLATOR
+// ż = (α+iω)z − (γ+iβ)|z|²z   (γ = saturation, β = shear — matches paper §3 Eq. 3.4-3.6)
+// state = [x, y] per oscillator; dt = 0.01 s
+// ============================================================
+const SL = {
+  variants:['Oscillator'],
+  cfg:{
+    Oscillator:{
+      eqHtml:`<div class="eq-main">ż = (α + iω)z − (γ + iβ)|z|²z</div>
+        <hr class="eq-hr">
+        <div class="eq-sub">Cartesian: ẋ = αx − ωy − γ(x²+y²)x + β(x²+y²)y &nbsp;·&nbsp; ẏ = αy + ωx − γ(x²+y²)y − β(x²+y²)x</div>
+        <div class="eq-sub">α &gt; 0 → limit cycle at r* = √(α/γ) &nbsp;·&nbsp; γ &gt; 0 required</div>`,
+      explain:'α is the Hopf bifurcation parameter: negative decays to rest, positive gives a self-sustained rhythm at radius r* = √(α/γ). ω sets the rotation speed and doesn\'t affect r* or the bifurcation diagram. γ (&gt;0) caps the amplitude — bigger γ means a smaller, tighter limit cycle. β doesn\'t change the amplitude either; it only shifts the instantaneous frequency as amplitude grows ("shear").',
+      params:[
+        {id:'alpha', label:'α  (growth/decay)', min:-1, max:2, step:0.05, def:1},
+        {id:'omega', label:'ω  (rad/s)', min:0.5, max:10, step:0.1, def:2},
+        {id:'gamma', label:'γ  (saturation, &gt;0)', min:0.1, max:3, step:0.05, def:1},
+        {id:'beta',  label:'β  (shear)', min:-3, max:3, step:0.05, def:1},
+      ],
+      network:{
+        note:`<span class="eq-sub" style="display:block;margin-bottom:0.35rem;">+ G(z̄ − zᵢ) added to the equation above, z̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the single oscillator above</span>Nodes get a slightly different ω so coupling has something to synchronize. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>`,
+        params:[
+          {id:'N', label:'N  (network size)', min:1, max:6, step:1, def:1},
+          {id:'G', label:'G  (coupling strength)', min:0, max:3, step:0.05, def:0},
+        ]
+      }
+    },
+  },
+
+  simulate(variant, p){
+    const {alpha,omega,gamma,beta,N,G}=p;
+    if(N<=1){
+      return integrate((t,[x,y])=>{
+        const r2=x*x+y*y;
+        return [
+          alpha*x-omega*y-gamma*r2*x+beta*r2*y,
+          alpha*y+omega*x-gamma*r2*y-beta*r2*x,
+        ];
+      }, [0.1,0], 3000, 0.01, 4);
+    }
+    // Networked: N copies of the same node above, each nudged toward the network
+    // mean by G(z̄−zᵢ). A small ω spread across nodes is the only structural
+    // difference — otherwise identical nodes would give G nothing to visibly do.
+    const omegas=Array.from({length:N},(_,i)=>omega*(1+0.12*(i-(N-1)/2)));
+    const rng=makeRng(7);
+    const z0=[];
+    for(let i=0;i<N;i++){ const ph=rng()*TWO_PI; z0.push(0.3*Math.cos(ph),0.3*Math.sin(ph)); }
+    const f=(t,y)=>{
+      const out=new Array(2*N);
+      let sx=0, sy=0;
+      for(let i=0;i<N;i++){ sx+=y[2*i]; sy+=y[2*i+1]; }
+      const zxBar=sx/N, zyBar=sy/N;
+      for(let i=0;i<N;i++){
+        const x=y[2*i], yy=y[2*i+1], r2=x*x+yy*yy;
+        out[2*i]  = alpha*x  - omegas[i]*yy - gamma*r2*x  + beta*r2*yy + G*(zxBar-x);
+        out[2*i+1]= alpha*yy + omegas[i]*x  - gamma*r2*yy - beta*r2*x  + G*(zyBar-yy);
+      }
+      return out;
+    };
+    const sim=integrate(f,z0,3000,0.01,4);
+    sim.N=N; sim.omegas=omegas;
+    return sim;
+  },
+
+  plots(variant, p, sim){
+    const {ts,ys}=sim;
+    const {alpha,omega,gamma,beta,N,G}=p;
+
+    if(N<=1){
+      const x=ys.map(y=>y[0]), yv=ys.map(y=>y[1]);
+      const r=x.map((xi,i)=>Math.sqrt(xi*xi+yv[i]*yv[i]));
+      const tD=downsample(ts,2000), xD=downsample(x,2000), yD=downsample(yv,2000), rD=downsample(r,2000);
+      const hasLC=alpha>1e-9;
+      const rStar=hasLC?Math.sqrt(alpha/gamma):0;
+      const rFinal=r[r.length-1];
+
+      let tsCap;
+      if(alpha<-1e-9) tsCap=`Decaying to rest — α = ${alpha.toFixed(2)} < 0, no sustained rhythm.`;
+      else if(alpha>1e-9) tsCap=`Self-sustained limit cycle — amplitude settles at r* = √(α/γ) ≈ ${rStar.toFixed(2)}.`;
+      else tsCap=`Right at the Hopf bifurcation (α = 0) — the origin is only marginally stable.`;
+
+      let ppCap;
+      if(alpha<-1e-9) ppCap='Inward spiral to the origin — the cubic term only matters once α ≥ 0.';
+      else if(alpha>1e-9) ppCap=`Spirals onto a fixed-radius limit cycle at r* ≈ ${rStar.toFixed(2)}, regardless of starting point.`;
+      else ppCap='Marginal — the origin is the only fixed point, and only weakly (non-exponentially) stable.';
+
+      // Bifurcation diagram is analytic (r* = √(α/γ)), so no simulation sweep needed —
+      // cheap to redraw live on every slider move, unlike WILCO's numerically-swept one.
+      const aRange=[]; for(let a=-1; a<=2.0001; a+=0.03) aRange.push(a);
+      const rStable=aRange.map(a=>a<0?0:null);
+      const rUnstable=aRange.map(a=>a>=0?0:null);
+      const rLC=aRange.map(a=>a>0?Math.sqrt(a/gamma):null);
+      const maxRLC=Math.max(0.1, ...rLC.filter(v=>v!==null));
+
+      return [
+        {data:[
+          {x:tD,y:xD,name:'x(t)',line:{color:BLUE,width:1.4}},
+          {x:tD,y:yD,name:'y(t)',line:{color:CORAL,width:1.4}},
+          {x:tD,y:rD,name:'r(t)',line:{color:'#2E7D32',width:1.3,dash:'dash'}},
+        ], layout:lay('Time series','t (s)','activity'),
+          capS:'Excitatory x(t), inhibitory y(t), and amplitude r(t) = √(x²+y²).',
+          capD:tsCap},
+        {data: hasLC ? [
+            ppTrace(downsample(x,1200),downsample(yv,1200),BLUE,{showlegend:false}),
+            {x:Array.from({length:100},(_,i)=>rStar*Math.cos(i/99*TWO_PI)),
+             y:Array.from({length:100},(_,i)=>rStar*Math.sin(i/99*TWO_PI)),
+             mode:'lines', line:{color:'#2E7D32',width:1.5,dash:'dot'}, name:`limit cycle r*=${rStar.toFixed(2)}`},
+          ] : [ppTrace(downsample(x,1200),downsample(yv,1200),BLUE,{showlegend:false})],
+          layout:layPP('Phase portrait','x','y'),
+          capS:'Trajectory in the (x,y) plane.',
+          capD:ppCap},
+        {data:[
+          {x:aRange,y:rStable,mode:'lines',line:{color:'#455A64',width:2.5},name:'stable fixed point (r=0)'},
+          {x:aRange,y:rUnstable,mode:'lines',line:{color:'#90A4AE',width:1.5,dash:'dash'},name:'unstable fixed point (r=0)'},
+          {x:aRange,y:rLC,mode:'lines',line:{color:BLUE,width:2.5},name:'limit cycle r*=√(α/γ)'},
+          {x:[0,0],y:[0,maxRLC*1.1],mode:'lines',line:{color:CORAL,width:1.2,dash:'dot'},name:'Hopf bifurcation (α=0)'},
+          {x:[alpha],y:[rFinal],mode:'markers',marker:{color:'#FF6F00',size:10},name:`current α=${alpha.toFixed(2)}`},
+        ], layout:lay('Bifurcation diagram','α','long-run amplitude r',{yaxis:{range:[-0.05,maxRLC*1.2],gridcolor:'#e0e4ef',title:'r'}}),
+          capS:'Long-run amplitude as the bifurcation parameter α is swept (analytic curve; γ fixed at the current slider value).',
+          capD:`γ = ${gamma.toFixed(2)} sets how sharply the limit-cycle branch rises above α = 0.`},
+      ];
+    }
+
+    // Network view (N > 1)
+    const N_=sim.N, omegas=sim.omegas;
+    const xAll=Array.from({length:N_},(_,k)=>downsample(ys.map(y=>y[2*k]),1200));
+    const yAll=Array.from({length:N_},(_,k)=>downsample(ys.map(y=>y[2*k+1]),1200));
+    const tD=downsample(ts,1200);
+    const rFinal=Array.from({length:N_},(_,k)=>{
+      const x=ys[ys.length-1][2*k], y=ys[ys.length-1][2*k+1];
+      return Math.sqrt(x*x+y*y);
+    });
+    const spread=Math.max(...rFinal)-Math.min(...rFinal);
+    const synced=G>0.5 && spread<0.15;
+
+    return [
+      {data:xAll.map((x,k)=>({x:tD,y:x,name:`z${k+1} (ω=${omegas[k].toFixed(2)})`,line:{color:PALETTE[k%PALETTE.length],width:1.3}})),
+        layout:lay('Time series (each oscillator)','t (s)','x'),
+        capS:'Excitatory component of each oscillator\'s trajectory.',
+        capD: synced
+          ? `Strong coupling (G = ${G.toFixed(2)}) has pulled all ${N_} oscillators onto a shared rhythm despite their different ωᵢ.`
+          : `Coupling G = ${G.toFixed(2)} — each oscillator still keeps much of its own frequency.`},
+      {data:xAll.map((x,k)=>ppTrace(x,yAll[k],PALETTE[k%PALETTE.length],{name:`z${k+1}`})),
+        layout:layPP('Phase portraits (overlaid)','x','y'),
+        capS:'Phase portraits of all oscillators overlaid.',
+        capD: synced
+          ? 'Orbits overlap almost perfectly — synchronised via diffusive coupling.'
+          : 'Orbits stay distinct — not yet synchronised.'},
+    ];
+  }
+};
+
+// ============================================================
+// WILSON–COWAN
+// time in ms, dt = 0.01 ms, T = 500 ms (per spec)
+// ============================================================
+function sigmoid(I, slope, I0){ return 1/(1+Math.exp(slope*(I0-I))); }
+const SLOPE_X=1.3, I0_X=4.0, SLOPE_Y=2.0, I0_Y=3.7;
+
+// Regime is classified from the ACTUAL simulated trajectory (amplitude + resting
+// level), not from a fixed Px cutoff — a fixed number like "Px<0.8" doesn't track the
+// real Hopf bifurcation point, which shifts with wxx/taux and isn't even at a round
+// number (for the defaults it's closer to Px≈1.3, not 0.8).
+function wilcoRegimeFromData(amp, meanX){
+  if (amp > 0.01) return {key:'oscillating', label:'oscillating (limit cycle)'};
+  return meanX > 0.5 ? {key:'saturated', label:'saturated (maximum firing)'} : {key:'silent', label:'silent (at rest)'};
+}
+function wilcoTimeSeriesCaptionFromData(amp, meanX){
+  const r=wilcoRegimeFromData(amp, meanX).key;
+  if(r==='silent') return 'System is silent — no rhythm, both populations at rest.';
+  if(r==='oscillating') return 'Steady rhythm — the inhibitory population always lags the excitatory by a quarter cycle.';
+  return 'Both populations saturated at maximum firing rate.';
+}
+// Looks up the bifurcation curve's amplitude at a given Px, to answer "would a node
+// with this Px oscillate on its own, in isolation?" — used to detect nodes that are
+// only oscillating because they're entrained by a coupled neighbour, not on their own.
+function bifAmplitudeAt(bif, px){
+  const step=bif.ps[1]-bif.ps[0];
+  const idx=Math.max(0, Math.min(bif.amps.length-1, Math.round((px-bif.ps[0])/step)));
+  return bif.amps[idx];
+}
+
+let _bifCache={key:null,ps:null,amps:null};
+// Scalar (no per-step array allocation) RK4 for one Px point — same technique as
+// arnoldSweepCell. The generic array-based integrate() took ~2.1s for the full 61-point
+// sweep (a real freeze every time wxx/taux is dragged); this brings it down sharply by
+// avoiding array allocation in the hot loop and tracking running min/max instead of
+// storing (and re-scanning) the whole trajectory.
+function bifurcationCell(wxx, taux, pv, steps, dt, tailStart){
+  let x=0.1, y=0.05;
+  let tailMax=-Infinity, tailMin=Infinity;
+  for(let i=0;i<=steps;i++){
+    if(i>=tailStart){ if(x>tailMax) tailMax=x; if(x<tailMin) tailMin=x; }
+    const s1x=1/(1+Math.exp(SLOPE_X*(I0_X-(wxx*x-12*y+pv))));
+    const s1y=1/(1+Math.exp(SLOPE_Y*(I0_Y-(15*x-3*y))));
+    const k1x=(s1x-x)/taux, k1y=(s1y-y)/8;
+    const x2=x+0.5*dt*k1x, y2=y+0.5*dt*k1y;
+    const s2x=1/(1+Math.exp(SLOPE_X*(I0_X-(wxx*x2-12*y2+pv))));
+    const s2y=1/(1+Math.exp(SLOPE_Y*(I0_Y-(15*x2-3*y2))));
+    const k2x=(s2x-x2)/taux, k2y=(s2y-y2)/8;
+    const x3=x+0.5*dt*k2x, y3=y+0.5*dt*k2y;
+    const s3x=1/(1+Math.exp(SLOPE_X*(I0_X-(wxx*x3-12*y3+pv))));
+    const s3y=1/(1+Math.exp(SLOPE_Y*(I0_Y-(15*x3-3*y3))));
+    const k3x=(s3x-x3)/taux, k3y=(s3y-y3)/8;
+    const x4=x+dt*k3x, y4=y+dt*k3y;
+    const s4x=1/(1+Math.exp(SLOPE_X*(I0_X-(wxx*x4-12*y4+pv))));
+    const s4y=1/(1+Math.exp(SLOPE_Y*(I0_Y-(15*x4-3*y4))));
+    const k4x=(s4x-x4)/taux, k4y=(s4y-y4)/8;
+    x=x+dt/6*(k1x+2*k2x+2*k3x+k4x);
+    y=y+dt/6*(k1y+2*k2y+2*k3y+k4y);
+  }
+  return tailMax-tailMin;
+}
+function computeBifurcation(wxx, taux){
+  const key=wxx.toFixed(2)+'_'+taux.toFixed(2);
+  if(_bifCache.key===key) return _bifCache;
+  // 600 ms settle time per Px (longer than the main 500 ms view — near a bifurcation,
+  // transients decay slowly, so a short sim reads a transient, not the true attractor,
+  // which is what made this curve look noisy/jagged). Only the last 20% is measured,
+  // matching the reference notebook's sol[0, -len(t)//5:].
+  const dt=0.05, steps=12000; // 600 ms (0.02ms/30000 steps was 400 substeps per the 8ms
+  // time constant — RK4 is plenty accurate at 160 substeps, so this cuts the cost further
+  // with no real accuracy loss)
+  const tailStart=Math.floor(steps*0.8);
+  const ps=[], amps=[];
+  for(let pv=0; pv<=6.0001; pv+=0.1){
+    ps.push(pv);
+    amps.push(bifurcationCell(wxx, taux, pv, steps, dt, tailStart));
+  }
+  _bifCache={key,ps,amps};
+  return _bifCache;
+}
+
+// Arnold tongue: sweep (drive frequency, drive amplitude) and mark where the network
+// locks onto the drive. Uses the same fixed Px=1.5 / weights as the reference sweep
+// regardless of the Forced variant's sliders, so the map itself never changes — compute
+// once and cache forever (~1200 short simulations, still only a one-off cost).
+// A hand-unrolled, scalar (no per-step array allocation) RK4 + FFT for one (A, f) cell.
+// The generic array-based integrate()/rk4step() cost ~22 ms/cell here — fine for a
+// single plot, but this sweep needs ~1200 of them. This version runs ~4x faster
+// (~5 ms/cell) by working with plain numbers instead of arrays in the hot loop.
+function arnoldSweepCell(P, Aval, fval){
+  const {tau_x,tau_y,wxx,wxy,wyx,wyy,Px,steps,dt,half}=P;
+  let x=0.1, y=0.05, t=0;
+  const xs=new Float64Array(steps+1-half);
+  let idx=0;
+  for(let i=0;i<=steps;i++){
+    if(i>=half) xs[idx++]=x;
+    const Fe1=Aval*Math.sin(2*Math.PI*fval*t/1000);
+    const s1x=1/(1+Math.exp(SLOPE_X*(I0_X-(wxx*x-wxy*y+Px+Fe1))));
+    const s1y=1/(1+Math.exp(SLOPE_Y*(I0_Y-(wyx*x-wyy*y))));
+    const k1x=(s1x-x)/tau_x, k1y=(s1y-y)/tau_y;
+    const x2=x+0.5*dt*k1x, y2=y+0.5*dt*k1y, t2=t+0.5*dt;
+    const Fe2=Aval*Math.sin(2*Math.PI*fval*t2/1000);
+    const s2x=1/(1+Math.exp(SLOPE_X*(I0_X-(wxx*x2-wxy*y2+Px+Fe2))));
+    const s2y=1/(1+Math.exp(SLOPE_Y*(I0_Y-(wyx*x2-wyy*y2))));
+    const k2x=(s2x-x2)/tau_x, k2y=(s2y-y2)/tau_y;
+    const x3=x+0.5*dt*k2x, y3=y+0.5*dt*k2y;
+    const s3x=1/(1+Math.exp(SLOPE_X*(I0_X-(wxx*x3-wxy*y3+Px+Fe2))));
+    const s3y=1/(1+Math.exp(SLOPE_Y*(I0_Y-(wyx*x3-wyy*y3))));
+    const k3x=(s3x-x3)/tau_x, k3y=(s3y-y3)/tau_y;
+    const x4=x+dt*k3x, y4=y+dt*k3y, t4=t+dt;
+    const Fe4=Aval*Math.sin(2*Math.PI*fval*t4/1000);
+    const s4x=1/(1+Math.exp(SLOPE_X*(I0_X-(wxx*x4-wxy*y4+Px+Fe4))));
+    const s4y=1/(1+Math.exp(SLOPE_Y*(I0_Y-(wyx*x4-wyy*y4))));
+    const k4x=(s4x-x4)/tau_x, k4y=(s4y-y4)/tau_y;
+    x=x+dt/6*(k1x+2*k2x+2*k3x+k4x);
+    y=y+dt/6*(k1y+2*k2y+2*k3y+k4y);
+    t=t+dt;
+  }
+  let mean=0; for(let i=0;i<xs.length;i++) mean+=xs[i];
+  mean/=xs.length;
+  const arr=new Array(xs.length);
+  for(let i=0;i<xs.length;i++) arr[i]=xs[i]-mean;
+  const sp=powerSpectrum(arr, dt/1000);
+  const peak=peakFreq(sp.freqs, sp.power, null);
+  return (Math.abs(peak-fval)<1.5 && Aval>0.02) ? 1 : 0;
+}
+
+// Runs the sweep in small time-boxed chunks (setTimeout between chunks) instead of one
+// long blocking call, so the tab never appears frozen no matter how slow the device is.
+// onProgress(pct) fires after every chunk; onDone(result) fires once, then the result
+// is cached forever (the sweep is constant — it doesn't depend on any slider).
+let _arnoldCache=null, _arnoldPending=null, _arnoldLastPct=0;
+function computeArnoldTongueAsync(onProgress, onDone){
+  if(_arnoldCache){ onDone(_arnoldCache); return; }
+  if(_arnoldPending){ onProgress(_arnoldLastPct); _arnoldPending.progressCbs.push(onProgress); _arnoldPending.doneCbs.push(onDone); return; }
+  const fValues=Array.from({length:40},(_,i)=>5+(50-5)*i/39);
+  const AValues=Array.from({length:30},(_,i)=>0.3*i/29);
+  const steps=3199, dt=800/3199; // 800 ms total, dt coarsened from the reference's
+  // 0.05 ms (16000 steps) to 0.25 ms — still ~30 substeps per tau=8 ms time constant,
+  // plenty for RK4, and the analysis window (last half, in real ms) is unchanged so
+  // frequency resolution is identical either way.
+  const half=Math.floor((steps+1)/2);
+  const P={tau_x:8,tau_y:8,wxx:16,wxy:12,wyx:15,wyy:3,Px:1.5,steps,dt,half};
+  const entrained=AValues.map(()=>new Array(fValues.length).fill(0));
+  let ai=0, fi=0, done=0;
+  const total=AValues.length*fValues.length;
+  const state={progressCbs:[onProgress], doneCbs:[onDone]};
+  _arnoldPending=state;
+  function chunk(){
+    const chunkStart=performance.now();
+    while(ai<AValues.length && performance.now()-chunkStart<35){
+      entrained[ai][fi]=arnoldSweepCell(P, AValues[ai], fValues[fi]);
+      done++; fi++;
+      if(fi>=fValues.length){ fi=0; ai++; }
+    }
+    _arnoldLastPct=Math.round(100*done/total);
+    state.progressCbs.forEach(cb=>cb(_arnoldLastPct));
+    if(ai<AValues.length){
+      setTimeout(chunk,0);
+    } else {
+      _arnoldCache={fValues, AValues, entrained};
+      _arnoldPending=null;
+      state.doneCbs.forEach(cb=>cb(_arnoldCache));
+    }
+  }
+  chunk();
+}
+
+const WILCO = {
+  variants:['Single Node'],
+  cfg:{
+    'Single Node':{
+      eqHtml:`<div class="eq-main">τ<sub>x</sub>ẋ + x = σ(w<sub>xx</sub>x − w<sub>xy</sub>y + P<sub>x</sub> + F<sub>e</sub>(t))</div>
+        <div class="eq-main">τ<sub>y</sub>ẏ + y = σ(w<sub>yx</sub>x − w<sub>yy</sub>y)</div>
+        <hr class="eq-hr">
+        <div class="eq-sub">F<sub>e</sub>(t) = A · sin(2π·f·t / 1000) &nbsp;·&nbsp; A = 0 → unforced</div>
+        <div class="eq-sub">σ(I) = 1 / (1 + e<sup>slope·(I0 − I)</sup>) &nbsp;·&nbsp; fixed: τ<sub>y</sub>=8, w<sub>xy</sub>=12, w<sub>yx</sub>=15, w<sub>yy</sub>=3</div>`,
+      explain:'x is the excitatory firing rate and y the inhibitory firing rate. P_x is a constant background drive — turn it up and the E–I loop can start oscillating on its own (a Hopf bifurcation). A and f add a rhythmic input on top of that; set A = 0 to remove it.',
+      params:[
+        {id:'Px',    label:'P<sub>x</sub>  (drive)', min:0, max:6, step:0.05, def:1.5},
+        {id:'wxx',   label:'w<sub>xx</sub>  (E→E)',  min:0, max:20, step:0.5, def:16},
+        {id:'taux',  label:'τ<sub>x</sub>  (ms)',    min:1, max:20, step:0.5, def:8},
+        {id:'A',     label:'A  (forcing amplitude, 0 = off)', min:0, max:0.2, step:0.005, def:0},
+        {id:'fStim', label:'f<sub>stim</sub>  (Hz)', min:1, max:80, step:1, def:24},
+      ],
+      network:{
+        note:`<span class="eq-sub" style="display:block;margin-bottom:0.35rem;">+ G(x̄ − xᵢ) added inside σ for xᵢ above, x̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the node above</span>Nodes get a slightly different P<sub>x</sub> so some may need coupling to oscillate at all; only node 0 feels A/f<sub>stim</sub> directly — watch it reach the others only through coupling. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>`,
+        params:[
+          {id:'N', label:'N  (network size)', min:1, max:5, step:1, def:1},
+          {id:'G', label:'G  (coupling strength)', min:0, max:5, step:0.1, def:0},
+        ]
+      }
+    },
+  },
+
+  simulate(variant, p){
+    const dt=0.01, steps=50000; // 0 → 500 ms
+    const {Px,wxx,taux,A,fStim,N,G}=p;
+    if(N<=1){
+      const f=(t,[x,y])=>{
+        const Fe=A*Math.sin(2*Math.PI*fStim*t/1000);
+        return [
+          (sigmoid(wxx*x-12*y+Px+Fe, SLOPE_X, I0_X)-x)/taux,
+          (sigmoid(15*x-3*y, SLOPE_Y, I0_Y)-y)/8,
+        ];
+      };
+      return integrate(f,[0.1,0.05],steps,dt);
+    }
+    // Networked: N copies of the node above, each nudged toward the network's
+    // mean excitatory rate by G(x̄−xᵢ) inside its own sigmoid. Nodes get a small
+    // spread in Px so some may need coupling to oscillate at all; only node 0
+    // feels the A/fStim stimulus directly, to show it propagate via coupling.
+    const PxVals=Array.from({length:N},(_,i)=>Px+0.5*(i-(N-1)/2));
+    const x0=Array.from({length:N},(_,i)=>0.1-0.01*i), y0=Array.from({length:N},(_,i)=>0.05-0.005*i);
+    const state0=[...x0, ...y0];
+    const f=(t,y)=>{
+      const x=y.slice(0,N), yy=y.slice(N,2*N);
+      const xbar=x.reduce((s,v)=>s+v,0)/N;
+      const dx=new Array(N), dy=new Array(N);
+      const Fe0=A*Math.sin(2*Math.PI*fStim*t/1000);
+      for(let i=0;i<N;i++){
+        const coup=G*(xbar-x[i]);
+        const Fe=i===0?Fe0:0;
+        dx[i]=(sigmoid(wxx*x[i]-12*yy[i]+PxVals[i]+Fe+coup, SLOPE_X, I0_X)-x[i])/taux;
+        dy[i]=(sigmoid(15*x[i]-3*yy[i], SLOPE_Y, I0_Y)-yy[i])/8;
+      }
+      return dx.concat(dy);
+    };
+    const sim=integrate(f,state0,steps,dt);
+    sim.N=N; sim.Px=PxVals; sim.fStim=fStim;
+    return sim;
+  },
+
+  // A dedicated, longer, independent simulation just for the power spectrum: the main
+  // 500 ms view (dt=0.01 ms) only leaves ~250 ms of "steady state" to analyse, which
+  // gives frequency bins ~3-4 Hz apart — coarse enough to look jagged/stair-stepped on
+  // a log plot. Running 2000 ms at a coarser dt (still far above Nyquist for these
+  // frequencies) gives ~0.4 Hz resolution, matching the reference notebook's approach.
+  steadySignalForSpectrum(f, y0, xIndex){
+    const {ys}=integrate(f, y0, 100000, 0.02); // 2000 ms
+    const col=ys.map(y=>y[xIndex]);
+    return col.slice(Math.floor(col.length*0.1));
+  },
+
+  // Arnold tongue plot: the sweep that builds it takes a few seconds even chunked, so
+  // this returns a placeholder immediately and patches the real plot in once the async
+  // sweep finishes (or instantly, if it's already cached from an earlier visit).
+  arnoldTonguePlot(fStim, A, pk){
+    const gen=renderGen;
+    const idx=2; // 3rd plot slot in the Forced variant
+    const build=(at)=>{
+      const nowEntrained=(Math.abs(pk-fStim)<1.5 && A>0.02);
+      return {data:[
+        {type:'contour', x:at.fValues, y:at.AValues, z:at.entrained,
+          colorscale:[[0,'white'],[1,BLUE]], autocontour:false,
+          contours:{start:0.5,end:1.5,size:1,coloring:'fill',showlines:false},
+          showscale:false, showlegend:false, hoverinfo:'skip'},
+        {x:[24,24], y:[0,0.3], mode:'lines', line:{color:'red',width:1.5,dash:'dash'}, name:'natural freq (24 Hz)'},
+        {x:[fStim], y:[A], mode:'markers', marker:{color:CORAL,size:11,symbol:'circle-open',line:{width:2.5,color:CORAL}}, name:'your (f, A)'},
+      ], layout:{...lay('Arnold tongue — entrainment region','Forcing frequency f (Hz)','Forcing amplitude A'),
+          yaxis:{range:[0,0.3],gridcolor:'#e0e4ef',title:'A'}, legend:{x:0.02,y:0.98,font:{size:8}}},
+        height:280,
+        capS:'Blue region = combinations of forcing frequency and amplitude where the network locks onto the drive (entrainment). Red dashed line = the network\'s natural rhythm (~24 Hz).',
+        capD: nowEntrained
+          ? `Your (f=${fStim} Hz, A=${A.toFixed(2)}) is inside the entrainment region — the network is locked to your drive.`
+          : `Your (f=${fStim} Hz, A=${A.toFixed(2)}) is outside the entrainment region — the network is not locked to your drive.`};
+    };
+    if(_arnoldCache) return build(_arnoldCache);
+    computeArnoldTongueAsync(
+      (pct)=>{
+        if(gen!==renderGen) return;
+        const capD=document.getElementById(`capD${idx}`);
+        if(capD) capD.textContent=`Computing entrainment map… ${pct}%`;
+      },
+      (at)=>{
+        if(gen!==renderGen) return;
+        const plot=build(at);
+        const el=document.getElementById(`plot${idx}`);
+        if(!el) return;
+        Plotly.react(`plot${idx}`, plot.data, plot.layout, PCFG);
+        document.getElementById(`capS${idx}`).textContent=plot.capS+' ';
+        document.getElementById(`capD${idx}`).textContent=plot.capD;
+      }
+    );
+    return {data:[], layout:{...lay('Arnold tongue — entrainment region','Forcing frequency f (Hz)','Forcing amplitude A'),
+        yaxis:{range:[0,0.3],gridcolor:'#e0e4ef',title:'A'}},
+      height:280,
+      capS:'Blue region = combinations of forcing frequency and amplitude where the network locks onto the drive (entrainment). Red dashed line = the network\'s natural rhythm (~24 Hz).',
+      capD:`Computing entrainment map… ${_arnoldLastPct}% (one-time; cached after this)`};
+  },
+
+  plots(variant, p, sim){
+    const {ts,ys}=sim;
+    const DT_S=0.02/1000; // seconds per sample, for the dedicated spectrum sim
+    const {Px,wxx,taux,A,fStim,N,G}=p;
+
+    if(N<=1){
+      const isForced=A>0.0001;
+      const X=ys.map(y=>y[0]), Y=ys.map(y=>y[1]);
+      const tD=downsample(ts,2500), XD=downsample(X,2500), YD=downsample(Y,2500);
+      const tail=X.slice(Math.floor(X.length*0.8));
+      const yTail=Y.slice(Math.floor(Y.length*0.8));
+      const amp=Math.max(...tail)-Math.min(...tail);
+      const isOsc=amp>0.01;
+      const XppD=downsample(tail,1200), YppD=downsample(yTail,1200);
+
+      const bif=computeBifurcation(wxx,taux);
+      const meanX=tail.reduce((a,b)=>a+b,0)/tail.length;
+      const regime=wilcoRegimeFromData(amp, meanX);
+
+      const fFFT=(t,[x,y])=>{
+        const Fe=A*Math.sin(2*Math.PI*fStim*t/1000);
+        return [
+          (sigmoid(wxx*x-12*y+Px+Fe, SLOPE_X, I0_X)-x)/taux,
+          (sigmoid(15*x-3*y, SLOPE_Y, I0_Y)-y)/8,
+        ];
+      };
+      const steady=this.steadySignalForSpectrum(fFFT,[0.1,0.05],0);
+      const sp=powerSpectrum(steady, DT_S);
+      const pk=peakFreq(sp.freqs, sp.power, 100);
+      const band=bandInfo(pk);
+      const mask=sp.freqs.map((f,i)=>f>0&&f<=100?i:-1).filter(i=>i>=0);
+      const maxPower=Math.max(...mask.map(i=>sp.power[i]));
+
+      return [
+        {data:[
+          {x:tD,y:XD,name:'x (excitatory)',line:{color:BLUE,width:1.3}},
+          {x:tD,y:YD,name:'y (inhibitory)',line:{color:CORAL,width:1.3}},
+        ], layout:lay('Time series','t (ms)','Firing rate'),
+          capS:'Excitatory (blue) and inhibitory (red) firing rates over time.',
+          capD:wilcoTimeSeriesCaptionFromData(amp, meanX)},
+
+        {data:[ppTrace(XppD,YppD,BLUE,{showlegend:false})],
+          layout:layPP('Phase portrait','x (excitatory)','y (inhibitory)'),
+          capS:'The trajectory of excitatory vs inhibitory activity.',
+          capD: isOsc ? 'Closed loop = self-sustained limit cycle oscillation.' : 'Single dot = no oscillation, the system has settled.'},
+
+        {data:[
+          {x:bif.ps,y:bif.amps,mode:'lines',line:{color:BLUE,width:2},showlegend:false},
+          {x:[Px,Px],y:[0,Math.max(...bif.amps)*1.1],mode:'lines',line:{color:CORAL,width:2,dash:'dash'},showlegend:false},
+        ], layout:lay('Bifurcation diagram','P_x','Amplitude (max − min, x)',{yaxis:{range:[0,Math.max(...bif.amps)*1.15],gridcolor:'#e0e4ef',title:'Amplitude'}}),
+          capS:'Oscillation amplitude as input drive Px is swept (A = 0, unforced). The sharp cliff (not a gradual taper) is real: this network snaps out of its limit cycle abruptly rather than fading out smoothly.',
+          capD:`Red marker shows your current Px — ${regime.label}.`},
+
+        {data:isForced ? [
+            {x:mask.map(i=>sp.freqs[i]),y:mask.map(i=>sp.power[i]),mode:'lines',line:{color:CORAL,width:1.4},showlegend:false},
+            {x:[fStim,fStim],y:[0,maxPower*1.15],mode:'lines',line:{color:'#999',width:1.5,dash:'dash'},name:`stimulus ${fStim} Hz`},
+          ] : [
+            {x:mask.map(i=>sp.freqs[i]),y:mask.map(i=>sp.power[i]),mode:'lines',line:{color:CORAL,width:1.4},showlegend:false},
+          ],
+          layout:{...lay('Power spectrum','Frequency (Hz)','Power'), ...powerLayout(maxPower)},
+          capS:'Energy at each frequency.',
+          capD: isOsc ? `Sharp peak at ~${pk.toFixed(0)} Hz — ${band.name}, ${band.note}.` : 'No clear peak — the population is at rest.'},
+
+        this.arnoldTonguePlot(fStim, A, pk),
+      ];
+    }
+
+    // Network view (N > 1)
+    const N_=sim.N, Px_=sim.Px, fStimSim=sim.fStim;
+    const Xall=Array.from({length:N_},(_,k)=>ys.map(y=>y[k]));
+    const tD=downsample(ts,2500);
+    const XallD=Xall.map(X=>downsample(X,2500));
+    const amps=Xall.map(X=>{const tail=X.slice(Math.floor(X.length*0.8)); return Math.max(...tail)-Math.min(...tail);});
+    const isOsc=amps.some(a=>a>0.01);
+
+    // Would each node oscillate entirely on its own, decoupled, at its own Px? Compare
+    // that against what's actually observed in the coupled simulation — a node that
+    // wouldn't oscillate alone but IS oscillating here is being entrained (dragged
+    // along) by its coupled neighbours, not generating the rhythm itself.
+    const bifN=computeBifurcation(wxx,taux);
+    const entrained=Px_.map((pv,k)=>bifAmplitudeAt(bifN,pv)<=0.01 && amps[k]>0.01);
+    const fFFT=(t,y)=>{
+      const x=y.slice(0,N_), yy=y.slice(N_,2*N_);
+      const xbar=x.reduce((s,v)=>s+v,0)/N_;
+      const dx=new Array(N_), dy=new Array(N_);
+      const Fe0=A*Math.sin(2*Math.PI*fStimSim*t/1000);
+      for(let i=0;i<N_;i++){
+        const coup=G*(xbar-x[i]);
+        const Fe=i===0?Fe0:0;
+        dx[i]=(sigmoid(wxx*x[i]-12*yy[i]+Px_[i]+Fe+coup, SLOPE_X, I0_X)-x[i])/taux;
+        dy[i]=(sigmoid(15*x[i]-3*yy[i], SLOPE_Y, I0_Y)-yy[i])/8;
+      }
+      return dx.concat(dy);
+    };
+    const x0N=Array.from({length:N_},(_,i)=>0.1-0.01*i).concat(Array.from({length:N_},(_,i)=>0.05-0.005*i));
+    const sps=Array.from({length:N_},(_,k)=>{
+      const steady=this.steadySignalForSpectrum(fFFT,x0N,k);
+      return powerSpectrum(steady, DT_S);
+    });
+    const pk0=peakFreq(sps[0].freqs, sps[0].power, 100);
+    const band=bandInfo(pk0);
+    const mask=sps[0].freqs.map((f,i)=>f>0&&f<=100?i:-1).filter(i=>i>=0);
+
+    // Small multiples — one stacked row per node — instead of overlaying 3 wiggly
+    // lines/spectra on top of each other, which becomes unreadable once they cross.
+    const tsFig=stackedTraces(
+      XallD.map((X,k)=>[{x:tD,y:X,line:{color:PALETTE[k],width:1.3}}]),
+      PALETTE, Px_.map((v,k)=>`node ${k}<br>Px=${v.toFixed(2)}`), 't (ms)'
+    );
+    const spFig=stackedTraces(
+      sps.map((s,k)=>{
+        const m=s.freqs.map((f,i)=>f>0&&f<=100?i:-1).filter(i=>i>=0);
+        const maxP=Math.max(...s.power);
+        return [
+          {x:m.map(i=>s.freqs[i]),y:m.map(i=>s.power[i]),mode:'lines',line:{color:PALETTE[k],width:1.4}},
+          {x:[fStimSim,fStimSim],y:[0,maxP*1.15],mode:'lines',line:{color:'#999',width:1.3,dash:'dash'}},
+        ];
+      }),
+      PALETTE, Px_.map((v,k)=>`node ${k}`), 'Frequency (Hz)'
+    );
+    return [
+      {data:tsFig.data, layout:{...tsFig.layout, title:{text:'Time series (one row per node)',font:{size:11,color:BLUE}}},
+        height:340, wide:true,
+        capS:'Excitatory firing rate of each Wilson–Cowan node over time — one row per node so overlapping wiggly lines don\'t blur together.',
+        capD: isOsc
+          ? `Node amplitudes: ${amps.map(a=>a.toFixed(2)).join(', ')}. Coupling G = ${G.toFixed(1)} ties the nodes together.`
+            + (entrained.some(Boolean)
+              ? ` Node${entrained.filter(Boolean).length>1?'s':''} ${entrained.map((e,k)=>e?k:null).filter(k=>k!==null).join(', ')} would be silent alone (Px too low to self-oscillate) — ${entrained.filter(Boolean).length>1?'they\'re':'it\'s'} only rhythmic here because coupling from its neighbours is driving it, not generating the rhythm itself.`
+              : '')
+          : 'All nodes have settled — no oscillation.'},
+
+      {data:spFig.data, layout:{...spFig.layout, title:{text:`Power spectrum (one row per node, red = ${fStimSim} Hz stimulus)`,font:{size:11,color:BLUE}}},
+        height:340, wide:true,
+        capS:'Energy at each frequency, one row per node, so a tall peak on one node doesn\'t squash the others flat.',
+        capD: isOsc ? `Node 0 peak at ~${pk0.toFixed(0)} Hz — ${band.name}, ${band.note}.` : 'No clear peak — the network is at rest.'},
+    ];
+  }
+};
+
+// ============================================================
+// NMM1 — second-order synapses (Jansen–Rit-style push-pull), §6 Eq. 6.1
+// state = [x, ẋ, y, ẏ]; x,y are PSPs (not firing rates); dt = 0.01 s
+// ============================================================
+// Scalar (no array allocation) RK4 for one (a) sweep point — same technique as WILCO's
+// bifurcationCell. Used to trace amplitude vs. loop gain K by varying the sigmoid slope a.
+function nmm1AmplitudeAt(tau_x,tau_y,gx,gy,wxy,wyx,a,Fe,T,dt){
+  let x=0.05, vx=0, y=0, vy=0;
+  const steps=Math.round(T/dt), tailStart=Math.floor(steps*2/3);
+  const tx2=tau_x*tau_x, ty2=tau_y*tau_y;
+  let tailMax=-Infinity, tailMin=Infinity;
+  const deriv=(X,VX,Y,VY)=>[
+    VX, (gx*Math.tanh(a*(-wxy*Y+Fe)) - X - 2*tau_x*VX)/tx2,
+    VY, (gy*Math.tanh(a*(wyx*X))     - Y - 2*tau_y*VY)/ty2,
+  ];
+  for(let i=0;i<=steps;i++){
+    if(i>=tailStart){ if(x>tailMax) tailMax=x; if(x<tailMin) tailMin=x; }
+    const k1=deriv(x,vx,y,vy);
+    const k2=deriv(x+0.5*dt*k1[0], vx+0.5*dt*k1[1], y+0.5*dt*k1[2], vy+0.5*dt*k1[3]);
+    const k3=deriv(x+0.5*dt*k2[0], vx+0.5*dt*k2[1], y+0.5*dt*k2[2], vy+0.5*dt*k2[3]);
+    const k4=deriv(x+dt*k3[0],     vx+dt*k3[1],     y+dt*k3[2],     vy+dt*k3[3]);
+    x = x+dt/6*(k1[0]+2*k2[0]+2*k3[0]+k4[0]);
+    vx=vx+dt/6*(k1[1]+2*k2[1]+2*k3[1]+k4[1]);
+    y = y+dt/6*(k1[2]+2*k2[2]+2*k3[2]+k4[2]);
+    vy=vy+dt/6*(k1[3]+2*k2[3]+2*k3[3]+k4[3]);
+  }
+  return (tailMax-tailMin)/2;
+}
+let _nmm1BifCache={key:null,aVals:null,amps:null};
+function computeNMM1Bifurcation(tau_x,tau_y,gx,gy,wxy,wyx,Fe){
+  const key=[tau_x,tau_y,gx,gy,wxy,wyx,Fe].map(v=>v.toFixed(3)).join('_');
+  if(_nmm1BifCache.key===key) return _nmm1BifCache;
+  const aVals=[]; for(let a=0.3;a<=3.5001;a+=(3.5-0.3)/24) aVals.push(a);
+  const amps=aVals.map(a=>nmm1AmplitudeAt(tau_x,tau_y,gx,gy,wxy,wyx,a,Fe,120,0.02));
+  _nmm1BifCache={key,aVals,amps};
+  return _nmm1BifCache;
+}
+
+const NMM1 = {
+  variants:['Single Node'],
+  cfg:{
+    'Single Node':{
+      eqHtml:`<div class="eq-main">τₓ² ẍ + 2τₓ ẋ + x = γₓ σ(−wₓᵧy + Fₑ)</div>
+        <div class="eq-main">τᵧ² ÿ + 2τᵧ ẏ + y = γᵧ σ(wᵧₓx)</div>
+        <hr class="eq-hr">
+        <div class="eq-sub">σ(v) = tanh(a·v) &nbsp;·&nbsp; K = γₓγᵧwₓᵧwᵧₓa²</div>
+        <div class="eq-sub">Oscillates when K &gt; K<sub>crit</sub> = 2 + τₓ/τᵧ + τᵧ/τₓ &nbsp;(≥ 4, lowest when τₓ = τᵧ)</div>`,
+      explain:'x and y are excitatory/inhibitory post-synaptic potentials, not firing rates — each obeys a critically-damped second-order filter, so a single synapse alone can never oscillate. Once the loop gain K crosses K_crit, the two synapses\' own phase lag is enough to sustain a rhythm with no self-coupling at all (the Barkhausen criterion). Fₑ shifts the operating point on the sigmoid and can quench an oscillation that exists at Fₑ = 0.',
+      params:[
+        {id:'tau_x', label:'τₓ  (exc. synaptic time)', min:0.05, max:3, step:0.05, def:0.5},
+        {id:'tau_y', label:'τᵧ  (inh. synaptic time)', min:0.05, max:3, step:0.05, def:0.5},
+        {id:'gx',    label:'γₓ  (exc. synaptic gain)', min:0.1, max:2, step:0.05, def:1},
+        {id:'gy',    label:'γᵧ  (inh. synaptic gain)', min:0.1, max:2, step:0.05, def:1},
+        {id:'wxy',   label:'wₓᵧ  (I→E, "pull")', min:0.1, max:2, step:0.05, def:1},
+        {id:'wyx',   label:'wᵧₓ  (E→I, "push")', min:0.1, max:2, step:0.05, def:1},
+        {id:'a',     label:'a  (sigmoid slope)', min:0.3, max:4, step:0.05, def:2.5},
+        {id:'Fe',    label:'Fₑ  (exogenous drive)', min:0, max:2, step:0.05, def:0},
+      ],
+      network:{
+        note:`<span class="eq-sub" style="display:block;margin-bottom:0.35rem;">+ G(x̄ − xᵢ) added inside σ for xᵢ above, x̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the node above</span>Nodes get a slightly different sigmoid slope a so coupling has something to synchronize. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>`,
+        params:[
+          {id:'N', label:'N  (network size)', min:1, max:5, step:1, def:1},
+          {id:'G', label:'G  (coupling strength)', min:0, max:0.6, step:0.02, def:0},
+        ]
+      }
+    },
+  },
+
+  simulate(variant, p){
+    const {tau_x,tau_y,gx,gy,wxy,wyx,a,Fe,N,G}=p;
+    if(N<=1){
+      const f=(t,[x,vx,y,vy])=>{
+        const dvx=(gx*Math.tanh(a*(-wxy*y+Fe)) - x - 2*tau_x*vx)/(tau_x*tau_x);
+        const dvy=(gy*Math.tanh(a*(wyx*x))     - y - 2*tau_y*vy)/(tau_y*tau_y);
+        return [vx,dvx,vy,dvy];
+      };
+      return integrate(f,[0.05,0,0,0],1500,0.01,2);
+    }
+    // Networked: N copies of the same node above, each with the coupling term
+    // G(x̄−xᵢ) added inside its own excitatory sigmoid. Only the sigmoid slope a
+    // is given a small per-node spread — otherwise identical nodes would give G
+    // nothing to visibly do.
+    const aVals=Array.from({length:N},(_,i)=>a+0.2*(i-(N-1)/2));
+    const x0=Array.from({length:N},(_,i)=>0.05*(i%2===0?1:-1)*(1-i*0.1));
+    const state0=[...x0, ...Array(N).fill(0), ...Array(N).fill(0), ...Array(N).fill(0)];
+    const f=(t,y)=>{
+      const x=y.slice(0,N), vx=y.slice(N,2*N), yy=y.slice(2*N,3*N), vy=y.slice(3*N,4*N);
+      const xbar=x.reduce((s,v)=>s+v,0)/N;
+      const dvx=new Array(N), dvy=new Array(N);
+      for(let i=0;i<N;i++){
+        const coup=G*(xbar-x[i]);
+        dvx[i]=(gx*Math.tanh(aVals[i]*(-wxy*yy[i]+Fe+coup)) - x[i] - 2*tau_x*vx[i])/(tau_x*tau_x);
+        dvy[i]=(gy*Math.tanh(aVals[i]*(wyx*x[i]))            - yy[i] - 2*tau_y*vy[i])/(tau_y*tau_y);
+      }
+      return [...vx, ...dvx, ...vy, ...dvy];
+    };
+    const sim=integrate(f,state0,2000,0.01,2);
+    sim.N=N; sim.aVals=aVals;
+    return sim;
+  },
+
+  plots(variant, p, sim){
+    const {ts,ys}=sim;
+    const {tau_x,tau_y,gx,gy,wxy,wyx,a,Fe,N,G}=p;
+
+    if(N<=1){
+      const X=ys.map(y=>y[0]), Y=ys.map(y=>y[2]);
+      const tD=downsample(ts,2000), XD=downsample(X,2000), YD=downsample(Y,2000);
+      const tail=X.slice(Math.floor(X.length*2/3)), tailY=Y.slice(Math.floor(Y.length*2/3));
+      const amp=(Math.max(...tail)-Math.min(...tail))/2;
+      const isOsc=amp>0.01;
+      const XppD=downsample(tail,1200), YppD=downsample(tailY,1200);
+
+      const K=gx*gy*wxy*wyx*a*a;
+      const Kcrit=2+tau_x/tau_y+tau_y/tau_x;
+      const bif=computeNMM1Bifurcation(tau_x,tau_y,gx,gy,wxy,wyx,Fe);
+      const Kvals=bif.aVals.map(av=>gx*gy*wxy*wyx*av*av);
+      const maxAmp=Math.max(0.05, ...bif.amps);
+
+      const tsCap = isOsc
+        ? `Sustained rhythm — loop gain K = ${K.toFixed(2)} exceeds K_crit = ${Kcrit.toFixed(2)}.`
+        : `No sustained rhythm — loop gain K = ${K.toFixed(2)} is below K_crit = ${Kcrit.toFixed(2)}, so both PSPs decay to their fixed point.`;
+      const ppCap = isOsc
+        ? 'Closed loop = self-sustained limit cycle — no self-coupling needed, the synapses\' own phase lag closes the Barkhausen loop.'
+        : 'Single point = no oscillation, the synaptic filters settle to their driven fixed point.';
+
+      return [
+        {data:[
+          {x:tD,y:XD,name:'x (excitatory PSP)',line:{color:BLUE,width:1.4}},
+          {x:tD,y:YD,name:'y (inhibitory PSP)',line:{color:CORAL,width:1.4}},
+        ], layout:lay('Time series','t (s)','PSP'),
+          capS:'Excitatory (blue) and inhibitory (red) post-synaptic potentials over time.',
+          capD:tsCap},
+        {data:[ppTrace(XppD,YppD,BLUE,{showlegend:false})],
+          layout:layPP('Phase portrait','x (excitatory PSP)','y (inhibitory PSP)'),
+          capS:'Trajectory of excitatory vs inhibitory PSP.',
+          capD:ppCap},
+        {data:[
+          {x:Kvals,y:bif.amps,mode:'lines',line:{color:BLUE,width:2.2},showlegend:false},
+          {x:[Kcrit,Kcrit],y:[0,maxAmp*1.15],mode:'lines',line:{color:CORAL,width:1.5,dash:'dot'},name:`K_crit = ${Kcrit.toFixed(2)}`},
+          {x:[K],y:[amp],mode:'markers',marker:{color:'#FF6F00',size:10},name:`current K = ${K.toFixed(2)}`},
+        ], layout:lay('Bifurcation diagram','loop gain K = γₓγᵧwₓᵧwᵧₓa²','long-run amplitude of x',{yaxis:{range:[0,maxAmp*1.2],gridcolor:'#e0e4ef',title:'amplitude'}}),
+          capS:'Long-run amplitude of x as the loop gain K is swept by varying the sigmoid slope a (τₓ,τᵧ,γₓ,γᵧ,wₓᵧ,wᵧₓ,Fₑ held at their current slider values).',
+          capD:`Onset (Hopf bifurcation) at K_crit = 2+τₓ/τᵧ+τᵧ/τₓ = ${Kcrit.toFixed(2)} — lowest when the two synapses are matched (τₓ=τᵧ).`},
+      ];
+    }
+
+    // Network view (N > 1)
+    const N_=sim.N, aVals=sim.aVals;
+    const Xall=Array.from({length:N_},(_,k)=>ys.map(y=>y[k]));
+    const tD=downsample(ts,2000);
+    const XallD=Xall.map(X=>downsample(X,2000));
+    const amps=Xall.map(X=>{const tail=X.slice(Math.floor(X.length*0.75)); return (Math.max(...tail)-Math.min(...tail))/2;});
+    const isOsc=amps.some(a=>a>0.01);
+    const tail0=Xall[0].slice(Math.floor(Xall[0].length*0.75));
+    const tailY0=ys.map(y=>y[2*N_]).slice(Math.floor(ys.length*0.75));
+
+    const tsFig=stackedTraces(
+      XallD.map((X,k)=>[{x:tD,y:X,line:{color:PALETTE[k%PALETTE.length],width:1.3}}]),
+      PALETTE, aVals.map((v,k)=>`node ${k}<br>a=${v.toFixed(2)}`), 't (s)'
+    );
+    return [
+      {data:tsFig.data, layout:{...tsFig.layout, title:{text:'Time series (one row per node)',font:{size:11,color:BLUE}}},
+        height:320, wide:true,
+        capS:'Excitatory PSP of each NMM1 node — one row per node so overlapping rhythms don\'t blur together.',
+        capD: isOsc
+          ? `Node amplitudes: ${amps.map(a=>a.toFixed(2)).join(', ')}. Coupling G = ${G.toFixed(2)} pulls nodes with different excitability (a) toward a shared rhythm.`
+          : 'All nodes have settled — no oscillation.'},
+      {data:[ppTrace(downsample(tail0,1000),downsample(tailY0,1000),BLUE,{showlegend:false})],
+        layout:layPP('Phase portrait — node 0','x (excitatory PSP)','y (inhibitory PSP)'),
+        capS:'Trajectory of node 0\'s excitatory vs inhibitory PSP.',
+        capD: isOsc ? 'Closed loop = node 0 is oscillating.' : 'Single point = node 0 has settled.'},
+    ];
+  }
+};
+
+// ============================================================
+// INFO TAB CONTENT — grounded in Castaldo et al., "Rosetta Stone of
+// Neural Mass Models" (2025). Kept concise on purpose: this is meant to
+// orient a reader, not reproduce the paper.
+// ============================================================
+const MODEL_INFO = {
+
+ho: {
+  title: 'Harmonic Oscillator (HO)',
+  tagline: 'The starting point of the ladder — everything else on this site is a more biologically detailed version of the same push-pull loop.',
+  equations: `
+    <div class="info-eq-box">
+      <div class="eq-name">Undamped (§2.1, Eq. 2.1–2.8)</div>
+      <div class="eq-main">ẋ = −ωy,  ẏ = ωx &nbsp;&nbsp;⟺&nbsp;&nbsp; ż = iωz,  z = x + iy</div>
+      <div class="eq-note">Constant amplitude r(t) = r(0), phase advancing linearly: θ(t) = ωt + θ(0).</div>
+    </div>
+    <div class="info-eq-box">
+      <div class="eq-name">Damped (§2.2, Eq. 2.21–2.25)</div>
+      <div class="eq-main">ż = (α + iω)z</div>
+      <div class="eq-note">α &lt; 0 → decaying spiral (stable focus), α &gt; 0 → growing spiral (unstable).</div>
+    </div>
+    <div class="info-eq-box">
+      <div class="eq-name">Forced (Eq. 2.11, 2.26–2.27)</div>
+      <div class="eq-main">ż = (α + iω)z + F̂(t)</div>
+      <div class="eq-note">A constant F shifts the fixed point to z* = −F/(α+iω); a time-varying F(t) can transiently entrain phase and amplitude.</div>
+    </div>
+    <div class="info-eq-box">
+      <div class="eq-name">Coupled network (Eq. 2.28–2.29)</div>
+      <div class="eq-main">żᵢ = (α + iωᵢ)zᵢ + (G/N) Σⱼ Cᵢⱼ(zⱼ − zᵢ) + F̂ₑ,ᵢ(t)</div>
+      <div class="eq-note">Diffusive coupling pulls every oscillator toward the network mean.</div>
+    </div>
+    <div class="info-eq-box">
+      <div class="eq-name">Kuramoto phase limit (§2.1.4, Eq. 2.19, App. D)</div>
+      <div class="eq-main">θ̇ᵢ = ωᵢ + (G/N) Σⱼ sin(θⱼ − θᵢ)</div>
+      <div class="eq-note">The canonical model of synchronization — amplitude is dropped entirely, only relative phase remains.</div>
+    </div>
+    <div class="info-eq-box" style="border-left-color:var(--coral);">
+      <div class="eq-name" style="color:var(--coral);">In the Demo</div>
+      <div class="eq-note" style="font-size:0.85rem;">Undamped, damped, and forced are the same equation with different parameters, so the Demo tab combines them into one "Oscillator" — set α = 0 for the undamped case, or F₀ = 0 to remove forcing. Coupled networks and the Kuramoto phase-only limit are structurally different (many oscillators, different state variables), so those stay as separate variants.</div>
+    </div>`,
+  how: `<p>Every model on this site is built from the same "push–pull" motif: two variables, x and y, that continuously drive each other. A positive y suppresses x (acting like inhibition), while a positive x excites y — this reciprocal chase is what makes the pair rotate instead of settling. Written as one complex number z = x + iy, that rotation is just ż = iωz, a circle traced out at constant amplitude and angular speed ω.</p>
+    <p>Adding a damping term α turns the neutral circle into a spiral: negative α leaks energy out every cycle (a stable, decaying oscillation), positive α pumps energy in (unstable, growing). Forcing F(t) shifts where the oscillator settles and, if oscillatory, can pull its phase and amplitude toward the drive — the seed of resonance and entrainment. Coupling several of these oscillators together makes them pull toward each other's state; in the special case of identical amplitudes and only phase differences mattering, this coupled network reduces exactly to the Kuramoto model, the standard tool for describing how brain rhythms synchronize.</p>`,
+  params: [
+    {name:'ω (omega)', meaning:'Natural angular frequency', effect:'Sets rotation speed; frequency in Hz is f = ω/2π. Reflects effective synaptic/membrane time constants.'},
+    {name:'α (alpha)', meaning:'Linear damping / growth rate', effect:'α &lt; 0 → stable, decaying spiral (decay time −1/α); α = 0 → neutral circle; α &gt; 0 → unstable, growing spiral.'},
+    {name:'F(t), F̂ₑ(t)', meaning:'External forcing (deterministic and/or stochastic)', effect:'Shifts the equilibrium point; oscillatory forcing near Ω ≈ ω produces resonance and can entrain the oscillator.'},
+    {name:'G', meaning:'Global coupling gain', effect:'How strongly oscillators are pulled toward the network / toward each other\'s phase.'},
+    {name:'Cᵢⱼ', meaning:'Connectivity weight from node j to i', effect:'Which oscillators influence which, and how strongly (structural, functional, or synthetic connectome).'},
+    {name:'N', meaning:'Number of oscillators / nodes', effect:'Network size.'},
+    {name:'θᵢ, r', meaning:'Phase and order parameter (Kuramoto)', effect:'r = |mean of e^(iθ)| measures synchrony: r = 1 fully locked, r = 0 incoherent.'},
+  ],
+  breakdown: [
+    {id:'omega', title:'ω — natural angular frequency', prose:'ω sets how fast z rotates around the origin — the period is T = 2π/ω. It is purely a clock: changing ω does not touch stability, damping, or amplitude, only the speed of rotation. In Hz, the oscillation frequency is f = ω/2π.'},
+    {id:'alpha', title:'α — linear growth/decay rate', prose:'α is the whole story of damping. α &lt; 0 gives a stable, decaying spiral (a real, physically realizable oscillator); α = 0 gives a neutral circle with constant amplitude, set entirely by the starting point; α &gt; 0 gives an unstable, ever-growing spiral. This is the simplest possible version of the bifurcation parameter that reappears, with a stabilizing nonlinearity attached, in every later model on the ladder.'},
+    {id:'F0', title:'F₀ — drive amplitude', prose:'F₀ turns on an external periodic push, e<sup>iΩt</sup>, added to the free rotation. At F₀ = 0 the oscillator is autonomous (it evolves under its own dynamics alone); increasing F₀ raises how strongly the drive can pull the oscillator\'s phase and amplitude toward its own rhythm.'},
+    {id:'omega_drive', title:'Ω — drive frequency', prose:'Ω is the frequency of the external push. When Ω sits close to the natural frequency ω, the system resonates and the driven amplitude grows large (bounded only by damping, if α &lt; 0); far from ω, the same drive produces a much smaller response. The resonance curve panel in the Demo makes this relationship explicit.'},
+    {id:'z0r', title:'z₀ — starting radius', prose:'z₀ only matters when α = 0: with no damping or growth, the orbit keeps whatever radius it started at forever, so z₀ directly sets the amplitude you\'ll see for the rest of time. The moment α ≠ 0, the initial radius is forgotten exponentially fast — the system decays to the origin or grows without bound regardless of where it began.'},
+  ],
+  about: `The HO is what the paper calls the "hydrogen atom" of the ladder: the simplest system that can oscillate at all, and the template every later model elaborates on. <strong>Castaldo et al.</strong> show that going from a single undamped oscillator → damped → forced → coupled network leads directly, in the right limit, to the <strong>Kuramoto model</strong> — the field's standard description of phase synchronization, used everywhere from whole-brain connectome simulations to explaining EEG/MEG phase-locking and entrainment by rhythmic stimulation.`,
+},
+
+sl: {
+  title: 'Stuart–Landau Oscillator (SL)',
+  tagline: 'The HO gains a cubic nonlinearity — amplitude becomes self-regulating instead of just marginally stable.',
+  equations: `
+    <div class="info-eq-box">
+      <div class="eq-name">Polar form (§3, Eq. 3.1–3.2)</div>
+      <div class="eq-main">ṙ = αr − γr³,  θ̇ = ω − βr²</div>
+      <div class="eq-note">The linear terms (α, ω) drive growth and rotation; the nonlinear terms (γ, β) self-regulate amplitude and frequency.</div>
+    </div>
+    <div class="info-eq-box">
+      <div class="eq-name">Complex form (Eq. 3.6)</div>
+      <div class="eq-main">ż = (α + iω)z − (γ + iβ)|z|²z</div>
+      <div class="eq-note">Stable amplitude when α &gt; 0: r* = √(α/γ).</div>
+    </div>
+    <div class="info-eq-box">
+      <div class="eq-name">Forced (Eq. 3.7)</div>
+      <div class="eq-main">ż = (α + iω)z − (γ + iβ)|z|²z + F(t)</div>
+    </div>
+    <div class="info-eq-box">
+      <div class="eq-name">Coupled network (Eq. 3.8–3.9)</div>
+      <div class="eq-main">żᵢ = (α + iωᵢ)zᵢ − (γ + iβ)|zᵢ|²zᵢ + (G/N) Σⱼ Cᵢⱼ(zⱼ − zᵢ) + F̂ₑ,ᵢ(t)</div>
+    </div>`,
+  how: `<p>Purely linear oscillators like the HO can't describe real neural rhythms on their own: without some regulating nonlinearity, activity would either grow without bound or decay to nothing. The Stuart–Landau oscillator adds the simplest possible fix — a cubic term −γ|z|²z — that grows the same way as the HO for small amplitudes but pushes back once |z| gets large. The result is a genuine <em>limit cycle</em>: for α &gt; 0 the amplitude relaxes onto a fixed radius r* = √(α/γ) regardless of where it started, unlike the HO's neutral circle whose size is set entirely by the initial condition.</p>
+    <p>This is the normal form of a Hopf bifurcation — the minimal, universal model for any system transitioning from a damped fixed point to a self-sustained oscillation. Forcing displaces the limit cycle to a new operating point; coupling many SL nodes diffusively (each pulled toward the network average) produces synchronization, clustering, and even "amplitude death," while the cubic term keeps every node's amplitude bounded.</p>`,
+  params: [
+    {name:'α (alpha)', meaning:'Bifurcation parameter (linear growth/decay)', effect:'α &lt; 0 → damped, noise-driven fluctuations; α &gt; 0 → self-sustained limit cycle of radius √(α/γ).'},
+    {name:'ω (omega)', meaning:'Intrinsic angular frequency', effect:'Sets the base rotation rate, further shifted by β once amplitude grows.'},
+    {name:'γ (gamma) &gt; 0', meaning:'Nonlinear amplitude saturation', effect:'Caps the limit-cycle radius; larger γ → smaller stable amplitude for the same α.'},
+    {name:'β (beta)', meaning:'Amplitude–phase coupling ("shear")', effect:'Couples amplitude to instantaneous frequency; captures nonlinear dispersion effects absent from the HO.'},
+    {name:'F(t)', meaning:'External forcing', effect:'Displaces the limit cycle to a new fixed point; periodic forcing yields nonlinear phase locking (Arnold tongues).'},
+    {name:'G, Cᵢⱼ', meaning:'Coupling gain and connectivity', effect:'Diffusive coupling toward the network mean; drives synchronization, clustering, amplitude death.'},
+  ],
+  breakdown: [
+    {id:'alpha', title:'α — linear growth/decay rate', prose:'α sets whether oscillations exist at all: α &lt; 0 means every trajectory decays back to the origin; α &gt; 0 gives a self-sustained limit cycle with radius r* = √(α/γ). α = 0 is the Hopf bifurcation point itself — the origin is only marginally stable, and amplitude decays algebraically rather than exponentially.'},
+    {id:'omega', title:'ω — intrinsic angular frequency', prose:'ω sets the rotation speed only. It does not appear in the amplitude equation ṙ = αr − γr³, so it has no effect on r* and no effect on the bifurcation diagram — two systems with different ω but the same α, γ trace out the same size limit cycle, just at different speeds.'},
+    {id:'gamma', title:'γ — nonlinear amplitude saturation', prose:'γ (&gt; 0) scales the limit-cycle radius: r* = √(α/γ). A larger γ gives a smaller, tighter oscillation for the same α. Unlike ω, γ does reshape the bifurcation diagram — it scales how quickly the limit-cycle branch rises above the Hopf point.'},
+    {id:'beta', title:'β — amplitude–phase coupling ("shear")', prose:'β shifts the instantaneous frequency with amplitude: the rotation rate becomes ω − βr² instead of a flat ω. Like ω, β does not appear in the amplitude equation, so it leaves r* and the bifurcation diagram completely unchanged — its only visible effect is a change in rotation speed once the system has grown to its limit cycle.'},
+  ],
+  about: `Stuart–Landau traces back to Landau's 1944 model of the laminar-turbulent transition and Stuart's rigorous derivation for shear flows — it is now understood as <em>the</em> normal form of a Hopf bifurcation. <strong>Castaldo et al.</strong> place it directly above the HO on the ladder: same push-pull skeleton, now with a physiologically essential self-limiting mechanism. SL networks tuned near their Hopf bifurcation are widely used to reproduce resting-state functional connectivity and its variability (FCD) in whole-brain fMRI and MEG models.`,
+},
+
+wilco: {
+  title: 'Wilson–Cowan Model (WILCO)',
+  tagline: 'The HO/SL push-pull motif made biological: excitatory and inhibitory firing rates interacting through a sigmoid.',
+  equations: `
+    <div class="info-eq-box">
+      <div class="eq-name">Unforced, firing-rate form (§5, Eq. 5.2)</div>
+      <div class="eq-main">τₓẋ + x = σₓ(wₓₓx − wₓᵧy + Pₓ)</div>
+      <div class="eq-main">τᵧẏ + y = σᵧ(wᵧₓx − wᵧᵧy)</div>
+    </div>
+    <div class="info-eq-box">
+      <div class="eq-name">Forced (§5.1, Eq. 5.3)</div>
+      <div class="eq-main">τₓẋ + x = σₓ(wₓₓx − wₓᵧy + Pₓ + F̂ₑ(t))</div>
+      <div class="eq-note">Near the Hopf bifurcation this behaves like a forced SL oscillator; sinusoidal forcing carves out Arnold tongues of n:m phase-locking.</div>
+    </div>
+    <div class="info-eq-box">
+      <div class="eq-name">Network (§5.3, Eq. 5.5)</div>
+      <div class="eq-main">τₓẋᵢ + xᵢ = σₓ(wₓₓxᵢ − wₓᵧyᵢ + Pₓ,ᵢ + F̂ₑ,ᵢ(t) + G Σⱼ Cᵢⱼxⱼ)</div>
+      <div class="eq-main">τᵧẏᵢ + yᵢ = σᵧ(wᵧₓxᵢ − wᵧᵧyᵢ)</div>
+      <div class="eq-note">Long-range excitatory coupling Σⱼ Cᵢⱼxⱼ enters additively inside the sigmoid.</div>
+    </div>
+    <div class="info-eq-box" style="border-left-color:var(--coral);">
+      <div class="eq-name" style="color:var(--coral);">In the Demo</div>
+      <div class="eq-note" style="font-size:0.85rem;">Unforced and forced are the same equation with F₀ = 0 or not, so the Demo tab combines them into one node — set A = 0 to remove the rhythmic stimulus. Turning N above 1 in the Network section below adds the coupling term without changing anything above it — see the <a href="tutorial.html#coupling" target="_blank">Tutorial</a>.</div>
+    </div>`,
+  how: `<p>WILCO replaces the HO/SL's abstract complex number with two concrete, biologically legible variables: an excitatory firing rate x and an inhibitory firing rate y, wired together through a sigmoid σ(·) instead of a simple linear term. Turning up the tonic drive Pₓ moves the operating point along the steep part of the sigmoid; the paper shows a Hopf bifurcation needs three ingredients — reciprocal E–I coupling (wₓᵧwᵧₓ &lt; 0), enough self-excitation or drive to sit on the steep part of σ, and the sigmoid's curvature to supply the cubic term that caps the oscillation's growth.</p>
+    <p>Once those conditions are met, the fixed point destabilizes and a self-sustained limit-cycle rhythm switches on spontaneously — no external clock required. Near that bifurcation point, a Taylor expansion of the WILCO equations recovers exactly the Stuart–Landau normal form (§5.2, Eq. 5.4): the sigmoid's first derivative sets the linear gain, and its second derivative supplies the nonlinear term that stabilizes the limit cycle. This is why the paper describes WILCO as "SL in disguise" — the same universal bifurcation machinery, now anchored to measurable biophysical quantities.</p>`,
+  params: [
+    {name:'τₓ, τᵧ', meaning:'Membrane/synaptic time constants', effect:'Sets how fast each population responds; the E–I timescale separation shapes the oscillation frequency.'},
+    {name:'wₓₓ', meaning:'E→E weight (self-excitation)', effect:'Needed (with drive) to push the operating point onto the steep part of the sigmoid.'},
+    {name:'wₓᵧ, wᵧₓ', meaning:'I→E and E→I weights', effect:'Reciprocal coupling; wₓᵧwᵧₓ &lt; 0 is required for a Hopf bifurcation to exist at all.'},
+    {name:'wᵧᵧ', meaning:'I→I weight (self-inhibition)', effect:'Additional damping on the inhibitory population.'},
+    {name:'Pₓ', meaning:'Tonic drive to the excitatory population', effect:'The bifurcation control parameter — sweeping it switches the oscillation on and off (Hopf onset).'},
+    {name:'σ(·)', meaning:'Sigmoid transfer function (slope, threshold)', effect:'Converts total input current to a bounded firing rate; its curvature is what stabilizes the limit cycle.'},
+    {name:'F̂ₑ(t)', meaning:'External / rhythmic forcing on the excitatory population', effect:'Entrains the network; near Hopf, periodic forcing produces Arnold-tongue-shaped phase-locking regions.'},
+    {name:'G, Cᵢⱼ', meaning:'Coupling gain and (row-normalized) connectivity', effect:'Long-range excitatory drive from other nodes, added inside the sigmoid of the receiving node.'},
+  ],
+  breakdown: [
+    {id:'Px', title:'Pₓ — tonic drive to the excitatory population', prose:'Pₓ is the bifurcation control parameter for the whole model: it is a constant background current that shifts where the excitatory population sits on the sigmoid. Turn it up enough and the fixed point destabilizes — a Hopf bifurcation switches on a self-sustained limit-cycle rhythm with no external clock required. The bifurcation diagram in the main Demo shows this onset as a sharp cliff, not a gradual fade.'},
+    {id:'wxx', title:'wₓₓ — excitatory self-coupling (E→E)', prose:'wₓₓ is how strongly the excitatory population reinforces itself. Together with the drive Pₓ, it needs to be large enough to push the operating point onto the steep part of the sigmoid — without sufficient self-excitation, no amount of drive alone will trigger the Hopf bifurcation.'},
+    {id:'taux', title:'τₓ — excitatory time constant', prose:'τₓ sets how quickly the excitatory population responds to its input. Along with the fixed inhibitory time constant (τᵧ = 8 ms here), the E–I timescale separation between the two populations is what shapes the frequency of the emergent rhythm once the network starts oscillating.'},
+    {id:'A', title:'A — forcing amplitude', prose:'A turns on a rhythmic external stimulus at frequency fₛₜᵢₘ, added to the excitatory population\'s input. At A = 0 the node is fully autonomous; a large enough A can entrain the network to the stimulus frequency even away from the network\'s own natural rhythm — the Arnold tongue plot in the main Demo maps out exactly which (A, f) combinations achieve this.'},
+    {id:'fStim', title:'fₛₜᵢₘ — stimulus frequency', prose:'fₛₜᵢₘ is the frequency of the rhythmic drive (only relevant once A &gt; 0). When it\'s close to the network\'s own natural frequency, entrainment happens at low forcing amplitude; far from it, much stronger forcing is needed to pull the rhythm away from its natural pace.'},
+  ],
+  about: `Wilson and Cowan introduced this model in the early 1970s as the first tractable mean-field description of interacting excitatory and inhibitory populations, and it remains a modeling workhorse today — from single microcircuits to whole-brain simulations fit to MEG, EEG, and fMRI. <strong>Castaldo et al.</strong> place WILCO directly above Stuart–Landau on the ladder: the same Hopf-bifurcation machinery, but every coefficient is now anchored to a measurable biophysical quantity (a synaptic weight, a time constant, a drive current) rather than an abstract normal-form parameter.`,
+},
+
+nmm1: {
+  title: 'NMM with Second-Order Synapses (NMM1)',
+  tagline: 'Jansen–Rit-style models: synapses get their own realistic rise/decay filter instead of collapsing into one firing-rate equation.',
+  equations: `
+    <div class="info-eq-box">
+      <div class="eq-name">E–I pair, without self-coupling (§6, Eq. 6.1)</div>
+      <div class="eq-main">τₓ² ẍ + 2τₓ ẋ + x = γₓ σ(−wₓᵧy + F̂ₑ)</div>
+      <div class="eq-main">τᵧ² ÿ + 2τᵧ ẏ + y = γᵧ σ(wᵧₓx)</div>
+      <div class="eq-note">Second-order synaptic filters (distinct rise/decay) supply the phase lag needed for sustained oscillation — no self-coupling required.</div>
+    </div>
+    <div class="info-eq-box">
+      <div class="eq-name">General network (Eq. 6.4–6.5)</div>
+      <div class="eq-main">L̂ₘₙ[uₘₙ] = Cₘₙ rₙ,&nbsp;&nbsp; vₘ = Σₙ uₘₙ + [field terms],&nbsp;&nbsp; rₘ = σₘ(vₘ)</div>
+      <div class="eq-note">A synapse filter turns each incoming firing rate into a PSP; PSPs sum into a membrane perturbation; a sigmoid converts that back into a firing rate.</div>
+    </div>`,
+  how: `<p>WILCO's single firing-rate equation implicitly assumes synaptic transmission is instantaneous. NMM1 makes it explicit: each post-synaptic potential is the output of a proper linear filter with its own rise and decay time constants, not just a first-order lag. Multiple PSPs are then summed into a membrane perturbation v, and a static sigmoid converts that perturbation into an output firing rate — cleanly separating "synapse" (the filter) from "soma" (the sigmoid).</p>
+    <p>The payoff is that a second-order synaptic filter introduces its own frequency-dependent phase shift. By the Barkhausen stability criterion, a feedback loop oscillates once its total gain is 1 and its total phase shift is a multiple of 360°; in a push-pull E–I loop, the phase lag from realistic synaptic kinetics alone can satisfy that condition — so, unlike Wilson–Cowan, NMM1 can sustain oscillations without any explicit self-coupling term.</p>`,
+  params: [
+    {name:'x, y', meaning:'Excitatory / inhibitory post-synaptic potentials (PSPs)', effect:'Outputs of the second-order synaptic filters — not firing rates themselves.'},
+    {name:'τₓ, τᵧ (or rise/decay pairs)', meaning:'Synaptic time constants', effect:'Set each synapse\'s resonance frequency and intrinsic phase lag; distinct rise/decay values are what let phase lag accumulate.'},
+    {name:'γₓ, γᵧ', meaning:'Synaptic gains', effect:'Scale PSP amplitude for each synapse type.'},
+    {name:'wₓᵧ, wᵧₓ', meaning:'Local E→I / I→E coupling', effect:'The push-pull loop; self-coupling is typically omitted since synaptic phase lag alone can close the Barkhausen loop.'},
+    {name:'σ(·)', meaning:'Somatic sigmoid transfer function', effect:'Converts total membrane perturbation v into an output firing rate; slope sets gain, saturation bounds activity.'},
+    {name:'F̂ₑ(t)', meaning:'Exogenous drive (external input or field)', effect:'Adds directly to the membrane perturbation of the target population.'},
+    {name:'Cᵢⱼ', meaning:'Long-range connectivity', effect:'Typically targets the excitatory pathway between nodes.'},
+  ],
+  breakdown: [
+    {id:'tau_x', title:'τₓ — excitatory synaptic time constant', prose:'τₓ sets how fast the excitatory synapse rises and decays. Together with τᵧ it fixes the natural frequency ω₀ = 1/√(τₓτᵧ) — but sustained oscillation only survives when τₓ and τᵧ are reasonably matched. Too fast or too slow relative to τᵧ raises the Barkhausen threshold K_crit = 2 + τₓ/τᵧ + τᵧ/τₓ above the fixed loop gain, quenching the rhythm even though nothing else has changed.'},
+    {id:'tau_y', title:'τᵧ — inhibitory synaptic time constant', prose:'τᵧ enters K_crit = 2 + τₓ/τᵧ + τᵧ/τₓ symmetrically with τₓ: the formula is unchanged under swapping τₓ↔τᵧ, so the same "resonance window" reappears here, centred on τᵧ = τₓ, and the natural frequency is still ω₀ = 1/√(τₓτᵧ).'},
+    {id:'gx', title:'γₓ — excitatory synaptic gain', prose:'γₓ scales how strongly excitatory synaptic drive translates into the PSP x. It enters the loop-gain product K = γₓγᵧwₓᵧwᵧₓa² linearly: below the critical value the fixed point is stable, above it a Hopf bifurcation creates a sustained limit cycle whose amplitude grows smoothly with γₓ.'},
+    {id:'gy', title:'γᵧ — inhibitory synaptic gain', prose:'γᵧ enters the same loop-gain product K as γₓ, so it plays an identical qualitative role: a Hopf bifurcation at a critical γᵧ, with amplitude growing smoothly beyond threshold.'},
+    {id:'wxy', title:'wₓᵧ — inhibitory→excitatory weight ("pull")', prose:'wₓᵧ sets the strength of y\'s negative feedback onto x. Like the gains above, it is just another multiplicative factor in the loop-gain product K, crossing the same kind of Hopf threshold.'},
+    {id:'wyx', title:'wᵧₓ — excitatory→inhibitory weight ("push")', prose:'wᵧₓ completes the push–pull loop (x drives y positively, y drives x negatively). It enters K identically to wₓᵧ, γₓ and γᵧ — the four parameters are mathematically interchangeable inside K, though each carries a distinct biological meaning.'},
+    {id:'a', title:'a — sigmoid slope (excitability)', prose:'a is the slope of σ(v) = tanh(av) at the operating point — how steeply firing rate responds to membrane perturbation. It enters K as a² (shared by both synapses), and also sets how quickly the sigmoid saturates, which is what ultimately caps the oscillation amplitude beyond onset.'},
+    {id:'Fe', title:'Fₑ — exogenous drive', prose:'Unlike ω or β in the Stuart–Landau oscillator, a constant drive Fₑ does affect the bifurcation here: it shifts the fixed point onto a shallower part of σ, lowering the effective slope and hence the effective loop gain. Strong enough drive can quench an oscillation that exists at Fₑ = 0 — a saturation effect with no Stuart–Landau analogue.'},
+  ],
+  about: `NMM1 is the family that includes the classic <strong>Jansen–Rit</strong> model (three populations: pyramidal, excitatory and inhibitory interneurons), which reproduces alpha-band EEG and realistic evoked responses, and is the standard neuronal model inside Dynamic Causal Modeling (DCM). Related variants — <strong>Wendling's</strong> model (adds fast/slow inhibition, used to study epileptiform activity) and the <strong>laminar model (LaNMM)</strong> (adds depth-resolved, layer-specific generators) — sit in the same family. <strong>Castaldo et al.</strong> place NMM1 above WILCO on the ladder: the same E–I push-pull motif, but now with biologically explicit synaptic kinetics doing the work that WILCO's self-coupling term did more abstractly.`,
+},
+
+nmm2: {
+  title: 'Next-Generation Neural Mass Model (NMM2)',
+  tagline: 'Replaces the heuristic sigmoid with an exact mean-field theory derived from spiking neurons.',
+  equations: `
+    <div class="info-eq-box">
+      <div class="eq-name">Montbrió–Pazó–Roxin mean field (§7, Eq. 7.4–7.6)</div>
+      <div class="eq-main">ṙ = Δ/π + 2rv</div>
+      <div class="eq-main">v̇ = v² − π²r² + Js + η̄ + I(t)</div>
+      <div class="eq-main">s = K̂[r] &nbsp;(synaptic filter)</div>
+      <div class="eq-note">Exact reduction of an all-to-all network of quadratic integrate-and-fire (QIF) neurons with heterogeneous excitability, in the large-N limit.</div>
+    </div>
+    <div class="info-eq-box">
+      <div class="eq-name">Coupled E–I pair (§7.1, Eq. 7.8–7.9)</div>
+      <div class="eq-main">ṙₓ = Δₓ/π + 2rₓvₓ,&nbsp;&nbsp; v̇ₓ = vₓ² − π²rₓ² + Jₓsₓ − Cₓᵧsᵧ + η̄ₓ + F̂ₑ</div>
+      <div class="eq-note">Driven only on the excitatory population, mirroring every other model on this site.</div>
+    </div>`,
+  how: `<p>Every earlier model on this ladder uses a static "wave-to-pulse" sigmoid to turn membrane potential into firing rate — a convenient but heuristic shortcut. NMM2 replaces it with something derived from first principles: Montbrió, Pazó and Roxin showed that a large population of quadratic integrate-and-fire (QIF) spiking neurons with a spread of excitabilities (drawn from a Lorentzian distribution) reduces <em>exactly</em>, with no approximation, to just two ODEs for the population's mean firing rate r(t) and mean membrane potential v(t).</p>
+    <p>The key difference from a static sigmoid is that the r–v relationship is now dynamic: it has its own "inertia" and a gain that depends on the network's recent history, not a fixed curve. Self-coupling strength J shifts the population toward higher firing rates and closer to resonance, which is why NMM2 predicts an enhanced, state-dependent sensitivity to weak, spatially uniform inputs — such as the electric fields used in non-invasive brain stimulation — that static-sigmoid models like WILCO or NMM1 cannot capture on their own.</p>`,
+  params: [
+    {name:'r(t)', meaning:'Population mean firing rate', effect:'The model\'s output variable — replaces the static sigmoid\'s instantaneous readout with genuine dynamics.'},
+    {name:'v(t)', meaning:'Population mean membrane potential', effect:'Evolves jointly with r(t); together they replace Freeman\'s static wave-to-pulse curve.'},
+    {name:'η̄ (eta-bar), Δ (delta)', meaning:'Mean and half-width of the Lorentzian excitability distribution', effect:'η̄ biases the population; larger Δ (more heterogeneity) damps coherence and broadens the response.'},
+    {name:'J', meaning:'Local recurrent self-coupling', effect:'J &gt; 0 (excitatory) shifts fixed points to higher rates and closer to a resonant/oscillatory regime.'},
+    {name:'s(t), K̂', meaning:'Synaptic activation and its filter', effect:'Filters the firing rate r into a synaptic current, same role as the synapse filters in NMM1.'},
+    {name:'I(t), F̂ₑ(t)', meaning:'External input (uniform current or electric field)', effect:'Because the r–v gain is state-dependent, the network\'s sensitivity to this input is itself dynamic — not fixed as in a static-sigmoid model.'},
+    {name:'Cₙₘ', meaning:'Long-range connectivity between populations/nodes', effect:'Same role as in every other network form on this site.'},
+  ],
+  about: `NMM2 is the newest rung: it keeps the E–I push-pull skeleton and the second-order synaptic filters from NMM1, but derives the transfer function itself from first principles (quadratic integrate-and-fire neurons) rather than assuming a sigmoid. <strong>Castaldo et al.</strong> frame this as a principled coarse-graining — in the language of renormalization, r and v are the "relevant" mesoscale variables that survive integrating out fast spiking detail. Applications so far include modeling the emergence of fast collective oscillations, whole-brain simulations on human connectomes, and theories of why densely self-coupled circuits respond more strongly to weak, uniform non-invasive stimulation.`,
+},
+
+};
+
+// ============================================================
+// MODEL REGISTRY
+// ============================================================
+const MODELS={
+  ho:   {label:'HO', impl:HO, stub:false},
+  sl:   {label:'Stuart–Landau', impl:SL, stub:false},
+  wilco:{label:'WILCO', impl:WILCO, stub:false},
+  nmm1: {label:'NMM1', impl:NMM1, stub:false},
+  nmm2: {label:'NMM2', stub:true},
+};
+
+// ============================================================
+// STATE + RENDER
+// ============================================================
+let activeModel='ho', activeVariant='Oscillator', activeTab='demo', params={}, debounce=null;
+
+function selectTab(tab){
+  activeTab=tab;
+  document.querySelectorAll('.page-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  document.getElementById('variantBar').style.display = tab==='demo' ? '' : 'none';
+  document.getElementById('workspace').style.display = tab==='demo' ? '' : 'none';
+  document.getElementById('infoPanel').style.display = tab==='info' ? '' : 'none';
+  if(tab==='info') renderInfoPanel();
+}
+function renderInfoPanel(){
+  const info=MODEL_INFO[activeModel];
+  const panel=document.getElementById('infoPanel');
+  if(!info){ panel.innerHTML=''; return; }
+  panel.innerHTML=`
+    <h2>${info.title}</h2>
+    <div class="tagline">${info.tagline}</div>
+    <div class="info-section">
+      <h3>The Equations</h3>
+      ${info.equations}
+    </div>
+    <div class="info-section">
+      <h3>How It Works</h3>
+      <div class="info-prose">${info.how}</div>
+    </div>
+    <div class="info-section">
+      <h3>Parameters</h3>
+      <table class="param-table">
+        <thead><tr><th>Parameter</th><th>Meaning</th><th>Effect</th></tr></thead>
+        <tbody>${info.params.map(p=>`<tr><td>${p.name}</td><td>${p.meaning}</td><td>${p.effect}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>
+    ${info.breakdown ? `
+    <div class="info-section">
+      <h3>Explore Each Parameter</h3>
+      <div class="breakdown-list">
+        ${info.breakdown.map((b,i)=>{
+          const hostId=`bd_${activeModel}_${i}_demo`;
+          return `
+          <div class="breakdown-item">
+            <div class="breakdown-header" onclick="toggleBreakdown(this,'${activeModel}','${b.id}','${hostId}')">
+              <span class="bd-title">${b.title}</span>
+              <span class="breakdown-chevron">&#9660;</span>
+            </div>
+            <div class="breakdown-body">
+              <div class="breakdown-prose">${b.prose}</div>
+              <div id="${hostId}"></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>` : ''}
+    <div class="info-section">
+      <h3>About This Model</h3>
+      <div class="info-about">${info.about}</div>
+    </div>`;
+}
+
+// ============================================================
+// PER-PARAMETER MINI-DEMOS (Info tab) — reuse each model's own
+// simulate()/plots() (time series + phase portrait are always plots
+// [0] and [1]) so there is exactly one physics implementation per
+// model; the mini-demo only ever overrides one parameter at a time,
+// holding everything else — including the Network section — at its
+// single-node default.
+// ============================================================
+function miniDemoDefaults(modelId){
+  const impl=MODELS[modelId].impl;
+  const variant=impl.variants[0];
+  const cfg=impl.cfg[variant];
+  const vals={};
+  cfgAllParams(cfg).forEach(sp=>{vals[sp.id]=sp.def;});
+  if('N' in vals) vals.N=1;
+  if('G' in vals) vals.G=0;
+  return {variant, cfg, vals};
+}
+function runMiniDemo(modelId, variant, vals, hostId){
+  const impl=MODELS[modelId].impl;
+  const sim=impl.simulate(variant, vals);
+  const plots=impl.plots(variant, vals, sim);
+  [0,1].forEach(i=>{
+    const el=document.getElementById(`${hostId}_p${i}`);
+    if(!el || !plots[i]) return;
+    Plotly.react(el.id, plots[i].data, {...plots[i].layout, margin:{t:24,b:28,l:36,r:6}, height:180, showlegend:false}, PCFG);
+  });
+}
+let _miniDemoDebounce={};
+function onMiniDemoSlider(modelId, paramId, hostId, val){
+  const v=parseFloat(val);
+  const disp=document.getElementById(`mdval_${hostId}`); if(disp) disp.textContent=v.toFixed(2);
+  clearTimeout(_miniDemoDebounce[hostId]);
+  _miniDemoDebounce[hostId]=setTimeout(()=>{
+    const {variant,vals}=miniDemoDefaults(modelId);
+    vals[paramId]=v;
+    runMiniDemo(modelId, variant, vals, hostId);
+  }, 120);
+}
+function renderMiniDemo(modelId, paramId, hostId){
+  const host=document.getElementById(hostId);
+  if(!host || host.dataset.mounted) return;
+  host.dataset.mounted='1';
+  const {variant,cfg,vals}=miniDemoDefaults(modelId);
+  const sp=cfgAllParams(cfg).find(s=>s.id===paramId);
+  host.innerHTML=`
+    <div class="slider-group mini-demo-slider">
+      <div class="slider-row">
+        <label>${sp.label}</label>
+        <span class="val" id="mdval_${hostId}">${vals[paramId].toFixed(2)}</span>
+      </div>
+      <input type="range" min="${sp.min}" max="${sp.max}" step="${sp.step}" value="${vals[paramId]}"
+        oninput="onMiniDemoSlider('${modelId}','${paramId}','${hostId}',this.value)">
+    </div>
+    <div class="mini-demo-plots">
+      <div class="plot-box"><div id="${hostId}_p0" style="height:180px;"></div></div>
+      <div class="plot-box"><div id="${hostId}_p1" style="height:180px;"></div></div>
+    </div>`;
+  runMiniDemo(modelId, variant, vals, hostId);
+}
+function toggleBreakdown(header, modelId, paramId, hostId){
+  const body=header.nextElementSibling;
+  const chevron=header.querySelector('.breakdown-chevron');
+  const opening=!body.classList.contains('visible');
+  body.classList.toggle('visible');
+  chevron.classList.toggle('open');
+  if(opening) renderMiniDemo(modelId, paramId, hostId);
+}
+
+// Every model's Network section is optional (cfg.network) and additive-only: it never
+// changes the base cfg.params, it only appends G/N-style sliders. Kept as one flat list
+// here so callers don't need to know the split.
+function cfgAllParams(cfg){
+  return cfg.network ? cfg.params.concat(cfg.network.params) : cfg.params;
+}
+function sliderGroupHtml(sp, params){
+  return `
+    <div class="slider-group">
+      <div class="slider-row">
+        <label for="sl_${sp.id}">${sp.label}</label>
+        <span class="val" id="val_${sp.id}">${(params[sp.id]??sp.def).toFixed(2)}</span>
+      </div>
+      <input type="range" id="sl_${sp.id}" min="${sp.min}" max="${sp.max}" step="${sp.step}"
+        value="${params[sp.id]??sp.def}" oninput="onSlider('${sp.id}',this.value)">
+    </div>`;
+}
+
+function renderVariantBar(){
+  const bar=document.getElementById('variantBar');
+  const m=MODELS[activeModel];
+  if(!m||m.stub||m.impl.variants.length<=1){bar.innerHTML='';return;}
+  bar.innerHTML='<span class="variant-label">Variant:</span>'+
+    m.impl.variants.map(v=>
+      `<button class="pill ${v===activeVariant?'active':''}" onclick="selectVariant('${v}')">${v}</button>`
+    ).join('');
+}
+
+function renderLeft(){
+  const panel=document.getElementById('leftPanel');
+  const m=MODELS[activeModel];
+  if(!m||m.stub){panel.innerHTML='';return;}
+  const cfg=m.impl.cfg[activeVariant];
+  if(!cfg)return;
+  cfgAllParams(cfg).forEach(sp=>{if(params[sp.id]===undefined)params[sp.id]=sp.def;});
+  panel.innerHTML=`
+    <div class="eq-box">${cfg.eqHtml}</div>
+    <div class="param-explain">${cfg.explain}</div>
+    ${cfg.params.map(sp=>sliderGroupHtml(sp,params)).join('')}
+    ${cfg.network ? `
+      <div class="network-section">
+        <div class="network-label">Network</div>
+        <div class="param-explain network-note">${cfg.network.note}</div>
+        ${cfg.network.params.map(sp=>sliderGroupHtml(sp,params)).join('')}
+      </div>` : ''}`;
+}
+
+function renderRight(plots){
+  const panel=document.getElementById('rightPanel');
+  const m=MODELS[activeModel];
+  if(!m||m.stub){
+    panel.innerHTML=`<div class="coming-soon"><h2>${m?m.label:''}</h2><p>Interactive demo coming soon.</p><div class="badge">Next rung on the ladder</div></div>`;
+    return;
+  }
+  const wasOpen=panel.querySelector('.explain-body.visible')!==null;
+  panel.innerHTML=`
+    <div class="explain-bar">
+      <div class="explain-header" onclick="toggleExplain(this)">
+        <span>&#9432; What am I looking at?</span>
+        <span class="chevron ${wasOpen?'open':''}">&#9660;</span>
+      </div>
+      <div class="explain-body ${wasOpen?'visible':''}">
+        <p><strong>Time series</strong> — how activity changes over time, like a recording.</p>
+        <p><strong>Phase portrait</strong> — one variable plotted against another. A closed loop means the system is oscillating; a dot means it has settled to a fixed point.</p>
+        <p><strong>Bifurcation diagram</strong> — what happens across a range of input values. A rising curve means oscillation switches on; a flat line near zero means a fixed point.</p>
+        <p><strong>Power spectrum</strong> — which frequencies are present. A tall peak means a strong rhythm at that frequency.</p>
+      </div>
+    </div>
+    <div class="plot-grid" id="plotGrid">
+      ${(plots||Array.from({length:2})).map((p,i)=>`
+        <div class="plot-box ${p&&p.wide?'wide':''}">
+          <div id="plot${i}" style="height:${p&&p.height?p.height:230}px;"></div>
+          <div class="plot-caption"><span id="capS${i}"></span><span class="dyn" id="capD${i}"></span></div>
+        </div>`).join('')}
+    </div>`;
+  if(plots) drawPlots(plots);
+}
+
+function drawPlots(plots){
+  plots.forEach((p,i)=>{
+    Plotly.newPlot(`plot${i}`,p.data,p.layout,PCFG);
+    document.getElementById(`capS${i}`).textContent=p.capS+' ';
+    document.getElementById(`capD${i}`).textContent=p.capD;
+  });
+}
+function updatePlots(plots){
+  if(!document.getElementById('plotGrid') || document.querySelectorAll('#plotGrid .plot-box').length!==plots.length){
+    renderRight(plots); return;
+  }
+  plots.forEach((p,i)=>{
+    Plotly.react(`plot${i}`,p.data,p.layout,PCFG);
+    document.getElementById(`capS${i}`).textContent=p.capS+' ';
+    document.getElementById(`capD${i}`).textContent=p.capD;
+  });
+}
+
+// Bumped on every model/variant switch (DOM plot divs get rebuilt); async work like
+// the Arnold tongue sweep checks this before touching the DOM, so a stale completion
+// from a variant the user already left can't overwrite whatever's on screen now.
+let renderGen=0;
+
+function runAndPlot(){
+  const m=MODELS[activeModel];
+  if(!m||m.stub)return;
+  const sim=m.impl.simulate(activeVariant,params);
+  updatePlots(m.impl.plots(activeVariant,params,sim));
+}
+
+function fullRender(){
+  renderGen++;
+  params={};
+  const m=MODELS[activeModel];
+  renderVariantBar(); renderLeft();
+  if(m&&!m.stub){
+    const cfg=m.impl.cfg[activeVariant];
+    cfgAllParams(cfg).forEach(sp=>{params[sp.id]=sp.def;});
+    const sim=m.impl.simulate(activeVariant,params);
+    renderRight(m.impl.plots(activeVariant,params,sim));
+  } else {
+    renderRight(null);
+  }
+}
+
+function selectModel(id){
+  activeModel=id; activeVariant=(MODELS[id].impl?.variants[0])||'';
+  document.querySelectorAll('.model-tab').forEach(t=>t.classList.toggle('active',t.dataset.model===id));
+  fullRender();
+  if(activeTab==='info') renderInfoPanel();
+}
+function selectVariant(v){
+  renderGen++;
+  activeVariant=v; params={};
+  renderVariantBar();
+  const m=MODELS[activeModel], cfg=m.impl.cfg[v];
+  cfgAllParams(cfg).forEach(sp=>{params[sp.id]=sp.def;});
+  renderLeft();
+  const sim=m.impl.simulate(v,params);
+  renderRight(m.impl.plots(v,params,sim));
+}
+function onSlider(id,val){
+  params[id]=parseFloat(val);
+  const el=document.getElementById('val_'+id);
+  if(el)el.textContent=parseFloat(val).toFixed(2);
+  clearTimeout(debounce);
+  debounce=setTimeout(runAndPlot,120);
+}
+function toggleExplain(h){
+  h.nextElementSibling.classList.toggle('visible');
+  h.querySelector('.chevron').classList.toggle('open');
+}
+document.querySelectorAll('.model-tab').forEach(btn=>
+  btn.addEventListener('click',()=>selectModel(btn.dataset.model))
+);
+// Deep link support: index.html's model cards link here as ?model=wilco etc.
+(function(){
+  const requested=new URLSearchParams(location.search).get('model');
+  if(requested && MODELS[requested]){
+    activeModel=requested;
+    activeVariant=(MODELS[requested].impl?.variants[0])||'';
+    document.querySelectorAll('.model-tab').forEach(t=>t.classList.toggle('active',t.dataset.model===requested));
+  }
+})();
+fullRender();
+</script>
+</body>
+</html>
