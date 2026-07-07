@@ -46,7 +46,7 @@ If noise is not 0 --> use Euler
 #If alpha = 0, it's undamped 
 
 def ho(omega, alpha, z0, t, noise_std=0.0, rng=None):
-     """Damped harmonic oscillator. Rosetta Stone Eq. 2.13.
+    """Damped harmonic oscillator. Rosetta Stone Eq. 2.13.
 
     ż = (α + iω)·z
     α = 0 → undamped, α < 0 → damped, α > 0 → growing.
@@ -109,7 +109,7 @@ def kuramoto(omegas, G, t, C=None, noise_std=0.0, rng=None):
 # ─── DHO WITH SINUSOIDAL FORCING───────────────────────────────────────────────────────────────
 
 def forced_dho(omega, alpha, F0, omega_drive, z0, t, noise_std=0.0, rng=None):
-     """Sinusoidally forced damped harmonic oscillator. Rosetta Stone Eq. 2.19.
+    """Sinusoidally forced damped harmonic oscillator. Rosetta Stone Eq. 2.19.
 
     ż = (α + iω)·z + F₀·e^{iΩt}
      Parameters
@@ -157,7 +157,7 @@ def resonance_curve(omega0, gamma, F0, omega_range):
 #──── COUPLED DHO ──────────────────────────────────────────────────────────────
 
 def coupled_dho(alphas, omegas, C, G, z0, t, F, noise_std=0.0, rng=None):
-     """Network of N diffusively coupled DHOs. Rosetta Stone Eq. 2.23.
+    """Network of N diffusively coupled DHOs. Rosetta Stone Eq. 2.23.
 
     żᵢ = (αᵢ + iωᵢ)·zᵢ + G·Σⱼ Cᵢⱼ·(zⱼ − zᵢ) + Fᵢ
     Parameters
