@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compare Models — Rosetta Stone of NMMs</title>
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue: #002878;
+  --coral: #FF6657;
+  --light: #e8edf7;
+  --bg: #f4f6fb;
+  --text: #1a1a2e;
+  --muted: #666;
+  --border: #d0d8ea;
+}
+body { font-family: sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+nav.topnav {
+  background: var(--blue); color: white;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.8rem 1.4rem; flex-wrap: wrap; gap: 6px;
+}
+nav.topnav .brand { font-weight: 700; font-size: 0.95rem; }
+nav.topnav .links a {
+  color: #a0b4e0; text-decoration: none; margin-left: 1.4rem; font-size: 0.88rem;
+  padding-bottom: 3px; border-bottom: 2px solid transparent; transition: color .15s;
+}
+nav.topnav .links a:hover { color: white; }
+nav.topnav .links a.active { color: white; border-bottom-color: var(--coral); }
+
+.sync-banner {
+  background: var(--blue); color: white; text-align: center;
+  padding: 0.6rem 1rem; font-size: 0.85rem; font-weight: 600;
+}
+
+main { max-width: 1180px; margin: 0 auto; padding: 1.6rem 1.2rem 3rem; }
+
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; }
+@media (max-width: 860px) { .compare-grid { grid-template-columns: 1fr; } }
+
+.panel { background: white; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 2px 8px rgba(0,40,120,0.06); }
+.panel-header { background: var(--blue); color: white; padding: 0.8rem 1rem; }
+.panel-header select {
+  width: 100%; padding: 0.45rem 0.6rem; border-radius: 6px; border: none;
+  font-size: 0.88rem; font-weight: 600; color: var(--blue); cursor: pointer;
+}
+.panel-eq { font-family: Georgia, serif; font-size: 0.78rem; color: #cdd7ee; margin-top: 0.5rem; }
+
+.panel-body { padding: 1rem 1.1rem; }
+.slider-group { margin-bottom: 0.6rem; }
+.slider-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.2rem; }
+.slider-row label { font-size: 0.82rem; font-weight: 600; color: var(--blue); }
+.slider-row .val { font-size: 0.82rem; color: var(--coral); font-weight: 700; min-width: 3.6rem; text-align: right; }
+input[type=range] { width: 100%; accent-color: var(--blue); cursor: pointer; margin-bottom: 0.4rem; }
+.shared-tag { font-size: 0.68rem; color: var(--coral); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-left: 0.4rem; }
+
+.plots { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-top: 0.8rem; }
+@media (max-width: 520px) { .plots { grid-template-columns: 1fr; } }
+.plot-box { border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+.plot-caption { font-size: 0.76rem; line-height: 1.5; padding: 0.4rem 0.55rem; color: var(--muted); border-top: 1px solid var(--border); }
+.dyn { color: var(--coral); font-weight: 600; }
+
+footer { text-align: center; font-size: 0.78rem; color: var(--muted); padding: 1.5rem; }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="brand">Rosetta Stone of Neural Mass Models</div>
+  <div class="links">
+    <a href="index.html">Home</a>
+    <a href="tutorial.html">Tutorial</a>
+    <a href="explorer.html">Explore</a>
+    <a href="compare.html" class="active">Compare</a>
+  </div>
+</nav>
+
+<div class="sync-banner">Shared parameters are synced — drag one slider to update both models.</div>
+
+<main>
+  <div class="compare-grid">
+    <div class="panel" id="panelL"></div>
+    <div class="panel" id="panelR"></div>
+  </div>
+</main>
+
+<footer>NE × BCOM — Rosetta Stone of Neural Mass Models</footer>
+
+<script>
+// ============================================================
+// RK4 integrator + helpers (self-contained copy, see explorer.html)
+// ============================================================
+function rk4step(f, y, t, dt) {
+  const k1 = f(t, y);
+  const k2 = f(t+dt/2, y.map((v,i)=>v+dt/2*k1[i]));
+  const k3 = f(t+dt/2, y.map((v,i)=>v+dt/2*k2[i]));
+  const k4 = f(t+dt,   y.map((v,i)=>v+dt*k3[i]));
+  return y.map((v,i)=>v+dt/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]));
+}
+function integrate(f, y0, steps, dt, sub=1) {
+  const ts=new Array(steps+1), ys=new Array(steps+1);
+  let y=y0.slice(), t=0;
+  ts[0]=0; ys[0]=y.slice();
+  const subdt=dt/sub;
+  for(let i=0;i<steps;i++){
+    for(let s=0;s<sub;s++){ y=rk4step(f,y,t,subdt); t+=subdt; }
+    ts[i+1]=t; ys[i+1]=y.slice();
+  }
+  return {ts, ys};
+}
+function downsample(arr, target) {
+  const step=Math.max(1,Math.floor(arr.length/target));
+  const out=[]; for(let i=0;i<arr.length;i+=step) out.push(arr[i]);
+  return out;
+}
+function makeRng(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function sigmoid(I, slope, I0){ return 1/(1+Math.exp(slope*(I0-I))); }
+const SLOPE_X=1.3, I0_X=4.0, SLOPE_Y=2.0, I0_Y=3.7;
+const TWO_PI=2*Math.PI;
+
+const BLUE='#002878', CORAL='#FF6657';
+const PALETTE=['#002878','#FF6657','#00A676','#FFC145','#7B2CBF','#0EA5B7'];
+const PCFG={responsive:true,displayModeBar:false};
+// Thin single line normally; falls back to one dot only if the trajectory has truly
+// collapsed to a fixed point (otherwise markers on hundreds of tightly-packed points
+// paint a thick band instead of a crisp circle).
+function ppTrace(x, y, color, extra) {
+  const xr = Math.max(...x)-Math.min(...x), yr = Math.max(...y)-Math.min(...y);
+  if (xr < 1e-3 && yr < 1e-3) {
+    return Object.assign({x:[x[x.length-1]], y:[y[y.length-1]], mode:'markers', marker:{color, size:7}}, extra);
+  }
+  return Object.assign({x, y, mode:'lines', line:{color, width:1.2}}, extra);
+}
+function lay(title, xl, yl, extra) {
+  return Object.assign({
+    title:{text:title,font:{size:11,color:BLUE}},
+    margin:{t:30,b:34,l:44,r:8},
+    paper_bgcolor:'white', plot_bgcolor:'#f8f9fc',
+    font:{size:9.5}, showlegend:true,
+    legend:{x:0.55,y:1,font:{size:8}},
+    xaxis:{gridcolor:'#e0e4ef',title:xl||''},
+    yaxis:{gridcolor:'#e0e4ef',title:yl||''},
+  }, extra||{});
+}
+function layPP(title, xl, yl) {
+  const L=lay(title,xl,yl);
+  L.yaxis.scaleanchor='x'; L.yaxis.scaleratio=1;
+  return L;
+}
+
+// Classified from the actual simulated amplitude/resting level, not a fixed Px cutoff
+// (the real Hopf point shifts with wxx/taux and isn't at a round Px number anyway).
+function wilcoTimeSeriesCaptionFromData(amp, meanX){
+  if (amp>0.01) return 'Steady rhythm — the inhibitory population always lags the excitatory by a quarter cycle.';
+  return meanX>0.5 ? 'Both populations saturated at maximum firing rate.' : 'System is silent — no rhythm, both populations at rest.';
+}
+function seededNetworkMatrix(N, seed){
+  const rng=makeRng(seed);
+  const C=Array.from({length:N},()=>Array.from({length:N},()=>rng()));
+  for(let i=0;i<N;i++) C[i][i]=0;
+  let v=Array.from({length:N},()=>1);
+  for(let iter=0;iter<100;iter++){
+    const w=C.map(row=>row.reduce((a,c,j)=>a+c*v[j],0));
+    const norm=Math.sqrt(w.reduce((a,b)=>a+b*b,0))||1;
+    v=w.map(x=>x/norm);
+  }
+  const Cv=C.map(row=>row.reduce((a,c,j)=>a+c*v[j],0));
+  const eig=Cv.reduce((a,b,i)=>a+b*v[i],0)||1;
+  return C.map(row=>row.map(c=>c/Math.abs(eig)));
+}
+
+// ============================================================
+// VARIANT REGISTRY — each entry: sliders, simulate(p), twoPlots(sim,p)
+// ============================================================
+const VARIANTS = {
+  'HO — Oscillator': {
+    eq:'dz/dt = (α + iω)·z + F₀e^(iΩt)   [α=0 undamped, F₀=0 unforced]',
+    params:[
+      {id:'omega',       label:'ω (rad/s)', min:1, max:100, step:0.5, def:TWO_PI*1, shared:true},
+      {id:'alpha',       label:'α (growth/damping)', min:-1, max:1, step:0.01, def:-0.1, shared:true},
+      {id:'F0',          label:'F₀ (drive amp., 0=off)', min:0, max:2, step:0.05, def:0},
+      {id:'omega_drive', label:'Ω (drive freq.)',    min:1, max:100, step:0.5, def:TWO_PI*0.7},
+      {id:'z0r',         label:'z₀ (start radius)', min:0.1, max:2, step:0.05, def:1},
+    ],
+    simulate(p){ const {omega,alpha,F0,omega_drive,z0r}=p;
+      return integrate((t,[re,im])=>[alpha*re-omega*im+F0*Math.cos(omega_drive*t), omega*re+alpha*im+F0*Math.sin(omega_drive*t)],[z0r,0],1000,0.01,8);
+    },
+    twoPlots(sim,p){
+      const {ts,ys}=sim; const {omega,alpha,F0,z0r}=p;
+      const isForced=F0>0.001;
+      const re=ys.map(y=>y[0]), im=ys.map(y=>y[1]);
+      const tD=downsample(ts,1200), reD=downsample(re,1200), imD=downsample(im,1200);
+      const periodSamples=Math.max(1,Math.round((TWO_PI/omega)/0.01));
+      const nShow=Math.min(re.length, 15*periodSamples+1);
+      const rePP=downsample(re.slice(0,nShow),1000), imPP=downsample(im.slice(0,nShow),1000);
+      let tsCap, ppCap;
+      if(!isForced){
+        tsCap = alpha<0 ? `Decaying oscillation, half-life ≈ ${(Math.LN2/Math.abs(alpha)).toFixed(2)} s.` : alpha>0 ? `Growing (unstable) oscillation, amplitude doubles every ≈ ${(Math.LN2/alpha).toFixed(2)} s.` : `Neutral — amplitude constant at z₀=${z0r.toFixed(2)}.`;
+        ppCap = alpha<0 ? `Inward spiral (α = ${alpha.toFixed(2)}) — energy dissipates each cycle.` : alpha>0 ? `Outward spiral (α = ${alpha.toFixed(2)}) — unstable, energy grows each cycle.` : 'Neutral circle — no damping.';
+      } else {
+        tsCap = alpha<0 ? 'Driven — transient plus steady-state response.' : `Forced on top of a ${alpha===0?'neutral':'growing'} oscillator — the drive doesn't stop it.`;
+        ppCap = alpha<0 ? 'Spirals toward a forced, off-centre steady orbit.' : 'Forcing can\'t tame an unstable orbit.';
+      }
+      return [
+        {data:[{x:tD,y:reD,line:{color:BLUE,width:1.3},showlegend:false}], layout:lay('Time series','t (s)','Re(z)'),
+          capS:'Real part of z(t) over time.', capD:tsCap},
+        {data:[ppTrace(rePP,imPP,BLUE,{showlegend:false})], layout:layPP(isForced?'Phase portrait':'Phase portrait (first ~15 turns)','Re(z)','Im(z)'),
+          capS:'Trajectory of z in the complex plane — spirals inward when damped, outward when growing.', capD:ppCap},
+      ];
+    }
+  },
+  'HO — Coupled': {
+    eq:'dzᵢ/dt = (α+iωᵢ)zᵢ + GΣⱼCᵢⱼ(zⱼ−zᵢ)',
+    params:[
+      {id:'G',     label:'G (coupling)', min:0, max:5, step:0.05, def:0.1},
+      {id:'alpha', label:'α (damping)',  min:-1, max:0, step:0.01, def:-0.1, shared:true},
+      {id:'N',     label:'N (oscillators)', min:2, max:5, step:1, def:3},
+    ],
+    simulate(p){
+      const {G,alpha,N}=p;
+      const omegas=Array.from({length:N},(_,i)=>N>1?0.5+1.5*i/(N-1):1.25);
+      const rng=makeRng(42);
+      const C=Array.from({length:N},()=>Array.from({length:N},()=>rng()));
+      for(let i=0;i<N;i++) C[i][i]=0;
+      const rowsum=C.map(r=>r.reduce((a,b)=>a+b,0));
+      const z0=[]; for(let i=0;i<N;i++){ const ph=rng()*TWO_PI; z0.push(Math.cos(ph),Math.sin(ph)); }
+      const f=(t,y)=>{
+        const out=new Array(2*N);
+        for(let i=0;i<N;i++){
+          const rI=y[2*i], iI=y[2*i+1]; let cx=0,cy=0;
+          for(let j=0;j<N;j++){ cx+=C[i][j]*y[2*j]; cy+=C[i][j]*y[2*j+1]; }
+          cx-=rowsum[i]*rI; cy-=rowsum[i]*iI;
+          out[2*i]=alpha*rI-omegas[i]*iI+G*cx; out[2*i+1]=omegas[i]*rI+alpha*iI+G*cy;
+        }
+        return out;
+      };
+      const sim=integrate(f,z0,1000,0.01,8); sim.N=N; return sim;
+    },
+    twoPlots(sim,p){
+      const N=sim.N, {ys,ts}=sim;
+      const reAll=Array.from({length:N},(_,k)=>downsample(ys.map(y=>y[2*k]),1000));
+      const imAll=Array.from({length:N},(_,k)=>downsample(ys.map(y=>y[2*k+1]),1000));
+      const tD=downsample(ts,1000);
+      return [
+        {data:reAll.map((r,k)=>({x:tD,y:r,name:`z${k+1}`,line:{color:PALETTE[k%PALETTE.length],width:1.2}})),
+          layout:lay('Time series','t (s)','Re(z)'), capS:'Real part of each oscillator\'s trajectory.',
+          capD: p.G>1 ? `Strong coupling (G=${p.G.toFixed(2)}) — pulling toward a shared rhythm.` : `Weak coupling (G=${p.G.toFixed(2)}) — each keeps its own rhythm.`},
+        {data:reAll.map((r,k)=>ppTrace(r,imAll[k],PALETTE[k%PALETTE.length],{name:`z${k+1}`})),
+          layout:layPP('Phase portraits (overlaid)','Re(z)','Im(z)'), capS:'Phase portraits of all oscillators overlaid.',
+          capD: p.G>1 ? 'Orbits overlap — synchronising.' : 'Orbits distinct — not yet synchronised.'},
+      ];
+    }
+  },
+  'HO — Kuramoto': {
+    eq:'dθᵢ/dt = ωᵢ + (G/N)Σⱼ sin(θⱼ−θᵢ)',
+    params:[
+      {id:'N',      label:'N (oscillators)', min:2, max:20, step:1, def:10},
+      {id:'G',      label:'G (coupling)',    min:0, max:5, step:0.1, def:2.0},
+      {id:'spread', label:'frequency spread',min:0, max:2, step:0.05, def:0.5},
+    ],
+    simulate(p){
+      const {N,G,spread}=p; const rng=makeRng(42);
+      const theta0=Array.from({length:N},()=>rng()*TWO_PI);
+      const omegas=Array.from({length:N},()=>TWO_PI*(1+spread*(2*rng()-1)));
+      const f=(t,theta)=>theta.map((th_i,i)=>{ let s=0; for(let j=0;j<N;j++) s+=Math.sin(theta[j]-th_i); return omegas[i]+(G/N)*s; });
+      const sim=integrate(f,theta0,1000,0.01,4); sim.N=N; return sim;
+    },
+    twoPlots(sim,p){
+      const N=sim.N, {ys,ts}=sim, G=p.G;
+      const tD=downsample(ts,1200);
+      const orderR=ys.map(theta=>{let re=0,im=0; for(let i=0;i<N;i++){re+=Math.cos(theta[i]);im+=Math.sin(theta[i]);} return Math.sqrt(re*re+im*im)/N;});
+      const finalR=orderR[orderR.length-1];
+      const traceColor = G>1 ? 'rgba(255,102,87,0.25)' : 'rgba(0,40,120,0.2)';
+      const cosTraces=Array.from({length:N},(_,i)=>({x:tD,y:downsample(ys.map(th=>Math.cos(th[i])),1200),mode:'lines',line:{color:traceColor,width:0.8},showlegend:false,hoverinfo:'skip'}));
+      cosTraces.push({x:tD,y:downsample(orderR,1200),mode:'lines',line:{color:'black',width:2},name:'R(t)'});
+      return [
+        {data:cosTraces, layout:{...lay(`cos θᵢ(t) and R(t)`,'t (s)','cos θᵢ / R(t)'), yaxis:{range:[-1.05,1.05],gridcolor:'#e0e4ef',title:'cos θᵢ / R(t)'}},
+          capS:'Thin lines: cos(θᵢ) per oscillator. Bold line: order parameter R(t).',
+          capD: finalR>0.9 ? 'Locked into a shared rhythm — fully synchronised.' : finalR>0.3 ? 'Drifting into rough alignment — partial synchrony.' : 'No shared rhythm — incoherent.'},
+        {data:[{x:tD,y:downsample(orderR,1200),mode:'lines',line:{color:CORAL,width:2},showlegend:false}],
+          layout:{...lay('Order parameter r(t)','t (s)','r'), yaxis:{range:[0,1.05],gridcolor:'#e0e4ef',title:'r'}},
+          capS:'r measures synchrony. r=1 fully in sync, r=0 incoherent.',
+          capD: `r ≈ ${finalR.toFixed(2)} — ${finalR>0.9?'fully synchronised.':finalR>0.3?'partially synchronised.':'incoherent, oscillators running independently.'}`},
+      ];
+    }
+  },
+  'WILCO — Single Node': {
+    eq:'τₓẋ+x=σ(wₓₓx−wₓᵧy+Pₓ+Fₑ(t));  τᵧẏ+y=σ(wᵧₓx−wᵧᵧy)   [A=0 unforced]',
+    params:[
+      {id:'Px',    label:'Px (drive)',              min:0, max:6, step:0.05, def:1.5},
+      {id:'wxx',   label:'wxx (E→E)',                min:0, max:20, step:0.5, def:16},
+      {id:'taux',  label:'τx (ms)',                  min:1, max:20, step:0.5, def:8},
+      {id:'A',     label:'A (forcing amp., 0=off)',  min:0, max:0.2, step:0.005, def:0},
+      {id:'fStim', label:'f (Hz)',                   min:1, max:80, step:1, def:24},
+    ],
+    simulate(p){
+      const {Px,wxx,taux,A,fStim}=p;
+      const f=(t,[x,y])=>{ const Fe=A*Math.sin(2*Math.PI*fStim*t/1000);
+        return [(sigmoid(wxx*x-12*y+Px+Fe,SLOPE_X,I0_X)-x)/taux,(sigmoid(15*x-3*y,SLOPE_Y,I0_Y)-y)/8]; };
+      return integrate(f,[0.1,0.05],50000,0.01);
+    },
+    twoPlots(sim,p){
+      const {ts,ys}=sim; const X=ys.map(y=>y[0]), Y=ys.map(y=>y[1]);
+      const tD=downsample(ts,2000), XD=downsample(X,2000), YD=downsample(Y,2000);
+      const tail=X.slice(Math.floor(X.length*0.8)), yTail=Y.slice(Math.floor(Y.length*0.8));
+      const amp=Math.max(...tail)-Math.min(...tail); const isOsc=amp>0.01;
+      const meanX=tail.reduce((a,b)=>a+b,0)/tail.length;
+      const XppD=downsample(tail,900), YppD=downsample(yTail,900);
+      return [
+        {data:[{x:tD,y:XD,name:'x (E)',line:{color:BLUE,width:1.2}},{x:tD,y:YD,name:'y (I)',line:{color:CORAL,width:1.2}}],
+          layout:lay('Time series','t (ms)','Firing rate'), capS:'Excitatory (blue) and inhibitory (red) firing rates over time.', capD:wilcoTimeSeriesCaptionFromData(amp, meanX)},
+        {data:[ppTrace(XppD,YppD,BLUE,{showlegend:false})],
+          layout:layPP('Phase portrait','x (E)','y (I)'), capS:'The trajectory of excitatory vs inhibitory activity.',
+          capD: isOsc ? 'Closed loop = self-sustained limit cycle oscillation.' : 'Single dot = no oscillation, the system has settled.'},
+      ];
+    }
+  },
+  'WILCO — Network': {
+    eq:'+ G·Σⱼ Cᵢⱼxⱼ coupling (N=3, random C, seed 42)',
+    params:[
+      {id:'G',       label:'G (coupling)',   min:0, max:5, step:0.1, def:2.0},
+      {id:'PxNode1', label:'Px node 1',      min:0, max:6, step:0.05, def:1.5},
+    ],
+    simulate(p){
+      const {G,PxNode1}=p; const N=3, wxx=16,wxy=12,wyx=15,wyy=3,taux=8,tauy=8;
+      const Px=[PxNode1,1.5,0.9]; const C=seededNetworkMatrix(N,42); const A=0.05, fStim=24;
+      const x0=[0.1,0.08,0.06,0.05,0.04,0.03];
+      const f=(t,y)=>{
+        const x=y.slice(0,N), yy=y.slice(N,2*N); const dx=new Array(N), dy=new Array(N);
+        const Fe0=A*Math.sin(2*Math.PI*fStim*t/1000);
+        for(let i=0;i<N;i++){
+          let coup=0; for(let j=0;j<N;j++) coup+=C[i][j]*x[j]; coup*=G;
+          const Fe=i===0?Fe0:0;
+          dx[i]=(sigmoid(wxx*x[i]-wxy*yy[i]+Px[i]+Fe+coup,SLOPE_X,I0_X)-x[i])/taux;
+          dy[i]=(sigmoid(wyx*x[i]-wyy*yy[i],SLOPE_Y,I0_Y)-yy[i])/tauy;
+        }
+        return dx.concat(dy);
+      };
+      const sim=integrate(f,x0,50000,0.01); sim.N=N; sim.Px=Px; return sim;
+    },
+    twoPlots(sim,p){
+      const N=sim.N, {ts,ys}=sim, Px=sim.Px;
+      const Xall=Array.from({length:N},(_,k)=>ys.map(y=>y[k]));
+      const Yall=Array.from({length:N},(_,k)=>ys.map(y=>y[N+k]));
+      const tD=downsample(ts,2000);
+      const XallD=Xall.map(X=>downsample(X,2000));
+      const amp0=(()=>{const tail=Xall[0].slice(Math.floor(Xall[0].length*0.8)); return Math.max(...tail)-Math.min(...tail);})();
+      const isOsc=amp0>0.01;
+      const XppD=downsample(Xall[0].slice(Math.floor(Xall[0].length*0.8)),900);
+      const YppD=downsample(Yall[0].slice(Math.floor(Yall[0].length*0.8)),900);
+      return [
+        {data:XallD.map((X,k)=>({x:tD,y:X,name:`node ${k} (Px=${Px[k]})`,line:{color:PALETTE[k],width:1.2}})),
+          layout:lay('Time series (per node)','t (ms)','x (E)'), capS:'Excitatory firing rate of each Wilson–Cowan node over time.',
+          capD: isOsc ? `Coupling G = ${p.G.toFixed(1)} ties the nodes together.` : 'Nodes have settled — no oscillation.'},
+        {data:[ppTrace(XppD,YppD,BLUE,{showlegend:false})],
+          layout:layPP('Phase portrait — node 0','x (E)','y (I)'), capS:'The trajectory of excitatory vs inhibitory activity for node 0.',
+          capD: isOsc ? 'Closed loop = self-sustained limit cycle oscillation.' : 'Single dot = no oscillation, the system has settled.'},
+      ];
+    }
+  },
+  'SL — Oscillator': {
+    eq:'ż=(α+iω)z−(γ+iβ)|z|²z   [Cartesian: ẋ=αx−ωy−γ(x²+y²)x+β(x²+y²)y]',
+    params:[
+      {id:'alpha', label:'α (growth/decay)', min:-1, max:2, step:0.05, def:1},
+      {id:'omega', label:'ω (rad/s)', min:0.5, max:10, step:0.1, def:2},
+      {id:'gamma', label:'γ (saturation, >0)', min:0.1, max:3, step:0.05, def:1},
+      {id:'beta',  label:'β (shear)', min:-3, max:3, step:0.05, def:1},
+    ],
+    simulate(p){
+      const {alpha,omega,gamma,beta}=p;
+      return integrate((t,[x,y])=>{ const r2=x*x+y*y; return [alpha*x-omega*y-gamma*r2*x+beta*r2*y, alpha*y+omega*x-gamma*r2*y-beta*r2*x]; }, [0.1,0], 3000, 0.01, 4);
+    },
+    twoPlots(sim,p){
+      const {ts,ys}=sim; const {alpha,gamma}=p;
+      const x=ys.map(y=>y[0]), yv=ys.map(y=>y[1]);
+      const r=x.map((xi,i)=>Math.sqrt(xi*xi+yv[i]*yv[i]));
+      const tD=downsample(ts,1000), xD=downsample(x,1000), yD=downsample(yv,1000), rD=downsample(r,1000);
+      const hasLC=alpha>1e-9, rStar=hasLC?Math.sqrt(alpha/gamma):0;
+      return [
+        {data:[{x:tD,y:xD,name:'x(t)',line:{color:BLUE,width:1.2}},{x:tD,y:yD,name:'y(t)',line:{color:CORAL,width:1.2}},{x:tD,y:rD,name:'r(t)',line:{color:'#2E7D32',width:1.1,dash:'dash'}}],
+          layout:lay('Time series','t (s)','activity'), capS:'x(t), y(t), and amplitude r(t).',
+          capD: hasLC ? `Limit cycle — r* = √(α/γ) ≈ ${rStar.toFixed(2)}.` : `α = ${alpha.toFixed(2)} < 0 — decays to rest.`},
+        {data:[ppTrace(downsample(x,900),downsample(yv,900),BLUE,{showlegend:false})],
+          layout:layPP('Phase portrait','x','y'), capS:'Trajectory in the (x,y) plane.',
+          capD: hasLC ? `Spirals onto a fixed-radius limit cycle at r* ≈ ${rStar.toFixed(2)}.` : 'Inward spiral to the origin.'},
+      ];
+    }
+  },
+  'SL — Network': {
+    eq:'żᵢ=(α+iωᵢ)zᵢ−(γ+iβ)|zᵢ|²zᵢ+G(z̄−zᵢ)  (N diffusively-coupled, ωᵢ spread)',
+    params:[
+      {id:'G',     label:'G (coupling)', min:0, max:3, step:0.05, def:0},
+      {id:'alpha', label:'α (growth/decay)', min:0.1, max:2, step:0.05, def:0.5},
+      {id:'gamma', label:'γ (saturation, >0)', min:0.1, max:3, step:0.05, def:1},
+      {id:'N',     label:'N (oscillators)', min:2, max:6, step:1, def:3},
+    ],
+    simulate(p){
+      const {G,alpha,gamma,N}=p; const beta=0;
+      const omegas=Array.from({length:N},(_,i)=>2.0+0.3*(i-(N-1)/2));
+      const rng=makeRng(7); const z0=[];
+      for(let i=0;i<N;i++){ const ph=rng()*TWO_PI; z0.push(0.3*Math.cos(ph),0.3*Math.sin(ph)); }
+      const f=(t,y)=>{
+        const out=new Array(2*N); let sx=0, sy=0;
+        for(let i=0;i<N;i++){ sx+=y[2*i]; sy+=y[2*i+1]; }
+        const zxBar=sx/N, zyBar=sy/N;
+        for(let i=0;i<N;i++){
+          const x=y[2*i], yy=y[2*i+1], r2=x*x+yy*yy;
+          out[2*i]=alpha*x-omegas[i]*yy-gamma*r2*x+beta*r2*yy+G*(zxBar-x);
+          out[2*i+1]=alpha*yy+omegas[i]*x-gamma*r2*yy-beta*r2*x+G*(zyBar-yy);
+        }
+        return out;
+      };
+      const sim=integrate(f,z0,3000,0.01,4); sim.N=N; sim.omegas=omegas; return sim;
+    },
+    twoPlots(sim,p){
+      const N=sim.N,{ys,ts}=sim, G=p.G;
+      const xAll=Array.from({length:N},(_,k)=>downsample(ys.map(y=>y[2*k]),1000));
+      const yAll=Array.from({length:N},(_,k)=>downsample(ys.map(y=>y[2*k+1]),1000));
+      const tD=downsample(ts,1000);
+      const rFinal=Array.from({length:N},(_,k)=>{const x=ys[ys.length-1][2*k],y=ys[ys.length-1][2*k+1]; return Math.sqrt(x*x+y*y);});
+      const synced=G>0.5 && (Math.max(...rFinal)-Math.min(...rFinal))<0.15;
+      return [
+        {data:xAll.map((x,k)=>({x:tD,y:x,name:`z${k+1}`,line:{color:PALETTE[k%PALETTE.length],width:1.2}})),
+          layout:lay('Time series','t (s)','x'), capS:'Excitatory component of each oscillator.',
+          capD: synced ? `Coupling G=${G.toFixed(2)} synchronised the network.` : `Coupling G=${G.toFixed(2)} — not yet synchronised.`},
+        {data:xAll.map((x,k)=>ppTrace(x,yAll[k],PALETTE[k%PALETTE.length],{name:`z${k+1}`})),
+          layout:layPP('Phase portraits (overlaid)','x','y'), capS:'Phase portraits of all oscillators overlaid.',
+          capD: synced ? 'Orbits overlap — synchronised.' : 'Orbits distinct — not synchronised.'},
+      ];
+    }
+  },
+  'NMM1 — Single Node': {
+    eq:'τₓ²ẍ+2τₓẋ+x=γₓσ(−wₓᵧy+Fₑ);  τᵧ²ÿ+2τᵧẏ+y=γᵧσ(wᵧₓx)   [σ(v)=tanh(a·v)]',
+    params:[
+      {id:'tau_x', label:'τx (exc. time, s)', min:0.05, max:3, step:0.05, def:0.5},
+      {id:'tau_y', label:'τy (inh. time, s)', min:0.05, max:3, step:0.05, def:0.5},
+      {id:'a',     label:'a (sigmoid slope)', min:0.3, max:4, step:0.05, def:2.5},
+      {id:'Fe',    label:'Fe (drive)', min:0, max:2, step:0.05, def:0},
+    ],
+    simulate(p){
+      const {tau_x,tau_y,a,Fe}=p; const gx=1,gy=1,wxy=1,wyx=1;
+      const f=(t,[x,vx,y,vy])=>{
+        const dvx=(gx*Math.tanh(a*(-wxy*y+Fe))-x-2*tau_x*vx)/(tau_x*tau_x);
+        const dvy=(gy*Math.tanh(a*(wyx*x))    -y-2*tau_y*vy)/(tau_y*tau_y);
+        return [vx,dvx,vy,dvy];
+      };
+      return integrate(f,[0.05,0,0,0],1500,0.01,2);
+    },
+    twoPlots(sim,p){
+      const {ts,ys}=sim; const {tau_x,tau_y,a}=p; const gx=1,gy=1,wxy=1,wyx=1;
+      const X=ys.map(y=>y[0]), Y=ys.map(y=>y[2]);
+      const tD=downsample(ts,1000), XD=downsample(X,1000), YD=downsample(Y,1000);
+      const tail=X.slice(Math.floor(X.length*2/3)), tailY=Y.slice(Math.floor(Y.length*2/3));
+      const amp=(Math.max(...tail)-Math.min(...tail))/2; const isOsc=amp>0.01;
+      const K=gx*gy*wxy*wyx*a*a, Kcrit=2+tau_x/tau_y+tau_y/tau_x;
+      return [
+        {data:[{x:tD,y:XD,name:'x (E PSP)',line:{color:BLUE,width:1.2}},{x:tD,y:YD,name:'y (I PSP)',line:{color:CORAL,width:1.2}}],
+          layout:lay('Time series','t (s)','PSP'), capS:'Excitatory and inhibitory post-synaptic potentials.',
+          capD: isOsc ? `K=${K.toFixed(2)} > K_crit=${Kcrit.toFixed(2)} — sustained rhythm.` : `K=${K.toFixed(2)} < K_crit=${Kcrit.toFixed(2)} — decays to rest.`},
+        {data:[ppTrace(downsample(tail,900),downsample(tailY,900),BLUE,{showlegend:false})],
+          layout:layPP('Phase portrait','x (E PSP)','y (I PSP)'), capS:'Trajectory of excitatory vs inhibitory PSP.',
+          capD: isOsc ? 'Closed loop — self-sustained, no self-coupling needed.' : 'Single point — no oscillation.'},
+      ];
+    }
+  },
+  'NMM1 — Network': {
+    eq:'+ C·Σⱼ≠ᵢ xⱼ coupling into σ (N nodes, slightly different a)',
+    params:[
+      {id:'C', label:'C (coupling)', min:0, max:0.6, step:0.02, def:0.15},
+      {id:'N', label:'N (nodes)', min:2, max:5, step:1, def:3},
+      {id:'a', label:'a (mean sigmoid slope)', min:1.5, max:3.5, step:0.05, def:2.5},
+    ],
+    simulate(p){
+      const {C,N,a}=p; const tau_x=0.5,tau_y=0.5,gx=1,gy=1,wxy=1,wyx=1;
+      const aVals=Array.from({length:N},(_,i)=>a+0.2*(i-(N-1)/2));
+      const x0=Array.from({length:N},(_,i)=>0.05*(i%2===0?1:-1)*(1-i*0.1));
+      const state0=[...x0, ...Array(N).fill(0), ...Array(N).fill(0), ...Array(N).fill(0)];
+      const f=(t,y)=>{
+        const x=y.slice(0,N), vx=y.slice(N,2*N), yy=y.slice(2*N,3*N), vy=y.slice(3*N,4*N);
+        const xsum=x.reduce((s,v)=>s+v,0);
+        const dvx=new Array(N), dvy=new Array(N);
+        for(let i=0;i<N;i++){
+          const coup=C*(xsum-x[i]);
+          dvx[i]=(gx*Math.tanh(aVals[i]*(-wxy*yy[i]+coup))-x[i]-2*tau_x*vx[i])/(tau_x*tau_x);
+          dvy[i]=(gy*Math.tanh(aVals[i]*(wyx*x[i]))        -yy[i]-2*tau_y*vy[i])/(tau_y*tau_y);
+        }
+        return [...vx, ...dvx, ...vy, ...dvy];
+      };
+      const sim=integrate(f,state0,2000,0.01,2); sim.N=N; sim.aVals=aVals; return sim;
+    },
+    twoPlots(sim,p){
+      const N=sim.N,{ts,ys}=sim; const C=p.C;
+      const Xall=Array.from({length:N},(_,k)=>ys.map(y=>y[k]));
+      const tD=downsample(ts,1000);
+      const XallD=Xall.map(X=>downsample(X,1000));
+      const amps=Xall.map(X=>{const tail=X.slice(Math.floor(X.length*0.75)); return (Math.max(...tail)-Math.min(...tail))/2;});
+      const isOsc=amps.some(a=>a>0.01);
+      const tail0=Xall[0].slice(Math.floor(Xall[0].length*0.75));
+      const tailY0=ys.map(y=>y[2*N]).slice(Math.floor(ys.length*0.75));
+      return [
+        {data:XallD.map((X,k)=>({x:tD,y:X,name:`node ${k}`,line:{color:PALETTE[k%PALETTE.length],width:1.2}})),
+          layout:lay('Time series (per node)','t (s)','x (E PSP)'), capS:'Excitatory PSP of each NMM1 node over time.',
+          capD: isOsc ? `Coupling C=${C.toFixed(2)} ties nodes with different excitability together.` : 'Nodes have settled — no oscillation.'},
+        {data:[ppTrace(downsample(tail0,900),downsample(tailY0,900),BLUE,{showlegend:false})],
+          layout:layPP('Phase portrait — node 0','x (E PSP)','y (I PSP)'), capS:'Trajectory of node 0.',
+          capD: isOsc ? 'Closed loop — node 0 is oscillating.' : 'Single point — node 0 has settled.'},
+      ];
+    }
+  },
+};
+const VARIANT_KEYS=Object.keys(VARIANTS);
+
+// ============================================================
+// PANEL STATE + RENDER
+// ============================================================
+const panels = {
+  L: {variant:'HO — Oscillator', params:{}},
+  R: {variant:'WILCO — Single Node', params:{}},
+};
+
+function otherSide(side){ return side==='L'?'R':'L'; }
+
+function renderPanel(side){
+  const st=panels[side];
+  const v=VARIANTS[st.variant];
+  v.params.forEach(sp=>{ if(st.params[sp.id]===undefined) st.params[sp.id]=sp.def; });
+  const el=document.getElementById('panel'+side);
+  el.innerHTML=`
+    <div class="panel-header">
+      <select onchange="onVariantChange('${side}',this.value)">
+        ${VARIANT_KEYS.map(k=>`<option value="${k}" ${k===st.variant?'selected':''}>${k}</option>`).join('')}
+      </select>
+      <div class="panel-eq">${v.eq}</div>
+    </div>
+    <div class="panel-body">
+      ${v.params.map(sp=>`
+        <div class="slider-group">
+          <div class="slider-row">
+            <label>${sp.label}${sp.shared?'<span class="shared-tag">synced</span>':''}</label>
+            <span class="val" id="val_${side}_${sp.id}">${st.params[sp.id].toFixed(2)}</span>
+          </div>
+          <input type="range" min="${sp.min}" max="${sp.max}" step="${sp.step}" value="${st.params[sp.id]}"
+            oninput="onSlider('${side}','${sp.id}',this.value)">
+        </div>`).join('')}
+      <div class="plots" id="plots${side}">
+        ${[0,1].map(i=>`<div class="plot-box"><div id="p${side}${i}" style="height:210px;"></div>
+          <div class="plot-caption"><span id="cs${side}${i}"></span><span class="dyn" id="cd${side}${i}"></span></div></div>`).join('')}
+      </div>
+    </div>`;
+  runPanel(side);
+}
+
+function runPanel(side){
+  const st=panels[side], v=VARIANTS[st.variant];
+  const sim=v.simulate(st.params);
+  const plots=v.twoPlots(sim,st.params);
+  plots.forEach((pl,i)=>{
+    Plotly.react(`p${side}${i}`, pl.data, pl.layout, PCFG);
+    document.getElementById(`cs${side}${i}`).textContent=pl.capS+' ';
+    document.getElementById(`cd${side}${i}`).textContent=pl.capD;
+  });
+}
+
+function onVariantChange(side, key){
+  panels[side].variant=key; panels[side].params={};
+  renderPanel(side);
+}
+
+let debounce=null;
+function onSlider(side, id, val){
+  const v=parseFloat(val);
+  panels[side].params[id]=v;
+  const disp=document.getElementById(`val_${side}_${id}`); if(disp) disp.textContent=v.toFixed(2);
+
+  // sync shared params (omega, alpha) to the other panel if it also has that param
+  const other=otherSide(side);
+  const otherVariant=VARIANTS[panels[other].variant];
+  const sharedDef=otherVariant.params.find(sp=>sp.id===id && sp.shared);
+  const thisDef=VARIANTS[panels[side].variant].params.find(sp=>sp.id===id && sp.shared);
+  if(sharedDef && thisDef){
+    panels[other].params[id]=v;
+    const oDisp=document.getElementById(`val_${other}_${id}`); if(oDisp) oDisp.textContent=v.toFixed(2);
+    const oSlider=document.querySelector(`#panel${other} input[oninput*="'${id}'"]`); if(oSlider) oSlider.value=v;
+  }
+
+  clearTimeout(debounce);
+  debounce=setTimeout(()=>{ runPanel(side); if(sharedDef && thisDef) runPanel(other); }, 120);
+}
+
+renderPanel('L');
+renderPanel('R');
+</script>
+</body>
+</html>
