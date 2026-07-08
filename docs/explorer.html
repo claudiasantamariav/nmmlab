@@ -265,10 +265,8 @@ function makeRng(seed) {
 }
 
 // ── Radix-2 FFT (recursive, simple) ──
-// Iterative in-place radix-2 FFT (Cooley-Tukey with bit-reversal). The Arnold tongue
-// needs ~1200 FFTs back to back — a recursive version that allocates 4 new arrays per
-// call adds enough GC pressure to make that sweep take tens of seconds; this variant
-// does no per-call allocation and is roughly an order of magnitude faster.
+// Iterative in-place radix-2 FFT (Cooley-Tukey with bit-reversal). In-place with no
+// per-call allocation.
 function fft(re, im) {
   const n=re.length;
   for(let i=1,j=0;i<n;i++){
@@ -846,11 +844,11 @@ function bifAmplitudeAt(bif, px){
 }
 
 let _bifCache={key:null,ps:null,amps:null};
-// Scalar (no per-step array allocation) RK4 for one Px point — same technique as
-// arnoldSweepCell. The generic array-based integrate() took ~2.1s for the full 61-point
-// sweep (a real freeze every time wxx/taux is dragged); this brings it down sharply by
-// avoiding array allocation in the hot loop and tracking running min/max instead of
-// storing (and re-scanning) the whole trajectory.
+// Scalar (no per-step array allocation) RK4 for one Px point. The generic array-based
+// integrate() took ~2.1s for the full 61-point sweep (a real freeze every time
+// wxx/taux is dragged); this brings it down sharply by avoiding array allocation in
+// the hot loop and tracking running min/max instead of storing (and re-scanning) the
+// whole trajectory.
 function bifurcationCell(wxx, taux, pv, steps, dt, tailStart){
   let x=0.1, y=0.05;
   let tailMax=-Infinity, tailMin=Infinity;
@@ -896,92 +894,6 @@ function computeBifurcation(wxx, taux){
   return _bifCache;
 }
 
-// Arnold tongue: sweep (drive frequency, drive amplitude) and mark where the network
-// locks onto the drive. Uses the same fixed Px=1.5 / weights as the reference sweep
-// regardless of the Forced variant's sliders, so the map itself never changes — compute
-// once and cache forever (~1200 short simulations, still only a one-off cost).
-// A hand-unrolled, scalar (no per-step array allocation) RK4 + FFT for one (A, f) cell.
-// The generic array-based integrate()/rk4step() cost ~22 ms/cell here — fine for a
-// single plot, but this sweep needs ~1200 of them. This version runs ~4x faster
-// (~5 ms/cell) by working with plain numbers instead of arrays in the hot loop.
-function arnoldSweepCell(P, Aval, fval){
-  const {tau_x,tau_y,wxx,wxy,wyx,wyy,Px,steps,dt,half}=P;
-  let x=0.1, y=0.05, t=0;
-  const xs=new Float64Array(steps+1-half);
-  let idx=0;
-  for(let i=0;i<=steps;i++){
-    if(i>=half) xs[idx++]=x;
-    const Fe1=Aval*Math.sin(2*Math.PI*fval*t/1000);
-    const s1x=1/(1+Math.exp(SLOPE_X*(I0_X-(wxx*x-wxy*y+Px+Fe1))));
-    const s1y=1/(1+Math.exp(SLOPE_Y*(I0_Y-(wyx*x-wyy*y))));
-    const k1x=(s1x-x)/tau_x, k1y=(s1y-y)/tau_y;
-    const x2=x+0.5*dt*k1x, y2=y+0.5*dt*k1y, t2=t+0.5*dt;
-    const Fe2=Aval*Math.sin(2*Math.PI*fval*t2/1000);
-    const s2x=1/(1+Math.exp(SLOPE_X*(I0_X-(wxx*x2-wxy*y2+Px+Fe2))));
-    const s2y=1/(1+Math.exp(SLOPE_Y*(I0_Y-(wyx*x2-wyy*y2))));
-    const k2x=(s2x-x2)/tau_x, k2y=(s2y-y2)/tau_y;
-    const x3=x+0.5*dt*k2x, y3=y+0.5*dt*k2y;
-    const s3x=1/(1+Math.exp(SLOPE_X*(I0_X-(wxx*x3-wxy*y3+Px+Fe2))));
-    const s3y=1/(1+Math.exp(SLOPE_Y*(I0_Y-(wyx*x3-wyy*y3))));
-    const k3x=(s3x-x3)/tau_x, k3y=(s3y-y3)/tau_y;
-    const x4=x+dt*k3x, y4=y+dt*k3y, t4=t+dt;
-    const Fe4=Aval*Math.sin(2*Math.PI*fval*t4/1000);
-    const s4x=1/(1+Math.exp(SLOPE_X*(I0_X-(wxx*x4-wxy*y4+Px+Fe4))));
-    const s4y=1/(1+Math.exp(SLOPE_Y*(I0_Y-(wyx*x4-wyy*y4))));
-    const k4x=(s4x-x4)/tau_x, k4y=(s4y-y4)/tau_y;
-    x=x+dt/6*(k1x+2*k2x+2*k3x+k4x);
-    y=y+dt/6*(k1y+2*k2y+2*k3y+k4y);
-    t=t+dt;
-  }
-  let mean=0; for(let i=0;i<xs.length;i++) mean+=xs[i];
-  mean/=xs.length;
-  const arr=new Array(xs.length);
-  for(let i=0;i<xs.length;i++) arr[i]=xs[i]-mean;
-  const sp=powerSpectrum(arr, dt/1000);
-  const peak=peakFreq(sp.freqs, sp.power, null);
-  return (Math.abs(peak-fval)<1.5 && Aval>0.02) ? 1 : 0;
-}
-
-// Runs the sweep in small time-boxed chunks (setTimeout between chunks) instead of one
-// long blocking call, so the tab never appears frozen no matter how slow the device is.
-// onProgress(pct) fires after every chunk; onDone(result) fires once, then the result
-// is cached forever (the sweep is constant — it doesn't depend on any slider).
-let _arnoldCache=null, _arnoldPending=null, _arnoldLastPct=0;
-function computeArnoldTongueAsync(onProgress, onDone){
-  if(_arnoldCache){ onDone(_arnoldCache); return; }
-  if(_arnoldPending){ onProgress(_arnoldLastPct); _arnoldPending.progressCbs.push(onProgress); _arnoldPending.doneCbs.push(onDone); return; }
-  const fValues=Array.from({length:40},(_,i)=>5+(50-5)*i/39);
-  const AValues=Array.from({length:30},(_,i)=>0.3*i/29);
-  const steps=3199, dt=800/3199; // 800 ms total, dt coarsened from the reference's
-  // 0.05 ms (16000 steps) to 0.25 ms — still ~30 substeps per tau=8 ms time constant,
-  // plenty for RK4, and the analysis window (last half, in real ms) is unchanged so
-  // frequency resolution is identical either way.
-  const half=Math.floor((steps+1)/2);
-  const P={tau_x:8,tau_y:8,wxx:16,wxy:12,wyx:15,wyy:3,Px:1.5,steps,dt,half};
-  const entrained=AValues.map(()=>new Array(fValues.length).fill(0));
-  let ai=0, fi=0, done=0;
-  const total=AValues.length*fValues.length;
-  const state={progressCbs:[onProgress], doneCbs:[onDone]};
-  _arnoldPending=state;
-  function chunk(){
-    const chunkStart=performance.now();
-    while(ai<AValues.length && performance.now()-chunkStart<35){
-      entrained[ai][fi]=arnoldSweepCell(P, AValues[ai], fValues[fi]);
-      done++; fi++;
-      if(fi>=fValues.length){ fi=0; ai++; }
-    }
-    _arnoldLastPct=Math.round(100*done/total);
-    state.progressCbs.forEach(cb=>cb(_arnoldLastPct));
-    if(ai<AValues.length){
-      setTimeout(chunk,0);
-    } else {
-      _arnoldCache={fValues, AValues, entrained};
-      _arnoldPending=null;
-      state.doneCbs.forEach(cb=>cb(_arnoldCache));
-    }
-  }
-  chunk();
-}
 
 const WILCO = {
   variants:['Single Node'],
@@ -1059,53 +971,6 @@ const WILCO = {
     return col.slice(Math.floor(col.length*0.1));
   },
 
-  // Arnold tongue plot: the sweep that builds it takes a few seconds even chunked, so
-  // this returns a placeholder immediately and patches the real plot in once the async
-  // sweep finishes (or instantly, if it's already cached from an earlier visit).
-  arnoldTonguePlot(fStim, A, pk){
-    const gen=renderGen;
-    const idx=2; // 3rd plot slot in the Forced variant
-    const build=(at)=>{
-      const nowEntrained=(Math.abs(pk-fStim)<1.5 && A>0.02);
-      return {data:[
-        {type:'contour', x:at.fValues, y:at.AValues, z:at.entrained,
-          colorscale:[[0,'white'],[1,BLUE]], autocontour:false,
-          contours:{start:0.5,end:1.5,size:1,coloring:'fill',showlines:false},
-          showscale:false, showlegend:false, hoverinfo:'skip'},
-        {x:[24,24], y:[0,0.3], mode:'lines', line:{color:'red',width:1.5,dash:'dash'}, name:'natural freq (24 Hz)'},
-        {x:[fStim], y:[A], mode:'markers', marker:{color:CORAL,size:11,symbol:'circle-open',line:{width:2.5,color:CORAL}}, name:'your (f, A)'},
-      ], layout:{...lay('Arnold tongue — entrainment region','Forcing frequency f (Hz)','Forcing amplitude A'),
-          yaxis:{range:[0,0.3],gridcolor:'#e0e4ef',title:'A'}, legend:{x:0.02,y:0.98,font:{size:8}}},
-        height:280,
-        capS:'Blue region = combinations of forcing frequency and amplitude where the network locks onto the drive (entrainment). Red dashed line = the network\'s natural rhythm (~24 Hz).',
-        capD: nowEntrained
-          ? `Your (f=${fStim} Hz, A=${A.toFixed(2)}) is inside the entrainment region — the network is locked to your drive.`
-          : `Your (f=${fStim} Hz, A=${A.toFixed(2)}) is outside the entrainment region — the network is not locked to your drive.`};
-    };
-    if(_arnoldCache) return build(_arnoldCache);
-    computeArnoldTongueAsync(
-      (pct)=>{
-        if(gen!==renderGen) return;
-        const capD=document.getElementById(`capD${idx}`);
-        if(capD) capD.textContent=`Computing entrainment map… ${pct}%`;
-      },
-      (at)=>{
-        if(gen!==renderGen) return;
-        const plot=build(at);
-        const el=document.getElementById(`plot${idx}`);
-        if(!el) return;
-        Plotly.react(`plot${idx}`, plot.data, plot.layout, PCFG);
-        document.getElementById(`capS${idx}`).textContent=plot.capS+' ';
-        document.getElementById(`capD${idx}`).textContent=plot.capD;
-      }
-    );
-    return {data:[], layout:{...lay('Arnold tongue — entrainment region','Forcing frequency f (Hz)','Forcing amplitude A'),
-        yaxis:{range:[0,0.3],gridcolor:'#e0e4ef',title:'A'}},
-      height:280,
-      capS:'Blue region = combinations of forcing frequency and amplitude where the network locks onto the drive (entrainment). Red dashed line = the network\'s natural rhythm (~24 Hz).',
-      capD:`Computing entrainment map… ${_arnoldLastPct}% (one-time; cached after this)`};
-  },
-
   plots(variant, p, sim){
     const {ts,ys}=sim;
     const DT_S=0.02/1000; // seconds per sample, for the dedicated spectrum sim
@@ -1169,7 +1034,6 @@ const WILCO = {
           capS:'Energy at each frequency.',
           capD: isOsc ? `Sharp peak at ~${pk.toFixed(0)} Hz — ${band.name}, ${band.note}.` : 'No clear peak — the population is at rest.'},
 
-        this.arnoldTonguePlot(fStim, A, pk),
       ];
     }
 
@@ -1511,7 +1375,7 @@ sl: {
     {name:'ω (omega)', meaning:'Intrinsic angular frequency', effect:'Sets the base rotation rate, further shifted by β once amplitude grows.'},
     {name:'γ (gamma) &gt; 0', meaning:'Nonlinear amplitude saturation', effect:'Caps the limit-cycle radius; larger γ → smaller stable amplitude for the same α.'},
     {name:'β (beta)', meaning:'Amplitude–phase coupling ("shear")', effect:'Couples amplitude to instantaneous frequency; captures nonlinear dispersion effects absent from the HO.'},
-    {name:'F(t)', meaning:'External forcing', effect:'Displaces the limit cycle to a new fixed point; periodic forcing yields nonlinear phase locking (Arnold tongues).'},
+    {name:'F(t)', meaning:'External forcing', effect:'Displaces the limit cycle to a new fixed point; periodic forcing yields nonlinear phase locking.'},
     {name:'G, Cᵢⱼ', meaning:'Coupling gain and connectivity', effect:'Diffusive coupling toward the network mean; drives synchronization, clustering, amplitude death.'},
   ],
   breakdown: [
@@ -1535,7 +1399,7 @@ wilco: {
     <div class="info-eq-box">
       <div class="eq-name">Forced (§5.1, Eq. 5.3)</div>
       <div class="eq-main">τₓẋ + x = σₓ(wₓₓx − wₓᵧy + Pₓ + F̂ₑ(t))</div>
-      <div class="eq-note">Near the Hopf bifurcation this behaves like a forced SL oscillator; sinusoidal forcing carves out Arnold tongues of n:m phase-locking.</div>
+      <div class="eq-note">Near the Hopf bifurcation this behaves like a forced SL oscillator; sinusoidal forcing produces n:m phase-locking.</div>
     </div>
     <div class="info-eq-box">
       <div class="eq-name">Network (§5.3, Eq. 5.5)</div>
@@ -1556,14 +1420,14 @@ wilco: {
     {name:'wᵧᵧ', meaning:'I→I weight (self-inhibition)', effect:'Additional damping on the inhibitory population.'},
     {name:'Pₓ', meaning:'Tonic drive to the excitatory population', effect:'The bifurcation control parameter — sweeping it switches the oscillation on and off (Hopf onset).'},
     {name:'σ(·)', meaning:'Sigmoid transfer function (slope, threshold)', effect:'Converts total input current to a bounded firing rate; its curvature is what stabilizes the limit cycle.'},
-    {name:'F̂ₑ(t)', meaning:'External / rhythmic forcing on the excitatory population', effect:'Entrains the network; near Hopf, periodic forcing produces Arnold-tongue-shaped phase-locking regions.'},
+    {name:'F̂ₑ(t)', meaning:'External / rhythmic forcing on the excitatory population', effect:'Entrains the network; near Hopf, periodic forcing produces phase-locking regions.'},
     {name:'G, Cᵢⱼ', meaning:'Coupling gain and (row-normalized) connectivity', effect:'Long-range excitatory drive from other nodes, added inside the sigmoid of the receiving node.'},
   ],
   breakdown: [
     {id:'Px', title:'Pₓ — tonic drive to the excitatory population', prose:'Pₓ is the bifurcation control parameter for the whole model: it is a constant background current that shifts where the excitatory population sits on the sigmoid. Turn it up enough and the fixed point destabilizes — a Hopf bifurcation switches on a self-sustained limit-cycle rhythm with no external clock required. The bifurcation diagram in the main Demo shows this onset as a sharp cliff, not a gradual fade.'},
     {id:'wxx', title:'wₓₓ — excitatory self-coupling (E→E)', prose:'wₓₓ is how strongly the excitatory population reinforces itself. Together with the drive Pₓ, it needs to be large enough to push the operating point onto the steep part of the sigmoid — without sufficient self-excitation, no amount of drive alone will trigger the Hopf bifurcation.'},
     {id:'taux', title:'τₓ — excitatory time constant', prose:'τₓ sets how quickly the excitatory population responds to its input. Along with the fixed inhibitory time constant (τᵧ = 8 ms here), the E–I timescale separation between the two populations is what shapes the frequency of the emergent rhythm once the network starts oscillating.'},
-    {id:'A', title:'A — forcing amplitude', prose:'A turns on a rhythmic external stimulus at frequency fₛₜᵢₘ, added to the excitatory population\'s input. At A = 0 the node is fully autonomous; a large enough A can entrain the network to the stimulus frequency even away from the network\'s own natural rhythm — the Arnold tongue plot in the main Demo maps out exactly which (A, f) combinations achieve this.'},
+    {id:'A', title:'A — forcing amplitude', prose:'A turns on a rhythmic external stimulus at frequency fₛₜᵢₘ, added to the excitatory population\'s input. At A = 0 the node is fully autonomous; a large enough A can entrain the network to the stimulus frequency even away from the network\'s own natural rhythm.'},
     {id:'fStim', title:'fₛₜᵢₘ — stimulus frequency', prose:'fₛₜᵢₘ is the frequency of the rhythmic drive (only relevant once A &gt; 0). When it\'s close to the network\'s own natural frequency, entrainment happens at low forcing amplitude; far from it, much stronger forcing is needed to pull the rhythm away from its natural pace.'},
   ],
   about: `Wilson and Cowan introduced this model in the early 1970s as the first tractable mean-field description of interacting excitatory and inhibitory populations, and it remains a modeling workhorse today — from single microcircuits to whole-brain simulations fit to MEG, EEG, and fMRI. <strong>Castaldo et al.</strong> place WILCO directly above Stuart–Landau on the ladder: the same Hopf-bifurcation machinery, but every coefficient is now anchored to a measurable biophysical quantity (a synaptic weight, a time constant, a drive current) rather than an abstract normal-form parameter.`,
@@ -1877,9 +1741,8 @@ function updatePlots(plots){
   });
 }
 
-// Bumped on every model/variant switch (DOM plot divs get rebuilt); async work like
-// the Arnold tongue sweep checks this before touching the DOM, so a stale completion
-// from a variant the user already left can't overwrite whatever's on screen now.
+// Bumped on every model/variant switch (DOM plot divs get rebuilt); any stale async
+// work checks this before touching the DOM so it can't overwrite the current view.
 let renderGen=0;
 
 function runAndPlot(){
