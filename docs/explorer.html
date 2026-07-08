@@ -87,7 +87,12 @@ nav.topnav .links a.active { color: white; border-bottom-color: var(--coral); }
 .breakdown-item { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.7rem; overflow: hidden; background: white; }
 .breakdown-header { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.1rem; cursor: pointer; user-select: none; }
 .breakdown-header:hover { background: var(--light); }
-.breakdown-header .bd-title { font-weight: 700; color: var(--blue); font-size: 0.92rem; }
+.breakdown-header .bd-title { font-weight: 700; color: var(--blue); font-size: 0.92rem; display: flex; align-items: center; gap: 0.6rem; }
+.bd-title .step-num {
+  font-size: 0.78rem; color: white; background: var(--coral); border-radius: 50%;
+  width: 1.5rem; height: 1.5rem; display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
 .breakdown-chevron { font-size: 0.7rem; color: var(--muted); transition: transform 0.2s; flex-shrink: 0; margin-left: 0.8rem; }
 .breakdown-chevron.open { transform: rotate(180deg); }
 .breakdown-body { display: none; padding: 0 1.1rem 1.1rem; }
@@ -1337,12 +1342,19 @@ ho: {
     {name:'N', meaning:'Number of oscillators / nodes', effect:'Network size.'},
     {name:'θᵢ, r', meaning:'Phase and order parameter (Kuramoto)', effect:'r = |mean of e^(iθ)| measures synchrony: r = 1 fully locked, r = 0 incoherent.'},
   ],
-  breakdown: [
-    {id:'omega', title:'ω — natural angular frequency', prose:'ω sets how fast z rotates around the origin — the period is T = 2π/ω. It is purely a clock: changing ω does not touch stability, damping, or amplitude, only the speed of rotation. In Hz, the oscillation frequency is f = ω/2π.'},
-    {id:'alpha', title:'α — linear growth/decay rate', prose:'α is the whole story of damping. α &lt; 0 gives a stable, decaying spiral (a real, physically realizable oscillator); α = 0 gives a neutral circle with constant amplitude, set entirely by the starting point; α &gt; 0 gives an unstable, ever-growing spiral. This is the simplest possible version of the bifurcation parameter that reappears, with a stabilizing nonlinearity attached, in every later model on the ladder.'},
-    {id:'F0', title:'F₀ — drive amplitude', prose:'F₀ turns on an external periodic push, e<sup>iΩt</sup>, added to the free rotation. At F₀ = 0 the oscillator is autonomous (it evolves under its own dynamics alone); increasing F₀ raises how strongly the drive can pull the oscillator\'s phase and amplitude toward its own rhythm.'},
-    {id:'omega_drive', title:'Ω — drive frequency', prose:'Ω is the frequency of the external push. When Ω sits close to the natural frequency ω, the system resonates and the driven amplitude grows large (bounded only by damping, if α &lt; 0); far from ω, the same drive produces a much smaller response. The resonance curve panel in the Demo makes this relationship explicit.'},
-    {id:'z0r', title:'z₀ — starting radius', prose:'z₀ only matters when α = 0: with no damping or growth, the orbit keeps whatever radius it started at forever, so z₀ directly sets the amplitude you\'ll see for the rest of time. The moment α ≠ 0, the initial radius is forgotten exponentially fast — the system decays to the origin or grows without bound regardless of where it began.'},
+  buildup: [
+    {id:'free', step:1, title:'Free rotation — undamped, unforced, uncoupled', param:'z0r', startVal:1,
+     fixed:{alpha:0, F0:0, N:1, G:0},
+     prose:'Start from the simplest possible case: α = 0 (no damping), F₀ = 0 (no forcing), a single oscillator (N = 1). All that\'s left is ż = iωz — a neutral circle traced at constant angular speed ω. With nothing pulling the amplitude anywhere, the radius never changes: whatever you start at, z₀, is the amplitude forever. Drag z₀ and watch the circle simply get bigger or smaller — nothing else about the motion changes.'},
+    {id:'damping', step:2, title:'Switch on damping', param:'alpha', startVal:0,
+     fixed:{F0:0, N:1, G:0, z0r:1},
+     prose:'Now let α move away from 0. This one term is the whole story of damping: negative α leaks energy every cycle, so the spiral decays inward to the origin; positive α pumps energy in, so it grows outward without bound. α = 0 recovers exactly the neutral circle from step 1. This is the simplest version of the bifurcation parameter that reappears — with a stabilizing nonlinearity attached — in every later model on this ladder.'},
+    {id:'forcing', step:3, title:'Switch on forcing', param:'F0', startVal:0,
+     fixed:{alpha:-0.15, omega_drive:TWO_PI*1, N:1, G:0, z0r:1},
+     prose:'With damping now fixed at a modest α (so the un-forced oscillator would quietly decay), turn on a periodic push e<sup>iΩt</sup> at exactly the oscillator\'s own frequency (Ω = ω) — resonance. At F₀ = 0 the oscillator is autonomous; turning F₀ up shows the drive pulling the amplitude into a much larger, sustained orbit than damping alone would allow.'},
+    {id:'coupling', step:4, title:'Switch on coupling', param:'G', startVal:0,
+     fixed:{alpha:-0.15, F0:0, N:3},
+     prose:'Finally, turn forcing back off and instead connect several damped oscillators together: żᵢ = (α+iωᵢ)zᵢ + (G/N)Σⱼ(zⱼ−zᵢ). Each node has a slightly different natural frequency, so at G = 0 they drift apart; turn G up and the diffusive coupling pulls them toward the network mean until they move as one.'},
   ],
   about: `The HO is what the paper calls the "hydrogen atom" of the ladder: the simplest system that can oscillate at all, and the template every later model elaborates on. <strong>Castaldo et al.</strong> show that going from a single undamped oscillator → damped → forced → coupled network leads directly, in the right limit, to the <strong>Kuramoto model</strong> — the field's standard description of phase synchronization, used everywhere from whole-brain connectome simulations to explaining EEG/MEG phase-locking and entrainment by rhythmic stimulation.`,
 },
@@ -1551,7 +1563,26 @@ function renderInfoPanel(){
         <tbody>${info.params.map(p=>`<tr><td>${p.name}</td><td>${p.meaning}</td><td>${p.effect}</td></tr>`).join('')}</tbody>
       </table>
     </div>
-    ${info.breakdown ? `
+    ${info.buildup ? `
+    <div class="info-section">
+      <h3>Building the Model, Step by Step</h3>
+      <div class="breakdown-list">
+        ${info.buildup.map((b)=>{
+          const hostId=`bu_${activeModel}_${b.id}_demo`;
+          return `
+          <div class="breakdown-item">
+            <div class="breakdown-header" onclick="toggleBuildupStep(this,'${activeModel}','${b.id}','${hostId}')">
+              <span class="bd-title"><span class="step-num">${b.step}</span>${b.title}</span>
+              <span class="breakdown-chevron">&#9660;</span>
+            </div>
+            <div class="breakdown-body">
+              <div class="breakdown-prose">${b.prose}</div>
+              <div id="${hostId}"></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>` : info.breakdown ? `
     <div class="info-section">
       <h3>Explore Each Parameter</h3>
       <div class="breakdown-list">
@@ -1644,6 +1675,76 @@ function toggleBreakdown(header, modelId, paramId, hostId){
   body.classList.toggle('visible');
   chevron.classList.toggle('open');
   if(opening) renderMiniDemo(modelId, paramId, hostId);
+}
+
+// ============================================================
+// BUILDUP DEMOS (Info tab) — same one-slider/two-plot mini-demo as
+// above, but each step layers a fixed "backdrop" of previously
+// introduced parameters (step.fixed) instead of the model's global
+// cfg defaults, so the sequence reads as cumulative: free rotation →
+// + damping → + forcing → + coupling, one new ingredient at a time.
+// ============================================================
+function buildupDefaults(modelId, step){
+  const impl=MODELS[modelId].impl;
+  const variant=impl.variants[0];
+  const cfg=impl.cfg[variant];
+  const vals={};
+  cfgAllParams(cfg).forEach(sp=>{vals[sp.id]=sp.def;});
+  Object.assign(vals, step.fixed);
+  vals[step.param]=step.startVal;
+  return {variant, cfg, vals};
+}
+function runBuildupDemo(modelId, variant, vals, hostId){
+  const impl=MODELS[modelId].impl;
+  const sim=impl.simulate(variant, vals);
+  const plots=impl.plots(variant, vals, sim);
+  [0,1].forEach(i=>{
+    const el=document.getElementById(`${hostId}_p${i}`);
+    if(!el || !plots[i]) return;
+    Plotly.react(el.id, plots[i].data, {...plots[i].layout, margin:{t:24,b:28,l:36,r:6}, height:180, showlegend:false}, PCFG);
+  });
+}
+let _buildupDebounce={};
+function onBuildupSlider(modelId, stepId, paramId, hostId, val){
+  const v=parseFloat(val);
+  const disp=document.getElementById(`buval_${hostId}`); if(disp) disp.textContent=v.toFixed(2);
+  clearTimeout(_buildupDebounce[hostId]);
+  _buildupDebounce[hostId]=setTimeout(()=>{
+    const step=MODEL_INFO[modelId].buildup.find(s=>s.id===stepId);
+    const {variant,vals}=buildupDefaults(modelId, step);
+    vals[paramId]=v;
+    runBuildupDemo(modelId, variant, vals, hostId);
+  }, 120);
+}
+function renderBuildupDemo(modelId, stepId, hostId){
+  const host=document.getElementById(hostId);
+  if(!host || host.dataset.mounted) return;
+  host.dataset.mounted='1';
+  const step=MODEL_INFO[modelId].buildup.find(s=>s.id===stepId);
+  const {variant,cfg,vals}=buildupDefaults(modelId, step);
+  const sp=cfgAllParams(cfg).find(s=>s.id===step.param);
+  host.innerHTML=`
+    <div class="slider-group mini-demo-slider">
+      <div class="slider-row">
+        <label>${sp.label}</label>
+        <span class="val" id="buval_${hostId}">${vals[step.param].toFixed(2)}</span>
+      </div>
+      <input type="range" min="${sp.min}" max="${sp.max}" step="${sp.step}" value="${vals[step.param]}"
+        oninput="onBuildupSlider('${modelId}','${stepId}','${step.param}','${hostId}',this.value)">
+    </div>
+    <div class="mini-demo-plots">
+      <div class="plot-box"><div id="${hostId}_p0" style="height:180px;"></div></div>
+      <div class="plot-box"><div id="${hostId}_p1" style="height:180px;"></div></div>
+    </div>`;
+  runBuildupDemo(modelId, variant, vals, hostId);
+}
+function toggleBuildupStep(header, modelId, stepId, hostId){
+  const body=header.nextElementSibling;
+  const chevron=header.querySelector('.breakdown-chevron');
+  const opening=!body.classList.contains('visible');
+  body.classList.toggle('visible');
+  chevron.classList.toggle('open');
+  if(opening) renderBuildupDemo(modelId, stepId, hostId);
 }
 
 // Every model's Network section is optional (cfg.network) and additive-only: it never
