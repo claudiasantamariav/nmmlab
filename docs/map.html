@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Model Map — Rosetta Stone of Neural Mass Models</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #002878;
+    --coral: #FF6657;
+    --light-blue: #e8edf7;
+    --bg: #fafafa;
+    --card-bg: #ffffff;
+    --card-border: #e2e6f0;
+    --text: #1a1a2e;
+    --muted: #666;
+    --faint: #8a8fa3;
+  }
+  body { font-family: sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  nav.topnav {
+    background: var(--blue); color: white;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.8rem 1.4rem;
+  }
+  nav.topnav .brand { font-weight: 700; font-size: 0.95rem; }
+  nav.topnav .links a {
+    color: #a0b4e0; text-decoration: none; margin-left: 1.4rem; font-size: 0.88rem;
+    padding-bottom: 3px; border-bottom: 2px solid transparent; transition: color .15s;
+  }
+  nav.topnav .links a:hover { color: white; }
+  nav.topnav .links a.active { color: white; border-bottom-color: var(--coral); }
+
+  header { text-align: center; padding: 3rem 1.5rem 2rem; max-width: 760px; margin: 0 auto; }
+  header .label { font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--faint); margin-bottom: 1rem; }
+  header h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); font-weight: 700; line-height: 1.25; margin-bottom: 1.2rem; }
+  header h1 span { color: var(--coral); }
+  header p { font-size: 0.98rem; color: var(--muted); line-height: 1.7; }
+  header p em { color: var(--blue); font-style: italic; }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+
+  section.block { margin-bottom: 3.2rem; scroll-margin-top: 1.5rem; }
+  section.block h2 {
+    font-size: 1.35rem; color: var(--blue); margin-bottom: 0.4rem;
+    display: flex; align-items: baseline; gap: 0.6rem;
+  }
+  section.block h2 .num {
+    font-size: 0.85rem; color: white; background: var(--coral); border-radius: 50%;
+    width: 1.6rem; height: 1.6rem; display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  section.block .tagline { color: var(--muted); font-size: 0.92rem; margin-bottom: 1.4rem; line-height: 1.6; }
+  section.block p { font-size: 0.95rem; line-height: 1.75; color: #333; margin-bottom: 1rem; }
+  section.block p:last-child { margin-bottom: 0; }
+  section.block strong { color: var(--blue); }
+
+  /* ---- ladder ---- */
+  .ladder-box {
+    background: white; border: 1px solid var(--card-border); border-radius: 12px;
+    padding: 1.6rem 1.8rem; margin: 1.4rem 0;
+  }
+  .ladder { position: relative; }
+  .ladder::before {
+    content: ""; position: absolute; left: 32px; top: 32px; bottom: 32px;
+    width: 2px; background: var(--card-border); z-index: 0;
+  }
+  .ladder-node { display: flex; align-items: center; gap: 1.1rem; position: relative; z-index: 1; }
+  .ladder-node.pending { opacity: 0.75; }
+  .ladder-icon {
+    width: 64px; height: 64px; border-radius: 50%; background: #0d1330; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px white;
+  }
+  .ladder-icon svg { width: 44px; height: 44px; }
+  .ladder-text h3 { font-size: 1.02rem; color: var(--blue); }
+  .ladder-text h3 span { font-size: 0.72rem; color: var(--faint); font-weight: 400; margin-left: 0.4rem; }
+  .ladder-text p { font-size: 0.86rem; color: var(--muted); line-height: 1.55; margin: 0.15rem 0 0; }
+  .ladder-edge { display: flex; align-items: center; gap: 1.1rem; position: relative; z-index: 1; padding: 0.5rem 0; }
+  .ladder-edge .spacer { width: 64px; flex-shrink: 0; display: flex; justify-content: center; }
+  .ladder-edge .chevron { color: var(--faint); font-size: 1.05rem; background: white; line-height: 1; padding: 0.1rem 0; }
+  .ladder-edge .edge-label {
+    font-size: 0.78rem; font-weight: 600; color: var(--blue); background: var(--light-blue);
+    border: 1px solid var(--card-border); padding: 0.35rem 0.8rem; border-radius: 20px;
+  }
+  .ladder-edge.pending .edge-label { color: var(--faint); background: #f4f4f4; }
+
+  /* ---- interactive mind map ---- */
+  .mindmap {
+    position: relative; width: 100%; max-width: 620px; aspect-ratio: 620 / 520;
+    margin: 1.8rem auto 0.6rem;
+  }
+  .mindmap svg.mm-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .mm-edge-path { fill: none; stroke: var(--card-border); stroke-width: 2; }
+  .mm-edge-path.pending { stroke-dasharray: 6 6; stroke: #d7dbe8; }
+
+  .map-node-btn {
+    position: absolute; transform: translate(-50%, -50%);
+    background: none; border: none; cursor: pointer; font-family: inherit;
+    display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+    padding: 0.5rem; border-radius: 12px; transition: background .15s;
+  }
+  .map-node-btn:hover { background: var(--light-blue); }
+  .map-node-btn.mm-ho { top: 50%; left: 50%; }
+  .map-node-btn.mm-sl { top: 14%; left: 50%; }
+  .map-node-btn.mm-wilco { top: 50%; left: 89%; }
+  .map-node-btn.mm-nmm1 { top: 86%; left: 50%; }
+  .map-node-btn.mm-nmm2 { top: 50%; left: 11%; }
+  .map-node-icon {
+    width: 58px; height: 58px; border-radius: 50%; background: #0d1330;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 3px transparent; transition: box-shadow .15s;
+  }
+  .map-node-btn.active .map-node-icon { box-shadow: 0 0 0 3px var(--coral); }
+  .map-node-icon svg { width: 42px; height: 42px; }
+  .map-node-label {
+    font-size: 0.76rem; font-weight: 700; color: var(--blue); background: white;
+    padding: 0.05rem 0.4rem; border-radius: 4px; white-space: nowrap;
+  }
+
+  .mm-edge-label {
+    position: absolute; transform: translate(-50%, -50%);
+    font-size: 0.68rem; font-weight: 600; color: var(--blue); background: #fff;
+    border: 1px solid var(--card-border); padding: 0.3rem 0.6rem; border-radius: 20px;
+    white-space: nowrap;
+  }
+  .mm-edge-label.pending { color: var(--faint); }
+  .mm-edge-label-1 { top: 32%; left: 50%; }
+  .mm-edge-label-2 { top: 26%; left: 76%; }
+  .mm-edge-label-3 { top: 74%; left: 76%; }
+  .mm-edge-label-4 { top: 74%; left: 24%; }
+
+  @media (max-width: 560px) {
+    .mm-edge-label { font-size: 0.62rem; padding: 0.22rem 0.45rem; }
+    .map-node-icon { width: 48px; height: 48px; }
+    .map-node-icon svg { width: 34px; height: 34px; }
+    .map-node-label { font-size: 0.68rem; }
+  }
+
+  .map-detail {
+    background: white; border: 1px solid var(--card-border); border-radius: 12px;
+    padding: 1.5rem 1.7rem; margin-top: 1.2rem;
+  }
+  .map-detail h3 { font-size: 1.15rem; color: var(--blue); margin-bottom: 0.3rem; }
+  .map-detail .map-tagline { font-size: 0.88rem; color: var(--muted); margin-bottom: 1.1rem; line-height: 1.6; }
+  .map-detail .map-eq-box {
+    background: var(--light-blue); border-left: 3px solid var(--blue); border-radius: 8px;
+    padding: 0.8rem 1.1rem; margin-bottom: 1rem; font-family: Georgia, 'Times New Roman', serif;
+    font-size: 0.98rem; color: var(--text); line-height: 1.6;
+  }
+  .map-detail .map-eq-name {
+    display: block; font-family: sans-serif; font-size: 0.7rem; font-weight: 700;
+    color: var(--blue); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem;
+  }
+  .map-detail .map-insight {
+    background: #fff4f2; border-left: 3px solid var(--coral); border-radius: 0 8px 8px 0;
+    padding: 0.9rem 1.1rem; font-size: 0.9rem; line-height: 1.65; color: #333; margin-bottom: 1rem;
+  }
+  .map-detail .map-link { font-size: 0.85rem; font-weight: 600; color: var(--coral); text-decoration: none; }
+  .map-detail .map-link:hover { text-decoration: underline; }
+
+  .cta-row { text-align: center; margin: 2.6rem 0 1rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .btn-outline {
+    display: inline-block; font-size: 0.92rem; font-weight: 600; color: var(--text);
+    border: 1px solid var(--card-border); border-radius: 30px; padding: 0.8rem 1.8rem;
+    text-decoration: none; transition: border-color .15s, background .15s;
+  }
+  .btn-outline:hover { border-color: var(--coral); background: rgba(255,102,87,0.08); }
+
+  footer { text-align: center; font-size: 0.78rem; color: var(--faint); padding: 2rem; border-top: 1px solid var(--card-border); }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#22c1ff"/></marker>
+    <marker id="barCoral" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><line x1="8" y1="1" x2="8" y2="9" stroke="#FF6657" stroke-width="2"/></marker>
+    <radialGradient id="somaBlue" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#a9e8ff"/>
+      <stop offset="100%" stop-color="#0f7bb3"/>
+    </radialGradient>
+    <radialGradient id="somaCoral" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#ffcabf"/>
+      <stop offset="100%" stop-color="#d94b36"/>
+    </radialGradient>
+    <radialGradient id="somaPurple" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#e0c8ff"/>
+      <stop offset="100%" stop-color="#8b3fd4"/>
+    </radialGradient>
+  </defs>
+</svg>
+
+<nav class="topnav">
+  <div class="brand">Rosetta Stone of Neural Mass Models</div>
+  <div class="links">
+    <a href="index.html">Home</a>
+    <a href="tutorial.html">Tutorial</a>
+    <a href="map.html" class="active">Map</a>
+    <a href="explorer.html">Explore</a>
+    <a href="compare.html">Compare</a>
+  </div>
+</nav>
+
+<header>
+  <div class="label">How the five models connect</div>
+  <h1>The model <span>map</span></h1>
+  <p>
+    <em>Castaldo et al.</em> show that HO, Stuart–Landau, WILCO, NMM1, and NMM2 are not five separate
+    inventions — they're rungs on one mathematical ladder, each adding exactly one idea to the model
+    below it. This page shows that ladder twice: once as a straight read top-to-bottom, and once as an
+    interactive map you can click through, equation by equation.
+  </p>
+</header>
+
+<main>
+
+  <section class="block" id="ladder">
+    <h2><span class="num">1</span>The ladder, top to bottom</h2>
+    <p class="tagline">The same five models from the Explore page, in the order they were built.</p>
+
+    <div class="ladder-box">
+      <div class="ladder">
+
+        <div class="ladder-node">
+          <div class="ladder-icon">
+            <svg viewBox="0 0 100 104" aria-hidden="true">
+              <circle cx="50" cy="54" r="40" fill="none" stroke="#22c1ff" stroke-width="1.3" stroke-dasharray="3 4" opacity="0.55"/>
+              <circle cx="76" cy="32" r="3" fill="#FF6657"/>
+              <g transform="translate(50,54) scale(1.05)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+                <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+                <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+                <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+                <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+                <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+                <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+                <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+                <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+                <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+                <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+                <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+                <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+                <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+                <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+              </g>
+            </svg>
+          </div>
+          <div class="ladder-text">
+            <h3>HO <span>the common ancestor</span></h3>
+            <p>ż = (α + iω)z — a linear oscillator, closed-form solution. A mass on a spring.</p>
+          </div>
+        </div>
+
+        <div class="ladder-edge">
+          <div class="spacer"><span class="chevron">▾</span></div>
+          <div class="edge-label">+ cubic nonlinearity</div>
+        </div>
+
+        <div class="ladder-node">
+          <div class="ladder-icon">
+            <svg viewBox="0 0 100 104" aria-hidden="true">
+              <circle cx="50" cy="54" r="40" fill="none" stroke="#ec4899" stroke-width="2.4"/>
+              <g transform="translate(50,54) scale(1.05)" stroke="#c084fc" fill="none" stroke-linecap="round">
+                <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+                <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+                <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+                <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+                <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+                <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+                <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+                <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+                <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaPurple)" stroke-width="1"/>
+                <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+                <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+                <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+                <circle cx="-5" cy="41" r="1.3" fill="#c084fc" stroke="none"/>
+                <circle cx="5" cy="41" r="1.3" fill="#c084fc" stroke="none"/>
+              </g>
+            </svg>
+          </div>
+          <div class="ladder-text">
+            <h3>Stuart–Landau <span>rung 2</span></h3>
+            <p>A cubic term caps the HO's neutral circle into a genuine limit cycle — the first real, self-sustaining rhythm.</p>
+          </div>
+        </div>
+
+        <div class="ladder-edge">
+          <div class="spacer"><span class="chevron">▾</span></div>
+          <div class="edge-label">+ E/I populations, sigmoid</div>
+        </div>
+
+        <div class="ladder-node">
+          <div class="ladder-icon">
+            <svg viewBox="0 0 200 104" aria-hidden="true">
+              <g transform="translate(64,56) scale(0.82)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+                <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+                <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+                <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+                <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+                <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+                <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+                <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+                <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+                <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+                <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+                <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+                <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+                <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+                <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+              </g>
+              <g transform="translate(136,56) scale(0.82)" stroke="#FF6657" fill="none" stroke-linecap="round">
+                <path d="M-2,-7 C-4,-12 -5,-16 -7,-20" stroke-width="1"/>
+                <path d="M2,-7 C4,-12 5,-16 7,-20" stroke-width="1"/>
+                <path d="M-6,-4 C-11,-6 -14,-8 -18,-11" stroke-width="1"/>
+                <path d="M6,-4 C11,-6 14,-8 18,-11" stroke-width="1"/>
+                <path d="M-7,3 C-12,4 -16,5 -20,6" stroke-width="1"/>
+                <path d="M7,3 C12,4 16,5 20,6" stroke-width="1"/>
+                <circle cx="0" cy="0" r="8" fill="url(#somaCoral)" stroke-width="1"/>
+                <path d="M0,8 C1,14 -1,17 0,22" stroke-width="1.1"/>
+                <path d="M0,22 C-2,24 -3,25 -5,27" stroke-width="0.9"/>
+                <path d="M0,22 C2,24 3,25 5,27" stroke-width="0.9"/>
+                <circle cx="-5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+                <circle cx="5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+              </g>
+              <path d="M80,44 Q100,32 120,44" fill="none" stroke="#22c1ff" stroke-width="1.8" marker-end="url(#arrowBlue)"/>
+              <path d="M120,70 Q100,82 80,70" fill="none" stroke="#FF6657" stroke-width="1.8" marker-end="url(#barCoral)"/>
+            </svg>
+          </div>
+          <div class="ladder-text">
+            <h3>WILCO <span>rung 3 · Wilson–Cowan</span></h3>
+            <p>Two neural populations replace the abstract oscillator. Turn up the drive and the E–I loop starts oscillating on its own.</p>
+          </div>
+        </div>
+
+        <div class="ladder-edge">
+          <div class="spacer"><span class="chevron">▾</span></div>
+          <div class="edge-label">+ synaptic time constants</div>
+        </div>
+
+        <div class="ladder-node">
+          <div class="ladder-icon">
+            <svg viewBox="0 0 200 104" aria-hidden="true">
+              <g transform="translate(66,60) scale(0.72)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+                <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+                <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+                <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+                <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+                <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+                <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+                <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+                <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+                <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+                <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+                <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+                <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+                <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+                <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+              </g>
+              <g transform="translate(134,60) scale(0.72)" stroke="#FF6657" fill="none" stroke-linecap="round">
+                <path d="M-2,-7 C-4,-12 -5,-16 -7,-20" stroke-width="1"/>
+                <path d="M2,-7 C4,-12 5,-16 7,-20" stroke-width="1"/>
+                <path d="M-6,-4 C-11,-6 -14,-8 -18,-11" stroke-width="1"/>
+                <path d="M6,-4 C11,-6 14,-8 18,-11" stroke-width="1"/>
+                <path d="M-7,3 C-12,4 -16,5 -20,6" stroke-width="1"/>
+                <path d="M7,3 C12,4 16,5 20,6" stroke-width="1"/>
+                <circle cx="0" cy="0" r="8" fill="url(#somaCoral)" stroke-width="1"/>
+                <path d="M0,8 C1,14 -1,17 0,22" stroke-width="1.1"/>
+                <path d="M0,22 C-2,24 -3,25 -5,27" stroke-width="0.9"/>
+                <path d="M0,22 C2,24 3,25 5,27" stroke-width="0.9"/>
+                <circle cx="-5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+                <circle cx="5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+              </g>
+              <path d="M82,48 Q100,37 118,48" fill="none" stroke="#22c1ff" stroke-width="1.6" marker-end="url(#arrowBlue)"/>
+              <path d="M118,72 Q100,82 82,72" fill="none" stroke="#FF6657" stroke-width="1.6" marker-end="url(#barCoral)"/>
+              <polyline points="88,18 93,17 98,10 103,19 108,17 113,18" fill="none" stroke="#f5a623" stroke-width="1.7" opacity="0.95"/>
+            </svg>
+          </div>
+          <div class="ladder-text">
+            <h3>NMM1 <span>rung 4</span></h3>
+            <p>Synaptic rise/decay time constants refine the frequency and shape of the rhythm that emerges from the E–I loop.</p>
+          </div>
+        </div>
+
+        <div class="ladder-edge pending">
+          <div class="spacer"><span class="chevron">▾</span></div>
+          <div class="edge-label">+ exact QIF mean-field derivation</div>
+        </div>
+
+        <div class="ladder-node pending">
+          <div class="ladder-icon">
+            <svg viewBox="0 0 200 104" aria-hidden="true">
+              <g fill="#22c1ff" opacity="0.5">
+                <circle cx="30" cy="34" r="1.4"/><circle cx="24" cy="50" r="1.3"/><circle cx="32" cy="68" r="1.3"/>
+              </g>
+              <g fill="#FF6657" opacity="0.5">
+                <circle cx="170" cy="34" r="1.4"/><circle cx="176" cy="50" r="1.3"/><circle cx="168" cy="68" r="1.3"/>
+              </g>
+              <g transform="translate(64,56) scale(0.82)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+                <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+                <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+                <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+                <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+                <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+                <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+                <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+                <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+                <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+                <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+                <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+                <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+                <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+                <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+              </g>
+              <g transform="translate(136,56) scale(0.82)" stroke="#FF6657" fill="none" stroke-linecap="round">
+                <path d="M-2,-7 C-4,-12 -5,-16 -7,-20" stroke-width="1"/>
+                <path d="M2,-7 C4,-12 5,-16 7,-20" stroke-width="1"/>
+                <path d="M-6,-4 C-11,-6 -14,-8 -18,-11" stroke-width="1"/>
+                <path d="M6,-4 C11,-6 14,-8 18,-11" stroke-width="1"/>
+                <path d="M-7,3 C-12,4 -16,5 -20,6" stroke-width="1"/>
+                <path d="M7,3 C12,4 16,5 20,6" stroke-width="1"/>
+                <circle cx="0" cy="0" r="8" fill="url(#somaCoral)" stroke-width="1"/>
+                <path d="M0,8 C1,14 -1,17 0,22" stroke-width="1.1"/>
+                <path d="M0,22 C-2,24 -3,25 -5,27" stroke-width="0.9"/>
+                <path d="M0,22 C2,24 3,25 5,27" stroke-width="0.9"/>
+                <circle cx="-5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+                <circle cx="5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+              </g>
+              <path d="M80,44 Q100,32 120,44" fill="none" stroke="#22c1ff" stroke-width="1.8" marker-end="url(#arrowBlue)"/>
+              <path d="M120,70 Q100,82 80,70" fill="none" stroke="#FF6657" stroke-width="1.8" marker-end="url(#barCoral)"/>
+            </svg>
+          </div>
+          <div class="ladder-text">
+            <h3>NMM2 <span>rung 5 · next-gen mean field · demo coming soon</span></h3>
+            <p>Replaces the static sigmoid with an exact mean-field reduction of spiking QIF neurons — same E/I skeleton, but the transfer function itself now has its own dynamics.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="explore-map">
+    <h2><span class="num">2</span>The mind map</h2>
+    <p class="tagline">HO is the common ancestor at the center. Click any node to see its defining equation and the specific, paper-grounded fact that connects it to its neighbor.</p>
+
+    <div class="mindmap">
+      <svg class="mm-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path class="mm-edge-path" d="M50,50 L50,14" />
+        <path class="mm-edge-path" d="M50,14 Q80,22 89,50" />
+        <path class="mm-edge-path" d="M89,50 Q80,78 50,86" />
+        <path class="mm-edge-path pending" d="M50,86 Q20,78 11,50" />
+      </svg>
+
+      <button class="map-node-btn mm-ho active" data-model="ho" onclick="selectMapNode('ho')">
+        <span class="map-node-icon">
+          <svg viewBox="0 0 100 104" aria-hidden="true">
+            <circle cx="50" cy="54" r="40" fill="none" stroke="#22c1ff" stroke-width="1.3" stroke-dasharray="3 4" opacity="0.55"/>
+            <circle cx="76" cy="32" r="3" fill="#FF6657"/>
+            <g transform="translate(50,54) scale(1.05)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+              <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+              <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+              <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+              <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+              <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+              <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+              <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+              <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+              <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+              <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+              <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+              <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+              <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+              <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+            </g>
+          </svg>
+        </span>
+        <span class="map-node-label">HO</span>
+      </button>
+
+      <button class="map-node-btn mm-sl" data-model="sl" onclick="selectMapNode('sl')">
+        <span class="map-node-icon">
+          <svg viewBox="0 0 100 104" aria-hidden="true">
+            <circle cx="50" cy="54" r="40" fill="none" stroke="#ec4899" stroke-width="2.4"/>
+            <g transform="translate(50,54) scale(1.05)" stroke="#c084fc" fill="none" stroke-linecap="round">
+              <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+              <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+              <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+              <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+              <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+              <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+              <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+              <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+              <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaPurple)" stroke-width="1"/>
+              <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+              <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+              <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+              <circle cx="-5" cy="41" r="1.3" fill="#c084fc" stroke="none"/>
+              <circle cx="5" cy="41" r="1.3" fill="#c084fc" stroke="none"/>
+            </g>
+          </svg>
+        </span>
+        <span class="map-node-label">Stuart–Landau</span>
+      </button>
+
+      <button class="map-node-btn mm-wilco" data-model="wilco" onclick="selectMapNode('wilco')">
+        <span class="map-node-icon">
+          <svg viewBox="0 0 200 104" aria-hidden="true">
+            <g transform="translate(64,56) scale(0.82)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+              <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+              <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+              <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+              <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+              <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+              <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+              <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+              <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+              <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+              <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+              <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+              <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+              <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+              <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+            </g>
+            <g transform="translate(136,56) scale(0.82)" stroke="#FF6657" fill="none" stroke-linecap="round">
+              <path d="M-2,-7 C-4,-12 -5,-16 -7,-20" stroke-width="1"/>
+              <path d="M2,-7 C4,-12 5,-16 7,-20" stroke-width="1"/>
+              <path d="M-6,-4 C-11,-6 -14,-8 -18,-11" stroke-width="1"/>
+              <path d="M6,-4 C11,-6 14,-8 18,-11" stroke-width="1"/>
+              <path d="M-7,3 C-12,4 -16,5 -20,6" stroke-width="1"/>
+              <path d="M7,3 C12,4 16,5 20,6" stroke-width="1"/>
+              <circle cx="0" cy="0" r="8" fill="url(#somaCoral)" stroke-width="1"/>
+              <path d="M0,8 C1,14 -1,17 0,22" stroke-width="1.1"/>
+              <path d="M0,22 C-2,24 -3,25 -5,27" stroke-width="0.9"/>
+              <path d="M0,22 C2,24 3,25 5,27" stroke-width="0.9"/>
+              <circle cx="-5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+              <circle cx="5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+            </g>
+            <path d="M80,44 Q100,32 120,44" fill="none" stroke="#22c1ff" stroke-width="1.8" marker-end="url(#arrowBlue)"/>
+            <path d="M120,70 Q100,82 80,70" fill="none" stroke="#FF6657" stroke-width="1.8" marker-end="url(#barCoral)"/>
+          </svg>
+        </span>
+        <span class="map-node-label">WILCO</span>
+      </button>
+
+      <button class="map-node-btn mm-nmm1" data-model="nmm1" onclick="selectMapNode('nmm1')">
+        <span class="map-node-icon">
+          <svg viewBox="0 0 200 104" aria-hidden="true">
+            <g transform="translate(66,60) scale(0.72)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+              <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+              <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+              <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+              <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+              <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+              <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+              <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+              <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+              <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+              <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+              <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+              <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+              <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+              <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+            </g>
+            <g transform="translate(134,60) scale(0.72)" stroke="#FF6657" fill="none" stroke-linecap="round">
+              <path d="M-2,-7 C-4,-12 -5,-16 -7,-20" stroke-width="1"/>
+              <path d="M2,-7 C4,-12 5,-16 7,-20" stroke-width="1"/>
+              <path d="M-6,-4 C-11,-6 -14,-8 -18,-11" stroke-width="1"/>
+              <path d="M6,-4 C11,-6 14,-8 18,-11" stroke-width="1"/>
+              <path d="M-7,3 C-12,4 -16,5 -20,6" stroke-width="1"/>
+              <path d="M7,3 C12,4 16,5 20,6" stroke-width="1"/>
+              <circle cx="0" cy="0" r="8" fill="url(#somaCoral)" stroke-width="1"/>
+              <path d="M0,8 C1,14 -1,17 0,22" stroke-width="1.1"/>
+              <path d="M0,22 C-2,24 -3,25 -5,27" stroke-width="0.9"/>
+              <path d="M0,22 C2,24 3,25 5,27" stroke-width="0.9"/>
+              <circle cx="-5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+              <circle cx="5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+            </g>
+            <path d="M82,48 Q100,37 118,48" fill="none" stroke="#22c1ff" stroke-width="1.6" marker-end="url(#arrowBlue)"/>
+            <path d="M118,72 Q100,82 82,72" fill="none" stroke="#FF6657" stroke-width="1.6" marker-end="url(#barCoral)"/>
+            <polyline points="88,18 93,17 98,10 103,19 108,17 113,18" fill="none" stroke="#f5a623" stroke-width="1.7" opacity="0.95"/>
+          </svg>
+        </span>
+        <span class="map-node-label">NMM1</span>
+      </button>
+
+      <button class="map-node-btn mm-nmm2" data-model="nmm2" onclick="selectMapNode('nmm2')">
+        <span class="map-node-icon">
+          <svg viewBox="0 0 200 104" aria-hidden="true">
+            <g fill="#22c1ff" opacity="0.5">
+              <circle cx="30" cy="34" r="1.4"/><circle cx="24" cy="50" r="1.3"/><circle cx="32" cy="68" r="1.3"/>
+            </g>
+            <g fill="#FF6657" opacity="0.5">
+              <circle cx="170" cy="34" r="1.4"/><circle cx="176" cy="50" r="1.3"/><circle cx="168" cy="68" r="1.3"/>
+            </g>
+            <g transform="translate(64,56) scale(0.82)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+              <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+              <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+              <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+              <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+              <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+              <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+              <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+              <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+              <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+              <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+              <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+              <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+              <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+              <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+            </g>
+            <g transform="translate(136,56) scale(0.82)" stroke="#FF6657" fill="none" stroke-linecap="round">
+              <path d="M-2,-7 C-4,-12 -5,-16 -7,-20" stroke-width="1"/>
+              <path d="M2,-7 C4,-12 5,-16 7,-20" stroke-width="1"/>
+              <path d="M-6,-4 C-11,-6 -14,-8 -18,-11" stroke-width="1"/>
+              <path d="M6,-4 C11,-6 14,-8 18,-11" stroke-width="1"/>
+              <path d="M-7,3 C-12,4 -16,5 -20,6" stroke-width="1"/>
+              <path d="M7,3 C12,4 16,5 20,6" stroke-width="1"/>
+              <circle cx="0" cy="0" r="8" fill="url(#somaCoral)" stroke-width="1"/>
+              <path d="M0,8 C1,14 -1,17 0,22" stroke-width="1.1"/>
+              <path d="M0,22 C-2,24 -3,25 -5,27" stroke-width="0.9"/>
+              <path d="M0,22 C2,24 3,25 5,27" stroke-width="0.9"/>
+              <circle cx="-5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+              <circle cx="5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+            </g>
+            <path d="M80,44 Q100,32 120,44" fill="none" stroke="#22c1ff" stroke-width="1.8" marker-end="url(#arrowBlue)"/>
+            <path d="M120,70 Q100,82 80,70" fill="none" stroke="#FF6657" stroke-width="1.8" marker-end="url(#barCoral)"/>
+          </svg>
+        </span>
+        <span class="map-node-label">NMM2</span>
+      </button>
+
+      <div class="mm-edge-label mm-edge-label-1">+ cubic nonlinearity</div>
+      <div class="mm-edge-label mm-edge-label-2">+ E/I populations, sigmoid</div>
+      <div class="mm-edge-label mm-edge-label-3">+ synaptic time constants</div>
+      <div class="mm-edge-label mm-edge-label-4 pending">+ exact QIF mean-field derivation</div>
+    </div>
+
+    <div class="map-detail" id="mapDetail"></div>
+  </section>
+
+  <div class="cta-row">
+    <a class="btn-outline" href="tutorial.html">Read the full tutorial →</a>
+    <a class="btn-outline" href="explorer.html">Try it in the Explorer →</a>
+  </div>
+
+</main>
+
+<footer>
+  Built for NE × BCOM · Castaldo et al. · GitHub Pages
+</footer>
+
+<script>
+const MAP_INFO = {
+  ho: {
+    label: 'HO — Harmonic Oscillator',
+    tagline: 'The starting point of the ladder — everything else on this site is a more biologically detailed version of the same push-pull loop.',
+    eqName: 'Damped oscillator — §2.2, Eq. 2.21–2.25',
+    eq: 'ż = (α + iω)z',
+    insight: 'The undamped case (α = 0) is a neutral circle whose size is set entirely by wherever it started. Every later rung on this ladder replaces that neutral rotation with some form of self-regulation that locks the amplitude to a fixed size, no matter the starting point — that self-regulation is exactly what Stuart–Landau adds next.',
+  },
+  sl: {
+    label: 'Stuart–Landau Oscillator',
+    tagline: 'The HO gains a cubic nonlinearity — amplitude becomes self-regulating instead of just marginally stable.',
+    eqName: 'Complex form — §3, Eq. 3.6',
+    eq: 'ż = (α + iω)z − (γ + iβ)|z|²z',
+    insight: 'This is the normal form of a Hopf bifurcation — the minimal, universal model for any system switching on a self-sustained rhythm. Castaldo et al. show that a Taylor expansion of WILCO near its own Hopf point recovers this exact equation (§5.2, Eq. 5.4) — the paper calls WILCO "SL in disguise."',
+  },
+  wilco: {
+    label: 'WILCO — Wilson–Cowan',
+    tagline: 'The push-pull motif made biological: excitatory and inhibitory firing rates interacting through a sigmoid.',
+    eqName: 'Firing-rate form — §5, Eq. 5.2',
+    eq: 'τₓẋ + x = σₓ(wₓₓx − wₓᵧy + Pₓ)',
+    insight: 'Swap the abstract complex number for two firing rates — excitatory x, inhibitory y — linked through a sigmoid. A Hopf bifurcation needs three ingredients: reciprocal E–I coupling, enough drive to sit on the sigmoid\'s steep part, and the sigmoid\'s own curvature, which supplies the cubic term that stabilizes the limit cycle in place of Stuart–Landau\'s explicit −γ|z|²z term.',
+  },
+  nmm1: {
+    label: 'NMM1 — Second-Order Synapses',
+    tagline: 'Jansen–Rit-style models: synapses get their own realistic rise/decay filter instead of one firing-rate equation.',
+    eqName: 'E–I pair — §6, Eq. 6.1',
+    eq: 'τₓ² ẍ + 2τₓ ẋ + x = γₓ σ(−wₓᵧy + F̂ₑ)',
+    insight: 'WILCO\'s first-order lag becomes a proper second-order synaptic filter with its own rise and decay time constants. That filter adds a frequency-dependent phase lag — and by the Barkhausen stability criterion, that phase lag alone can sustain oscillation, so NMM1 doesn\'t need WILCO\'s self-coupling term (wₓₓ) at all.',
+  },
+  nmm2: {
+    label: 'NMM2 — Next-Generation Mean Field',
+    tagline: 'Replaces the heuristic sigmoid with an exact mean-field theory derived from spiking neurons.',
+    eqName: 'Montbrió–Pazó–Roxin mean field — §7, Eq. 7.4–7.6',
+    eq: 'ṙ = Δ/π + 2rv,  v̇ = v² − π²r² + Js + η̄ + I(t)',
+    insight: 'Every earlier rung turns membrane potential into firing rate with a static sigmoid — a convenient heuristic. NMM2 replaces it with an exact reduction of a spiking QIF neuron population (Montbrió, Pazó & Roxin): same E/I push-pull skeleton, but the transfer function itself now has its own dynamics and a history-dependent gain.',
+  },
+};
+
+function selectMapNode(key){
+  document.querySelectorAll('.map-node-btn').forEach(b => b.classList.toggle('active', b.dataset.model === key));
+  const info = MAP_INFO[key];
+  const panel = document.getElementById('mapDetail');
+  panel.innerHTML = `
+    <h3>${info.label}</h3>
+    <div class="map-tagline">${info.tagline}</div>
+    <div class="map-eq-box">
+      <span class="map-eq-name">${info.eqName}</span>
+      ${info.eq}
+    </div>
+    <div class="map-insight">${info.insight}</div>
+    <a class="map-link" href="explorer.html?model=${key}">Explore ${info.label.split(' —')[0]} in the Demo →</a>
+  `;
+}
+selectMapNode('ho');
+</script>
+
+</body>
+</html>

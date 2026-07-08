@@ -117,7 +117,8 @@
   .card.pending:hover { opacity: 1; }
 
   .card-header { height: 104px; position: relative; overflow: hidden; background: #0d1330; }
-  .card-header .blob { position: absolute; width: 130px; height: 130px; border-radius: 50%; filter: blur(32px); opacity: 0.9; }
+  .card-header .blob { position: absolute; width: 130px; height: 130px; border-radius: 50%; filter: blur(32px); opacity: 0.4; }
+  .card-header svg.diagram { position: absolute; inset: 0; width: 100%; height: 100%; }
 
   .card[data-rung="1"] .b1 { background: #22c1ff; top: -50px; left: -25px; }
   .card[data-rung="1"] .b2 { background: var(--coral); bottom: -60px; right: -20px; }
@@ -175,11 +176,33 @@
 </head>
 <body>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#22c1ff"/></marker>
+    <marker id="arrowCoral" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#FF6657"/></marker>
+    <marker id="arrowWhite" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#e8edf7"/></marker>
+    <marker id="barCoral" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><line x1="8" y1="1" x2="8" y2="9" stroke="#FF6657" stroke-width="2"/></marker>
+    <radialGradient id="somaBlue" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#a9e8ff"/>
+      <stop offset="100%" stop-color="#0f7bb3"/>
+    </radialGradient>
+    <radialGradient id="somaCoral" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#ffcabf"/>
+      <stop offset="100%" stop-color="#d94b36"/>
+    </radialGradient>
+    <radialGradient id="somaPurple" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#e0c8ff"/>
+      <stop offset="100%" stop-color="#8b3fd4"/>
+    </radialGradient>
+  </defs>
+</svg>
+
 <nav class="topnav">
   <div class="brand">Rosetta Stone of Neural Mass Models</div>
   <div class="links">
     <a href="index.html" class="active">Home</a>
     <a href="tutorial.html">Tutorial</a>
+    <a href="map.html">Map</a>
     <a href="explorer.html">Explore</a>
     <a href="compare.html">Compare</a>
   </div>
@@ -205,7 +228,31 @@
   <div class="card-grid">
 
     <a class="card" data-rung="1" href="explorer.html?model=ho">
-      <div class="card-header"><span class="blob b1"></span><span class="blob b2"></span></div>
+      <div class="card-header">
+        <span class="blob b1"></span><span class="blob b2"></span>
+        <svg class="diagram" viewBox="0 0 200 104" aria-hidden="true">
+          <circle cx="100" cy="54" r="40" fill="none" stroke="#22c1ff" stroke-width="1.3" stroke-dasharray="3 4" opacity="0.55"/>
+          <circle cx="132" cy="30" r="3" fill="#FF6657"/>
+          <g transform="translate(100,54) scale(1.05)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+            <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+            <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+            <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+            <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+            <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+            <path d="M0,-18 C-4,-19 -7,-21 -10,-23" stroke-width="0.9" opacity="0.85"/>
+            <path d="M0,-18 C3,-19 5,-21 7,-24" stroke-width="0.9" opacity="0.85"/>
+            <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+            <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+            <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+            <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+            <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+            <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+            <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+            <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+            <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+          </g>
+        </svg>
+      </div>
       <div class="card-body">
         <div class="card-title"><h3>HO</h3><span class="rung">rung 1 · harmonic oscillator</span></div>
         <p class="card-sub">linear · closed-form solution · a mass on a spring</p>
@@ -215,7 +262,35 @@
     </a>
 
     <a class="card" data-rung="2" href="explorer.html?model=sl">
-      <div class="card-header"><span class="blob b1"></span><span class="blob b2"></span></div>
+      <div class="card-header">
+        <span class="blob b1"></span><span class="blob b2"></span>
+        <svg class="diagram" viewBox="0 0 200 104" aria-hidden="true">
+          <circle cx="100" cy="54" r="40" fill="none" stroke="#ec4899" stroke-width="2.4"/>
+          <g transform="translate(100,54) scale(1.05)" stroke="#c084fc" fill="none" stroke-linecap="round">
+            <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+            <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+            <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+            <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+            <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+            <path d="M0,-18 C-4,-19 -7,-21 -10,-23" stroke-width="0.9" opacity="0.85"/>
+            <path d="M0,-18 C3,-19 5,-21 7,-24" stroke-width="0.9" opacity="0.85"/>
+            <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+            <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+            <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+            <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaPurple)" stroke-width="1"/>
+            <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+            <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+            <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+            <circle cx="-5" cy="41" r="1.3" fill="#c084fc" stroke="none"/>
+            <circle cx="5" cy="41" r="1.3" fill="#c084fc" stroke="none"/>
+          </g>
+          <g stroke="#e8edf7" stroke-width="1.8" stroke-linecap="round">
+            <line x1="116" y1="84" x2="116" y2="92"/>
+            <line x1="124" y1="84" x2="124" y2="92"/>
+            <line x1="132" y1="84" x2="132" y2="92"/>
+          </g>
+        </svg>
+      </div>
       <div class="card-body">
         <div class="card-title"><h3>Stuart–Landau</h3><span class="rung">rung 2</span></div>
         <p class="card-sub">adds nonlinearity · self-sustaining limit cycle</p>
@@ -225,7 +300,43 @@
     </a>
 
     <a class="card" data-rung="3" href="explorer.html?model=wilco">
-      <div class="card-header"><span class="blob b1"></span><span class="blob b2"></span></div>
+      <div class="card-header">
+        <span class="blob b1"></span><span class="blob b2"></span>
+        <svg class="diagram" viewBox="0 0 200 104" aria-hidden="true">
+          <g transform="translate(64,56) scale(0.82)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+            <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+            <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+            <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+            <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+            <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+            <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+            <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+            <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+            <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+            <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+            <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+            <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+            <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+            <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+          </g>
+          <g transform="translate(136,56) scale(0.82)" stroke="#FF6657" fill="none" stroke-linecap="round">
+            <path d="M-2,-7 C-4,-12 -5,-16 -7,-20" stroke-width="1"/>
+            <path d="M2,-7 C4,-12 5,-16 7,-20" stroke-width="1"/>
+            <path d="M-6,-4 C-11,-6 -14,-8 -18,-11" stroke-width="1"/>
+            <path d="M6,-4 C11,-6 14,-8 18,-11" stroke-width="1"/>
+            <path d="M-7,3 C-12,4 -16,5 -20,6" stroke-width="1"/>
+            <path d="M7,3 C12,4 16,5 20,6" stroke-width="1"/>
+            <circle cx="0" cy="0" r="8" fill="url(#somaCoral)" stroke-width="1"/>
+            <path d="M0,8 C1,14 -1,17 0,22" stroke-width="1.1"/>
+            <path d="M0,22 C-2,24 -3,25 -5,27" stroke-width="0.9"/>
+            <path d="M0,22 C2,24 3,25 5,27" stroke-width="0.9"/>
+            <circle cx="-5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+            <circle cx="5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+          </g>
+          <path d="M80,44 Q100,32 120,44" fill="none" stroke="#22c1ff" stroke-width="1.8" marker-end="url(#arrowBlue)"/>
+          <path d="M120,70 Q100,82 80,70" fill="none" stroke="#FF6657" stroke-width="1.8" marker-end="url(#barCoral)"/>
+        </svg>
+      </div>
       <div class="card-body">
         <div class="card-title"><h3>WILCO</h3><span class="rung">rung 3 · Wilson–Cowan</span></div>
         <p class="card-sub">excitatory + inhibitory populations · sigmoid · Hopf bifurcation</p>
@@ -235,7 +346,44 @@
     </a>
 
     <a class="card" data-rung="4" href="explorer.html?model=nmm1">
-      <div class="card-header"><span class="blob b1"></span><span class="blob b2"></span></div>
+      <div class="card-header">
+        <span class="blob b1"></span><span class="blob b2"></span>
+        <svg class="diagram" viewBox="0 0 200 104" aria-hidden="true">
+          <g transform="translate(66,60) scale(0.72)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+            <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+            <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+            <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+            <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+            <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+            <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+            <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+            <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+            <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+            <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+            <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+            <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+            <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+            <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+          </g>
+          <g transform="translate(134,60) scale(0.72)" stroke="#FF6657" fill="none" stroke-linecap="round">
+            <path d="M-2,-7 C-4,-12 -5,-16 -7,-20" stroke-width="1"/>
+            <path d="M2,-7 C4,-12 5,-16 7,-20" stroke-width="1"/>
+            <path d="M-6,-4 C-11,-6 -14,-8 -18,-11" stroke-width="1"/>
+            <path d="M6,-4 C11,-6 14,-8 18,-11" stroke-width="1"/>
+            <path d="M-7,3 C-12,4 -16,5 -20,6" stroke-width="1"/>
+            <path d="M7,3 C12,4 16,5 20,6" stroke-width="1"/>
+            <circle cx="0" cy="0" r="8" fill="url(#somaCoral)" stroke-width="1"/>
+            <path d="M0,8 C1,14 -1,17 0,22" stroke-width="1.1"/>
+            <path d="M0,22 C-2,24 -3,25 -5,27" stroke-width="0.9"/>
+            <path d="M0,22 C2,24 3,25 5,27" stroke-width="0.9"/>
+            <circle cx="-5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+            <circle cx="5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+          </g>
+          <path d="M82,48 Q100,37 118,48" fill="none" stroke="#22c1ff" stroke-width="1.6" marker-end="url(#arrowBlue)"/>
+          <path d="M118,72 Q100,82 82,72" fill="none" stroke="#FF6657" stroke-width="1.6" marker-end="url(#barCoral)"/>
+          <polyline points="88,18 93,17 98,10 103,19 108,17 113,18" fill="none" stroke="#f5a623" stroke-width="1.7" opacity="0.95"/>
+        </svg>
+      </div>
       <div class="card-body">
         <div class="card-title"><h3>NMM1</h3><span class="rung">rung 4</span></div>
         <p class="card-sub">explicit synaptic filtering · realistic time constants</p>
@@ -245,11 +393,55 @@
     </a>
 
     <a class="card pending" data-rung="5" href="explorer.html?model=nmm2">
-      <div class="card-header"><span class="blob b1"></span><span class="blob b2"></span></div>
+      <div class="card-header">
+        <span class="blob b1"></span><span class="blob b2"></span>
+        <svg class="diagram" viewBox="0 0 200 104" aria-hidden="true">
+          <g fill="#22c1ff" opacity="0.5">
+            <circle cx="30" cy="34" r="1.4"/><circle cx="24" cy="50" r="1.3"/><circle cx="32" cy="68" r="1.3"/>
+            <circle cx="95" cy="30" r="1.3"/><circle cx="100" cy="48" r="1.4"/><circle cx="93" cy="70" r="1.3"/>
+          </g>
+          <g fill="#FF6657" opacity="0.5">
+            <circle cx="105" cy="30" r="1.3"/><circle cx="100" cy="48" r="1.4"/><circle cx="107" cy="70" r="1.3"/>
+            <circle cx="170" cy="34" r="1.4"/><circle cx="176" cy="50" r="1.3"/><circle cx="168" cy="68" r="1.3"/>
+          </g>
+          <g transform="translate(64,56) scale(0.82)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+            <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+            <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+            <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+            <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+            <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+            <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+            <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+            <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+            <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+            <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+            <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+            <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+            <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+            <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+          </g>
+          <g transform="translate(136,56) scale(0.82)" stroke="#FF6657" fill="none" stroke-linecap="round">
+            <path d="M-2,-7 C-4,-12 -5,-16 -7,-20" stroke-width="1"/>
+            <path d="M2,-7 C4,-12 5,-16 7,-20" stroke-width="1"/>
+            <path d="M-6,-4 C-11,-6 -14,-8 -18,-11" stroke-width="1"/>
+            <path d="M6,-4 C11,-6 14,-8 18,-11" stroke-width="1"/>
+            <path d="M-7,3 C-12,4 -16,5 -20,6" stroke-width="1"/>
+            <path d="M7,3 C12,4 16,5 20,6" stroke-width="1"/>
+            <circle cx="0" cy="0" r="8" fill="url(#somaCoral)" stroke-width="1"/>
+            <path d="M0,8 C1,14 -1,17 0,22" stroke-width="1.1"/>
+            <path d="M0,22 C-2,24 -3,25 -5,27" stroke-width="0.9"/>
+            <path d="M0,22 C2,24 3,25 5,27" stroke-width="0.9"/>
+            <circle cx="-5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+            <circle cx="5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+          </g>
+          <path d="M80,44 Q100,32 120,44" fill="none" stroke="#22c1ff" stroke-width="1.8" marker-end="url(#arrowBlue)"/>
+          <path d="M120,70 Q100,82 80,70" fill="none" stroke="#FF6657" stroke-width="1.8" marker-end="url(#barCoral)"/>
+        </svg>
+      </div>
       <div class="card-body">
-        <div class="card-title"><h3>NMM2</h3><span class="rung">rung 5 · Jansen–Rit</span></div>
-        <p class="card-sub">3 cell populations · two feedback loops · EEG alpha rhythm</p>
-        <p class="card-desc">The full model: pyramidal cells, excitatory interneurons, and inhibitory interneurons wired together. Reproduces the ~10 Hz alpha rhythm seen in real EEG.</p>
+        <div class="card-title"><h3>NMM2</h3><span class="rung">rung 5 · next-generation mean field</span></div>
+        <p class="card-sub">exact QIF reduction · dynamic firing-rate/potential pair</p>
+        <p class="card-desc">Replaces the static sigmoid with an exact mean-field reduction of spiking QIF neurons (Montbrió–Pazó–Roxin) — same E/I push-pull skeleton, but the transfer function itself now has its own dynamics.</p>
         <div class="tags"><span class="tag pending">Coming soon</span></div>
       </div>
     </a>
