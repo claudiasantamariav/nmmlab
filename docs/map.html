@@ -143,6 +143,11 @@
   }
   .map-detail h3 { font-size: 1.15rem; color: var(--blue); margin-bottom: 0.3rem; }
   .map-detail .map-tagline { font-size: 0.88rem; color: var(--muted); margin-bottom: 1.1rem; line-height: 1.6; }
+  .map-detail .map-diagram {
+    background: #0d1330; border-radius: 10px; padding: 0.4rem;
+    margin-bottom: 1.1rem; height: 160px; display: flex; align-items: center; justify-content: center;
+  }
+  .map-detail .map-diagram svg { width: 100%; height: 100%; }
   .map-detail .map-eq-box {
     background: var(--light-blue); border-left: 3px solid var(--blue); border-radius: 8px;
     padding: 0.8rem 1.1rem; margin-bottom: 1rem; font-family: Georgia, 'Times New Roman', serif;
@@ -176,6 +181,7 @@
   <defs>
     <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#22c1ff"/></marker>
     <marker id="barCoral" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><line x1="8" y1="1" x2="8" y2="9" stroke="#FF6657" stroke-width="2"/></marker>
+    <marker id="arrowLight" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#e8edf7"/></marker>
     <radialGradient id="somaBlue" cx="35%" cy="30%" r="75%">
       <stop offset="0%" stop-color="#a9e8ff"/>
       <stop offset="100%" stop-color="#0f7bb3"/>
@@ -654,6 +660,27 @@ const MAP_INFO = {
   ho: {
     label: 'HO — Harmonic Oscillator',
     tagline: 'The starting point of the ladder — everything else on this site is a more biologically detailed version of the same push-pull loop.',
+    diagram: `<svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+      <line x1="34" y1="42" x2="34" y2="108" stroke="#e8edf7" stroke-width="4" stroke-linecap="round" opacity="0.85"/>
+      <line x1="34" y1="52" x2="20" y2="64" stroke="#e8edf7" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+      <line x1="34" y1="68" x2="20" y2="80" stroke="#e8edf7" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+      <line x1="34" y1="84" x2="20" y2="96" stroke="#e8edf7" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+      <line x1="34" y1="100" x2="20" y2="112" stroke="#e8edf7" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+      <path fill="none" stroke="#22c1ff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
+        d="M34,75 L58,58 L82,92 L107,58 L131,92 L155,58 L179,75">
+        <animate attributeName="d"
+          values="M34,75 L58,58 L82,92 L107,58 L131,92 L155,58 L179,75;
+                  M34,75 L63,58 L92,92 L121,58 L150,92 L179,58 L208,75;
+                  M34,75 L54,58 L74,92 L94,58 L114,92 L134,58 L154,75;
+                  M34,75 L58,58 L82,92 L107,58 L131,92 L155,58 L179,75"
+          keyTimes="0;0.33;0.66;1" dur="2.6s" repeatCount="indefinite"
+          calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1"/>
+      </path>
+      <circle cy="75" r="22" fill="url(#somaBlue)" stroke="white" stroke-width="2">
+        <animate attributeName="cx" values="199;228;174;199" keyTimes="0;0.33;0.66;1" dur="2.6s" repeatCount="indefinite"
+          calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1"/>
+      </circle>
+    </svg>`,
     eqName: 'Damped oscillator — §2.2, Eq. 2.21–2.25',
     eq: 'ż = (α + iω)z',
     insight: 'The undamped case (α = 0) is a neutral circle whose size is set entirely by wherever it started. Every later rung on this ladder replaces that neutral rotation with some form of self-regulation that locks the amplitude to a fixed size, no matter the starting point — that self-regulation is exactly what Stuart–Landau adds next.',
@@ -661,6 +688,14 @@ const MAP_INFO = {
   sl: {
     label: 'Stuart–Landau Oscillator',
     tagline: 'The HO gains a cubic nonlinearity — amplitude becomes self-regulating instead of just marginally stable.',
+    diagram: `<svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+      <circle cx="200" cy="75" r="44" fill="none" stroke="#ec4899" stroke-width="3.5" opacity="0.95"/>
+      <path d="M200,75 C214,71 219,53 202,47 C178,38 150,53 152,78 C154,106 189,120 218,106 C237,97 239,77 229,60"
+            fill="none" stroke="#c084fc" stroke-width="2" stroke-dasharray="4 4" opacity="0.7" stroke-linecap="round"/>
+      <circle r="7" fill="#c084fc" stroke="white" stroke-width="1.5">
+        <animateMotion dur="3.2s" repeatCount="indefinite" path="M244,75 A44,44 0 1,1 156,75 A44,44 0 1,1 244,75"/>
+      </circle>
+    </svg>`,
     eqName: 'Complex form — §3, Eq. 3.6',
     eq: 'ż = (α + iω)z − (γ + iβ)|z|²z',
     insight: 'This is the normal form of a Hopf bifurcation — the minimal, universal model for any system switching on a self-sustained rhythm. Castaldo et al. show that a Taylor expansion of WILCO near its own Hopf point recovers this exact equation (§5.2, Eq. 5.4) — the paper calls WILCO "SL in disguise."',
@@ -668,6 +703,16 @@ const MAP_INFO = {
   wilco: {
     label: 'WILCO — Wilson–Cowan',
     tagline: 'The push-pull motif made biological: excitatory and inhibitory firing rates interacting through a sigmoid.',
+    diagram: `<svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+      <path d="M158,64 Q200,30 242,64" fill="none" stroke="#22c1ff" stroke-width="3" marker-end="url(#arrowBlue)"/>
+      <path d="M242,98 Q200,138 158,98" fill="none" stroke="#FF6657" stroke-width="3" marker-end="url(#barCoral)"/>
+      <path d="M112,55 Q88,14 132,24 Q152,30 132,55" fill="none" stroke="#22c1ff" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+      <path d="M288,55 Q312,14 268,24 Q248,30 268,55" fill="none" stroke="#FF6657" stroke-width="2.5" marker-end="url(#barCoral)"/>
+      <circle cx="130" cy="80" r="30" fill="url(#somaBlue)" stroke="white" stroke-width="2"/>
+      <text x="130" y="90" font-size="28" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">E</text>
+      <circle cx="270" cy="80" r="30" fill="url(#somaCoral)" stroke="white" stroke-width="2"/>
+      <text x="270" y="90" font-size="28" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">I</text>
+    </svg>`,
     eqName: 'Firing-rate form — §5, Eq. 5.2',
     eq: 'τₓẋ + x = σₓ(wₓₓx − wₓᵧy + Pₓ)',
     insight: 'Swap the abstract complex number for two firing rates — excitatory x, inhibitory y — linked through a sigmoid. A Hopf bifurcation needs three ingredients: reciprocal E–I coupling, enough drive to sit on the sigmoid\'s steep part, and the sigmoid\'s own curvature, which supplies the cubic term that stabilizes the limit cycle in place of Stuart–Landau\'s explicit −γ|z|²z term.',
@@ -675,6 +720,27 @@ const MAP_INFO = {
   nmm1: {
     label: 'NMM1 — Second-Order Synapses',
     tagline: 'Jansen–Rit-style models: synapses get their own realistic rise/decay filter instead of one firing-rate equation.',
+    diagram: `<svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+      <g stroke="#22c1ff" stroke-width="2.5" stroke-linecap="round" opacity="0.85">
+        <line x1="63" y1="60" x2="38" y2="38"/>
+        <line x1="58" y1="75" x2="28" y2="75"/>
+        <line x1="63" y1="90" x2="38" y2="112"/>
+      </g>
+      <g stroke="#FF6657" stroke-width="2.5" stroke-linecap="round" opacity="0.85">
+        <line x1="337" y1="60" x2="362" y2="38"/>
+        <line x1="342" y1="75" x2="372" y2="75"/>
+        <line x1="337" y1="90" x2="362" y2="112"/>
+      </g>
+      <path id="nmm1axon" d="M109,75 Q212,42 291,75" fill="none" stroke="#e8edf7" stroke-width="3" opacity="0.85"/>
+      <polyline points="248,38 253,37 258,26 263,39 268,37 273,38" fill="none" stroke="#f5a623" stroke-width="2" opacity="0.95"/>
+      <circle cx="85" cy="75" r="24" fill="url(#somaBlue)" stroke="white" stroke-width="2"/>
+      <circle cx="315" cy="75" r="24" fill="url(#somaCoral)" stroke="white" stroke-width="2"/>
+      <circle r="8" fill="#f5a623" stroke="white" stroke-width="1.5">
+        <animateMotion dur="3s" repeatCount="indefinite" keyPoints="0;0.82;0.82;1" keyTimes="0;0.5;0.78;1" calcMode="linear">
+          <mpath href="#nmm1axon"/>
+        </animateMotion>
+      </circle>
+    </svg>`,
     eqName: 'E–I pair — §6, Eq. 6.1',
     eq: 'τₓ² ẍ + 2τₓ ẋ + x = γₓ σ(−wₓᵧy + F̂ₑ)',
     insight: 'WILCO\'s first-order lag becomes a proper second-order synaptic filter with its own rise and decay time constants. That filter adds a frequency-dependent phase lag — and by the Barkhausen stability criterion, that phase lag alone can sustain oscillation, so NMM1 doesn\'t need WILCO\'s self-coupling term (wₓₓ) at all.',
@@ -682,6 +748,29 @@ const MAP_INFO = {
   nmm2: {
     label: 'NMM2 — Next-Generation Mean Field',
     tagline: 'Replaces the heuristic sigmoid with an exact mean-field theory derived from spiking neurons.',
+    diagram: `<svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+      <ellipse cx="115" cy="75" rx="72" ry="55" fill="none" stroke="#e8edf7" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.5"/>
+      <circle cx="80" cy="50" r="4.5" fill="#22c1ff"/>
+      <circle cx="115" cy="42" r="4.5" fill="#FF6657"/>
+      <circle cx="145" cy="55" r="4.5" fill="#22c1ff"/>
+      <circle cx="70" cy="80" r="4.5" fill="#FF6657"/>
+      <circle cx="105" cy="78" r="4.5" fill="#22c1ff"/>
+      <circle cx="140" cy="85" r="4.5" fill="#FF6657"/>
+      <circle cx="85" cy="108" r="4.5" fill="#22c1ff"/>
+      <circle cx="120" cy="112" r="4.5" fill="#FF6657"/>
+      <circle cx="155" cy="100" r="4.5" fill="#22c1ff"/>
+      <circle cx="60" cy="65" r="4.5" fill="#FF6657"/>
+      <line x1="80" y1="50" x2="80" y2="39" stroke="#22c1ff" stroke-width="1.5" opacity="0.8"/>
+      <line x1="115" y1="42" x2="115" y2="31" stroke="#FF6657" stroke-width="1.5" opacity="0.8"/>
+      <line x1="120" y1="112" x2="120" y2="123" stroke="#FF6657" stroke-width="1.5" opacity="0.8"/>
+      <path d="M198,75 Q225,75 248,75" fill="none" stroke="#e8edf7" stroke-width="3" marker-end="url(#arrowLight)"/>
+      <circle cx="315" cy="50" r="27" fill="url(#somaPurple)" stroke="white" stroke-width="2"/>
+      <text x="315" y="59" font-size="24" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">r</text>
+      <circle cx="315" cy="106" r="27" fill="url(#somaPurple)" stroke="white" stroke-width="2"/>
+      <text x="315" y="115" font-size="24" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">v</text>
+      <path d="M300,68 Q290,78 300,88" fill="none" stroke="#e8edf7" stroke-width="1.5" marker-end="url(#arrowLight)" opacity="0.8"/>
+      <path d="M330,88 Q340,78 330,68" fill="none" stroke="#e8edf7" stroke-width="1.5" marker-end="url(#arrowLight)" opacity="0.8"/>
+    </svg>`,
     eqName: 'Montbrió–Pazó–Roxin mean field — §7, Eq. 7.4–7.6',
     eq: 'ṙ = Δ/π + 2rv,  v̇ = v² − π²r² + Js + η̄ + I(t)',
     insight: 'Every earlier rung turns membrane potential into firing rate with a static sigmoid — a convenient heuristic. NMM2 replaces it with an exact reduction of a spiking QIF neuron population (Montbrió, Pazó & Roxin): same E/I push-pull skeleton, but the transfer function itself now has its own dynamics and a history-dependent gain.',
@@ -695,6 +784,7 @@ function selectMapNode(key){
   panel.innerHTML = `
     <h3>${info.label}</h3>
     <div class="map-tagline">${info.tagline}</div>
+    <div class="map-diagram">${info.diagram}</div>
     <div class="map-eq-box">
       <span class="map-eq-name">${info.eqName}</span>
       ${info.eq}
