@@ -186,6 +186,18 @@
   .map-hint { font-size: 0.82rem; color: var(--faint); margin-bottom: 1.2rem; }
   .map-hint b { color: var(--coral); }
 
+  /* interactive legend — click a colour to trace one role across all models */
+  .concept-legend button {
+    font: inherit; font-size: 0.8rem; color: var(--muted); cursor: pointer;
+    background: none; border: 1px solid var(--card-border); border-radius: 20px; padding: 0.25rem 0.6rem;
+    display: inline-flex; align-items: center; gap: 0.4rem; transition: background .15s, border-color .15s;
+  }
+  .concept-legend button:hover { background: var(--light-blue); }
+  .concept-legend button.on { border-color: var(--cc); background: var(--light-blue); font-weight: 700; color: var(--text); }
+  .eq-grid.focus .tok-op { opacity: 0.2; }
+  .eq-grid.focus .term-col:not(.lit), .eq-grid.focus .term-plain:not(.lit) { opacity: 0.14; }
+  .eq-grid.focus .term-col.lit .brace { background: currentColor; opacity: 1; }
+
   /* full-bleed band so the 3-across row has room */
   .eq-wide { margin-inline: calc(50% - 50vw); padding: 0 1.5rem; }
   .eq-grid { max-width: 1120px; margin: 0 auto; }
@@ -739,7 +751,7 @@
       <span style="color:#0f9488;font-weight:600;">damping</span>). Top row is the abstract lineage, bottom row the biological one.
     </p>
     <div class="concept-legend" id="conceptLegend"></div>
-    <p class="map-hint">Each term has a bracket and a label under it. <b>Tap a label</b> to read, in plain words, what that piece does.</p>
+    <p class="map-hint"><b>Tap a colour</b> in the legend to light up every place that role appears across all five models (tap again to clear). <b>Tap a label</b> under a term to read what it does.</p>
 
     <div class="eq-wide">
       <div class="eq-grid" id="eqGrid"></div>
@@ -1055,7 +1067,7 @@ const MODELS = [
 /* ── render legend ───────────────────────────────────────────────────────── */
 document.getElementById('conceptLegend').innerHTML =
   Object.keys(CONCEPTS).map(k =>
-    `<span><span class="sw" style="background:${CONCEPTS[k].color}"></span>${CONCEPTS[k].label}</span>`
+    `<button data-concept="${k}" style="--cc:${CONCEPTS[k].color}"><span class="sw" style="background:${CONCEPTS[k].color}"></span>${CONCEPTS[k].label}</button>`
   ).join('');
 
 /* ── render one card ─────────────────────────────────────────────────────── */
@@ -1063,9 +1075,9 @@ function tokenHtml(tok, mi, ti){
   if (tok.op !== undefined) return `<span class="tok-op">${tok.op}</span>`;
   if (tok.br) return `<span class="tok-br"></span>`;
   const col = CONCEPTS[tok.c].color;
-  if (tok.plain) return `<span class="term-plain" style="color:${col}"><span class="t">${tok.t}</span></span>`;
+  if (tok.plain) return `<span class="term-plain" data-c="${tok.c}" style="color:${col}"><span class="t">${tok.t}</span></span>`;
   const badge = tok.isNew ? '<span class="newb">NEW</span>' : '';
-  return `<span class="term-col${tok.isNew ? ' isnew' : ''}" style="color:${col}">
+  return `<span class="term-col${tok.isNew ? ' isnew' : ''}" data-c="${tok.c}" style="color:${col}">
       <span class="t">${tok.t}</span>
       <span class="brace"></span>
       <button class="ttl" data-mi="${mi}" data-ti="${ti}">${tok.title}${badge}</button>
@@ -1113,6 +1125,21 @@ grid.addEventListener('click', e => {
   def.innerHTML = `<strong style="color:${color}">${tok.title}</strong> — ${tok.def}
     <span class="close-hint">(tap the label again to close)</span>`;
   def.classList.add('open');
+});
+
+/* ── click a legend colour → trace that role across all models ────────────── */
+const legend = document.getElementById('conceptLegend');
+legend.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const key = btn.dataset.concept;
+  const wasOn = btn.classList.contains('on');
+  legend.querySelectorAll('button').forEach(b => b.classList.remove('on'));
+  grid.querySelectorAll('.lit').forEach(el => el.classList.remove('lit'));
+  if (wasOn){ grid.classList.remove('focus'); return; }
+  btn.classList.add('on');
+  grid.classList.add('focus');
+  grid.querySelectorAll(`[data-c="${key}"]`).forEach(el => el.classList.add('lit'));
 });
 })();
 </script>
