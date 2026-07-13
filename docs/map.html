@@ -173,6 +173,103 @@
   .btn-outline:hover { border-color: var(--coral); background: rgba(255,102,87,0.08); }
 
   footer { text-align: center; font-size: 0.78rem; color: var(--faint); padding: 2rem; border-top: 1px solid var(--card-border); }
+
+  /* ===== merged in: term-by-term equation breakdown (Lucia) ===== */
+  body { overflow-x: hidden; }
+  /* ---- annotated-equation mind map ---- */
+  .concept-legend {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem; margin: 0.2rem 0 0.6rem;
+    font-size: 0.8rem; color: var(--muted);
+  }
+  .concept-legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .concept-legend .sw { width: 0.85rem; height: 0.85rem; border-radius: 3px; flex-shrink: 0; }
+  .map-hint { font-size: 0.82rem; color: var(--faint); margin-bottom: 1.2rem; }
+  .map-hint b { color: var(--coral); }
+
+  /* interactive legend — click a colour to trace one role across all models */
+  .concept-legend button {
+    font: inherit; font-size: 0.8rem; color: var(--muted); cursor: pointer;
+    background: none; border: 1px solid var(--card-border); border-radius: 20px; padding: 0.25rem 0.6rem;
+    display: inline-flex; align-items: center; gap: 0.4rem; transition: background .15s, border-color .15s;
+  }
+  .concept-legend button:hover { background: var(--light-blue); }
+  .concept-legend button.on { border-color: var(--cc); background: var(--light-blue); font-weight: 700; color: var(--text); }
+  .eq-grid.focus .tok-op { opacity: 0.2; }
+  .eq-grid.focus .term-col:not(.lit), .eq-grid.focus .term-plain:not(.lit) { opacity: 0.14; }
+  .eq-grid.focus .term-col.lit .brace { background: currentColor; opacity: 1; }
+
+  /* full-bleed band so the 3-across row has room */
+  .eq-wide { margin-inline: calc(50% - 50vw); padding: 0 1.5rem; }
+  .eq-grid { max-width: 1120px; margin: 0 auto; }
+  .eq-row { display: grid; gap: 1rem; }
+  .eq-row.top { grid-template-columns: repeat(2, 1fr); margin-bottom: 1rem; max-width: 760px; margin-left: auto; margin-right: auto; }
+  .eq-row.bottom { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 900px) {
+    .eq-row.top, .eq-row.bottom { grid-template-columns: 1fr; max-width: 520px; }
+  }
+
+  .eq-card {
+    background: white; border: 1px solid var(--card-border); border-radius: 12px;
+    padding: 1.1rem 1.15rem 1.25rem; display: flex; flex-direction: column;
+  }
+  .eq-card.pending { border-style: dashed; }
+  .eq-card-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.9rem; }
+  .eq-ico {
+    width: 38px; height: 38px; border-radius: 50%; background: #0d1330; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .eq-ico svg { width: 28px; height: 28px; }
+  .eq-head-txt { line-height: 1.2; }
+  .eq-head-txt .nm { font-size: 0.98rem; font-weight: 700; color: var(--blue); }
+  .eq-head-txt .adds { font-size: 0.72rem; color: var(--faint); }
+  .eq-head-txt .adds b { color: var(--coral); }
+
+  .eq-annot {
+    display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0.15rem 0.4rem;
+    font-family: Georgia, 'Times New Roman', serif; font-size: 1.05rem; line-height: 1.3;
+    padding: 0.2rem 0; min-height: 2.6rem;
+  }
+  .tok-op { padding-top: 0.15rem; white-space: pre; color: var(--text); }
+  .tok-br { flex-basis: 100%; height: 0; }
+  .term-col {
+    display: inline-flex; flex-direction: column; align-items: center; gap: 2px;
+    color: var(--text);   /* overridden per concept */
+  }
+  .term-col .t { font-weight: 700; color: currentColor; }
+  .term-col .brace {
+    width: 100%; min-width: 1.1rem; height: 6px; margin-top: 1px;
+    border: 2px solid currentColor; border-top: none; border-radius: 0 0 6px 6px;
+    opacity: 0.85; transition: background .15s;
+  }
+  .term-col .ttl {
+    font-family: sans-serif; font-size: 0.64rem; font-weight: 700; color: currentColor;
+    background: none; border: none; cursor: pointer; padding: 1px 3px; border-radius: 4px;
+    text-align: center; line-height: 1.15; white-space: nowrap;
+  }
+  .term-col .ttl sup { font-size: 0.5rem; color: var(--coral); margin-left: 2px; }
+  .term-col .ttl:hover { text-decoration: underline; }
+  .term-col.active .brace { background: currentColor; opacity: 1; }
+  .term-col.active .ttl { text-decoration: underline; }
+
+  /* the one new term per model — yellow highlighter + NEW badge, so it reads
+     as "new" independently of the role colour */
+  .term-col.isnew .t { background: linear-gradient(transparent 58%, #ffe98a 58%); border-radius: 2px; padding: 0 2px; }
+  .newb {
+    font-family: sans-serif; font-size: 0.5rem; font-weight: 800; letter-spacing: 0.04em;
+    color: #b23a2b; background: #ffe0d9; border-radius: 6px; padding: 0 3px; margin-left: 3px; vertical-align: middle;
+  }
+  /* plain colour-coded term on the second (inhibitory) line — no bracket/label */
+  .term-plain { padding-top: 0.15rem; }
+  .term-plain .t { font-weight: 700; color: currentColor; }
+
+  .eq-def {
+    display: none; margin-top: 0.9rem; padding: 0.7rem 0.85rem;
+    background: #f7f8fb; border-left: 3px solid var(--faint); border-radius: 0 8px 8px 0;
+    font-size: 0.85rem; line-height: 1.6; color: #333;
+  }
+  .eq-def.open { display: block; }
+  .eq-def .close-hint { color: var(--faint); font-size: 0.72rem; }
+
 </style>
 </head>
 <body>
@@ -644,6 +741,23 @@
     <div class="map-detail" id="mapDetail"></div>
   </section>
 
+
+  <section class="block" id="build-eqs">
+    <h2><span class="num">3</span>Building the equations</h2>
+    <p class="tagline">
+      Each model <em>is</em> its equation. Terms are coloured by the <strong>job they do</strong> — so the same
+      colour means the same role across every model (WILCO's sigmoid and Stuart–Landau's cubic are both the
+      <span style="color:#e34a34;font-weight:600;">amplitude brake</span>; HO's α and WILCO's τẋ+x are both
+      <span style="color:#0f9488;font-weight:600;">damping</span>). Top row is the abstract lineage, bottom row the biological one.
+    </p>
+    <div class="concept-legend" id="conceptLegend"></div>
+    <p class="map-hint"><b>Tap a colour</b> in the legend to light up every place that role appears across all five models (tap again to clear). <b>Tap a label</b> under a term to read what it does.</p>
+
+    <div class="eq-wide">
+      <div class="eq-grid" id="eqGrid"></div>
+    </div>
+  </section>
+
   <div class="cta-row">
     <a class="btn-outline" href="tutorial.html">Read the full tutorial →</a>
     <a class="btn-outline" href="explorer.html">Try it in the Explorer →</a>
@@ -796,5 +910,238 @@ function selectMapNode(key){
 selectMapNode('ho');
 </script>
 
+
+<script>
+/* term-by-term equation breakdown — isolated so it can't touch the mind-map script above */
+(function(){
+/* ── neuron icons (shared with the ladder above) ─────────────────────────── */
+const ICON_HO = `<svg viewBox="0 0 100 104" aria-hidden="true">
+  <circle cx="50" cy="54" r="40" fill="none" stroke="#22c1ff" stroke-width="1.3" stroke-dasharray="3 4" opacity="0.55"/>
+  <circle cx="76" cy="32" r="3" fill="#FF6657"/>
+  <g transform="translate(50,54) scale(1.05)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+    <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/><path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+    <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/><path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+    <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/><path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+    <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/><path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+    <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+    <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+    <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/><path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+    <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/><circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+  </g></svg>`;
+const ICON_SL = `<svg viewBox="0 0 100 104" aria-hidden="true">
+  <circle cx="50" cy="54" r="40" fill="none" stroke="#ec4899" stroke-width="2.4"/>
+  <g transform="translate(50,54) scale(1.05)" stroke="#c084fc" fill="none" stroke-linecap="round">
+    <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/><path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+    <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/><path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+    <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/><path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+    <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/><path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+    <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaPurple)" stroke-width="1"/>
+    <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+    <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/><path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+    <circle cx="-5" cy="41" r="1.3" fill="#c084fc" stroke="none"/><circle cx="5" cy="41" r="1.3" fill="#c084fc" stroke="none"/>
+  </g></svg>`;
+const EI_PAIR = `<g transform="translate(64,56) scale(0.82)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+    <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/><path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+    <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/><path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+    <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/><path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+    <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/><path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+    <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+    <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+    <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/><path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+    <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/><circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+  </g>
+  <g transform="translate(136,56) scale(0.82)" stroke="#FF6657" fill="none" stroke-linecap="round">
+    <path d="M-2,-7 C-4,-12 -5,-16 -7,-20" stroke-width="1"/><path d="M2,-7 C4,-12 5,-16 7,-20" stroke-width="1"/>
+    <path d="M-6,-4 C-11,-6 -14,-8 -18,-11" stroke-width="1"/><path d="M6,-4 C11,-6 14,-8 18,-11" stroke-width="1"/>
+    <path d="M-7,3 C-12,4 -16,5 -20,6" stroke-width="1"/><path d="M7,3 C12,4 16,5 20,6" stroke-width="1"/>
+    <circle cx="0" cy="0" r="8" fill="url(#somaCoral)" stroke-width="1"/>
+    <path d="M0,8 C1,14 -1,17 0,22" stroke-width="1.1"/>
+    <path d="M0,22 C-2,24 -3,25 -5,27" stroke-width="0.9"/><path d="M0,22 C2,24 3,25 5,27" stroke-width="0.9"/>
+    <circle cx="-5" cy="27" r="1.2" fill="#FF6657" stroke="none"/><circle cx="5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+  </g>
+  <path d="M80,44 Q100,32 120,44" fill="none" stroke="#22c1ff" stroke-width="1.8" marker-end="url(#arrowBlue)"/>
+  <path d="M120,70 Q100,82 80,70" fill="none" stroke="#FF6657" stroke-width="1.8" marker-end="url(#barCoral)"/>`;
+const ICON_WILCO = `<svg viewBox="0 0 200 104" aria-hidden="true">${EI_PAIR}</svg>`;
+const ICON_NMM1 = `<svg viewBox="0 0 200 104" aria-hidden="true">${EI_PAIR}
+  <polyline points="88,22 93,21 98,14 103,23 108,21 113,22" fill="none" stroke="#f5a623" stroke-width="1.7" opacity="0.95"/></svg>`;
+const ICON_NMM2 = `<svg viewBox="0 0 200 104" aria-hidden="true">
+  <g fill="#22c1ff" opacity="0.5"><circle cx="30" cy="34" r="1.4"/><circle cx="24" cy="50" r="1.3"/><circle cx="32" cy="68" r="1.3"/></g>
+  <g fill="#FF6657" opacity="0.5"><circle cx="170" cy="34" r="1.4"/><circle cx="176" cy="50" r="1.3"/><circle cx="168" cy="68" r="1.3"/></g>
+  ${EI_PAIR}</svg>`;
+
+/* ── concepts: one colour per role, shared across all equations ──────────── */
+const CONCEPTS = {
+  freq:  {color: '#2f6df6', label: 'Rotation / frequency'},
+  damp:  {color: '#0f9488', label: 'Damping / relaxation'},
+  sat:   {color: '#e34a34', label: 'Amplitude brake (saturation)'},
+  coupl: {color: '#7c3aed', label: 'E–I coupling'},
+  filt:  {color: '#c67608', label: 'Synaptic filtering'},
+  mf:    {color: '#c026a8', label: 'Exact mean field'},
+  drive: {color: '#6b7280', label: 'External input'},
+};
+
+/* ── each model: header + equation as tokens (op glue OR annotated term) ──── */
+const MODELS = [
+  {
+    key: 'ho', name: 'HO', icon: ICON_HO, adds: 'the starting point', newLabel: null,
+    tokens: [
+      {op: 'ż = ('},
+      {t: 'α', c: 'damp', title: 'Damping', def: 'α decides the amplitude’s fate: below zero the swing dies away, at zero it holds steady on a circle, above zero it grows.'},
+      {op: '+'},
+      {t: 'iω', c: 'freq', title: 'Rotation', def: 'iω spins the state around at frequency ω — this is the oscillation you actually see.'},
+      {op: ') z'},
+    ],
+  },
+  {
+    key: 'sl', name: 'Stuart–Landau', icon: ICON_SL, adds: 'the model before it', newLabel: 'amplitude brake',
+    tokens: [
+      {op: 'ż = ('},
+      {t: 'α', c: 'damp', title: 'Damping', def: 'Same role as in HO — α sets whether the swing shrinks, holds, or grows.'},
+      {op: '+'},
+      {t: 'iω', c: 'freq', title: 'Rotation', def: 'Same role as in HO — iω sets the frequency of the oscillation.'},
+      {op: ') z −'},
+      {t: '(γ + iβ)|z|²z', c: 'sat', title: 'Amplitude brake', isNew: true, def: 'A cubic brake. γ pulls large amplitudes back down, so the swing locks onto one fixed size — a self-sustaining limit cycle. This single term is what turns a fading wobble into a steady rhythm (β lets the frequency drift a little with amplitude).'},
+    ],
+  },
+  {
+    key: 'wilco', name: 'WILCO', icon: ICON_WILCO, adds: 'the model before it', newLabel: 'two populations',
+    sub: 'top line = excitatory (x), bottom = inhibitory (y)',
+    tokens: [
+      {t: 'τₓẋ + x', c: 'damp', title: 'Relaxation', def: 'The biological stand-in for HO’s damping: each population drifts toward its input with a time constant τ.'},
+      {op: '='},
+      {t: 'σ', c: 'sat', title: 'Sigmoid brake', def: 'Neurons can’t fire infinitely fast, so this S-shaped curve flattens at the top. That flattening does the same job as Stuart–Landau’s cubic brake.'},
+      {op: '('},
+      {t: 'wₓₓx − wₓᵧy', c: 'coupl', title: 'E–I coupling', isNew: true, def: 'Excitatory cells drive inhibitory cells (x → y), which push back on them (y → x). This back-and-forth E–I loop is the engine of the oscillation — the genuinely new idea here.'},
+      {op: '+'},
+      {t: 'Pₓ', c: 'drive', title: 'Drive', def: 'A steady external push. Turn it up enough and the E–I loop tips into self-sustained oscillation.'},
+      {op: ')'},
+      {br: true},
+      {t: 'τᵧẏ + y', c: 'damp', plain: true},
+      {op: '='},
+      {t: 'σ', c: 'sat', plain: true},
+      {op: '('},
+      {t: 'wᵧₓx − wᵧᵧy', c: 'coupl', plain: true},
+      {op: ')'},
+    ],
+  },
+  {
+    key: 'nmm1', name: 'NMM1', icon: ICON_NMM1, adds: 'the model before it', newLabel: 'synaptic filtering',
+    sub: 'top line = excitatory (x), bottom = inhibitory (y)',
+    tokens: [
+      {t: 'τₓ²ẍ + 2τₓẋ + x', c: 'filt', title: 'Synaptic filter', isNew: true, def: 'The synapse now has a realistic rise and fall instead of reacting instantly — a second-order filter. It shapes the rhythm’s frequency and, on its own, keeps the oscillation going (so WILCO’s self-coupling is dropped).'},
+      {op: '= γₓ'},
+      {t: 'σ', c: 'sat', title: 'Sigmoid brake', def: 'The same S-shaped firing curve as WILCO.'},
+      {op: '('},
+      {t: '−wₓᵧy', c: 'coupl', title: 'E–I coupling', def: 'The same excitatory–inhibitory loop, carried over from WILCO.'},
+      {op: '+'},
+      {t: 'F̂ₑ', c: 'drive', title: 'Input', def: 'External input feeding the excitatory population.'},
+      {op: ')'},
+      {br: true},
+      {t: 'τᵧ²ÿ + 2τᵧẏ + y', c: 'filt', plain: true},
+      {op: '= γᵧ'},
+      {t: 'σ', c: 'sat', plain: true},
+      {op: '('},
+      {t: 'wᵧₓx', c: 'coupl', plain: true},
+      {op: ')'},
+    ],
+  },
+  {
+    key: 'nmm2', name: 'NMM2', icon: ICON_NMM2, adds: 'the model before it', newLabel: 'exact mean field',
+    pending: true, sub: 'next-generation mean field · demo coming soon',
+    tokens: [
+      {op: 'ṙ ='},
+      {t: 'Δ/π', c: 'mf', title: 'Heterogeneity', isNew: true, def: 'Real neurons aren’t identical. Δ measures how spread out their excitabilities are, which smooths the whole population’s response.'},
+      {op: '+'},
+      {t: '2rv', c: 'mf', title: 'Mean-field link', def: 'Exact bookkeeping linking the firing rate r to the average voltage v — derived from spiking neurons, not guessed.'},
+      {br: true},
+      {op: 'v̇ ='},
+      {t: 'v² − π²r²', c: 'mf', title: 'Voltage dynamics', def: 'The exact dynamics of the average membrane voltage, replacing the old sigmoid guess.'},
+      {op: '+'},
+      {t: 'Js', c: 'coupl', title: 'Coupling', def: 'How strongly the population feeds back on itself through its synapses.'},
+      {op: '+'},
+      {t: 'η̄ + I(t)', c: 'drive', title: 'Inputs', def: 'Background and time-varying inputs to the population.'},
+    ],
+  },
+];
+
+/* ── render legend ───────────────────────────────────────────────────────── */
+document.getElementById('conceptLegend').innerHTML =
+  Object.keys(CONCEPTS).map(k =>
+    `<button data-concept="${k}" style="--cc:${CONCEPTS[k].color}"><span class="sw" style="background:${CONCEPTS[k].color}"></span>${CONCEPTS[k].label}</button>`
+  ).join('');
+
+/* ── render one card ─────────────────────────────────────────────────────── */
+function tokenHtml(tok, mi, ti){
+  if (tok.op !== undefined) return `<span class="tok-op">${tok.op}</span>`;
+  if (tok.br) return `<span class="tok-br"></span>`;
+  const col = CONCEPTS[tok.c].color;
+  if (tok.plain) return `<span class="term-plain" data-c="${tok.c}" style="color:${col}"><span class="t">${tok.t}</span></span>`;
+  const badge = tok.isNew ? '<span class="newb">NEW</span>' : '';
+  return `<span class="term-col${tok.isNew ? ' isnew' : ''}" data-c="${tok.c}" style="color:${col}">
+      <span class="t">${tok.t}</span>
+      <span class="brace"></span>
+      <button class="ttl" data-mi="${mi}" data-ti="${ti}">${tok.title}${badge}</button>
+    </span>`;
+}
+function cardHtml(m, mi){
+  const adds = m.newLabel
+    ? `${m.adds} <b>+ ${m.newLabel}</b>`
+    : m.adds;
+  const sub = m.sub ? `<div class="adds" style="margin-top:2px">${m.sub}</div>` : '';
+  const eq = m.tokens.map((tok, ti) => tokenHtml(tok, mi, ti)).join('');
+  return `<div class="eq-card ${m.pending ? 'pending' : ''}">
+      <div class="eq-card-head">
+        <span class="eq-ico">${m.icon}</span>
+        <div class="eq-head-txt">
+          <div class="nm">${m.name}</div>
+          <div class="adds">${adds}</div>
+          ${sub}
+        </div>
+      </div>
+      <div class="eq-annot">${eq}</div>
+      <div class="eq-def"></div>
+    </div>`;
+}
+
+const grid = document.getElementById('eqGrid');
+grid.innerHTML =
+  `<div class="eq-row top">${cardHtml(MODELS[0],0)}${cardHtml(MODELS[1],1)}</div>` +
+  `<div class="eq-row bottom">${cardHtml(MODELS[2],2)}${cardHtml(MODELS[3],3)}${cardHtml(MODELS[4],4)}</div>`;
+
+/* ── click a title → reveal its plain-language definition ────────────────── */
+grid.addEventListener('click', e => {
+  const btn = e.target.closest('.ttl');
+  if (!btn) return;
+  const card = btn.closest('.eq-card');
+  const col = btn.closest('.term-col');
+  const def = card.querySelector('.eq-def');
+  const tok = MODELS[+btn.dataset.mi].tokens[+btn.dataset.ti];
+  const wasActive = col.classList.contains('active');
+  card.querySelectorAll('.term-col.active').forEach(c => c.classList.remove('active'));
+  if (wasActive){ def.classList.remove('open'); def.innerHTML = ''; return; }
+  col.classList.add('active');
+  const color = CONCEPTS[tok.c].color;
+  def.style.borderLeftColor = color;
+  def.innerHTML = `<strong style="color:${color}">${tok.title}</strong> — ${tok.def}
+    <span class="close-hint">(tap the label again to close)</span>`;
+  def.classList.add('open');
+});
+
+/* ── click a legend colour → trace that role across all models ────────────── */
+const legend = document.getElementById('conceptLegend');
+legend.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const key = btn.dataset.concept;
+  const wasOn = btn.classList.contains('on');
+  legend.querySelectorAll('button').forEach(b => b.classList.remove('on'));
+  grid.querySelectorAll('.lit').forEach(el => el.classList.remove('lit'));
+  if (wasOn){ grid.classList.remove('focus'); return; }
+  btn.classList.add('on');
+  grid.classList.add('focus');
+  grid.querySelectorAll(`[data-c="${key}"]`).forEach(el => el.classList.add('lit'));
+});
+})();
+</script>
 </body>
 </html>
