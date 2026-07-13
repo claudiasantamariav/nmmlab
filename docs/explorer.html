@@ -150,13 +150,15 @@ sub { font-size: 0.7em; }
 .slider-row .val { font-size: 0.82rem; color: var(--coral); font-weight: 700; min-width: 3.6rem; text-align: right; }
 input[type=range] { width: 100%; accent-color: var(--blue); cursor: pointer; margin-bottom: 0.4rem; }
 
-.network-section { margin-top: 0.4rem; padding-top: 0.9rem; border-top: 1px dashed var(--border); }
-.network-label {
-  font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--blue); margin-bottom: 0.5rem;
+.zero-badge {
+  display: inline-block; margin-top: -0.15rem; margin-bottom: 0.45rem;
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  padding: 0.12rem 0.55rem; border-radius: 999px; border: 1px solid var(--blue);
+  background: white; color: var(--blue); cursor: pointer;
 }
-.network-note.param-explain { border-left-color: var(--blue); font-size: 0.78rem; margin-bottom: 0.9rem; }
-.network-note a { color: var(--blue); }
+.zero-badge:hover { background: #eef1fb; }
+.zero-badge.active { background: var(--blue); color: white; cursor: default; }
+.zero-badge.active:hover { background: var(--blue); }
 
 .right-panel { padding: 1rem 1.2rem; overflow-y: auto; }
 
@@ -407,27 +409,36 @@ function stackedTraces(traceSets, colors, rowLabels, xlabel){
 const TWO_PI = 2*Math.PI;
 
 const HO = {
-  variants:['Oscillator','Phase-only (Kuramoto)'],
+  variants:['Oscillator','Network','Phase-only (Kuramoto)'],
   cfg:{
     Oscillator:{
       eqHtml:`<div class="eq-main">dz/dt = (α + iω) z + F₀ e<sup>iΩt</sup></div>
         <hr class="eq-hr">
         <div class="eq-sub">α = 0 → undamped &nbsp;·&nbsp; F₀ = 0 → unforced</div>`,
       explain:'ω sets the spin rate and α the growth/decay rate — set α = 0 for a lossless circle, negative to decay, positive to grow. F₀/Ω add a periodic push (set F₀ = 0 to remove it).',
+      fixed:{N:1, G:0},
       params:[
         {id:'omega',       label:'ω  (rad/s)', min:1, max:100, step:0.5, def:TWO_PI*1},
-        {id:'alpha',       label:'α  (growth/damping)', min:-1, max:1, step:0.01, def:-0.1},
-        {id:'F0',          label:'F₀  (drive amplitude, 0 = off)', min:0, max:2, step:0.05, def:0},
+        {id:'alpha',       label:'α  (growth/damping)', min:-1, max:1, step:0.01, def:-0.1, zeroLabel:'undamped'},
+        {id:'F0',          label:'F₀  (drive amplitude, 0 = off)', min:0, max:2, step:0.05, def:0, zeroLabel:'unforced'},
         {id:'omega_drive', label:'Ω  (drive frequency)', min:1, max:100, step:0.5, def:TWO_PI*0.7},
         {id:'z0r',         label:'z₀ (start radius)', min:0.1, max:2, step:0.05, def:1},
       ],
-      network:{
-        note:`<span class="eq-sub" style="display:block;margin-bottom:0.35rem;">+ G(z̄ − zᵢ) added to the equation above, z̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the single oscillator above</span>Nodes get a slightly different ω so coupling has something to synchronize; the F₀/Ω drive above is applied to every node. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>`,
-        params:[
-          {id:'N', label:'N  (network size)', min:1, max:6, step:1, def:1},
-          {id:'G', label:'G  (coupling strength)', min:0, max:5, step:0.05, def:0},
-        ]
-      }
+    },
+    Network:{
+      eqHtml:`<div class="eq-main">dz<sub>i</sub>/dt = (α + iω<sub>i</sub>) z<sub>i</sub> + G(z̄ − z<sub>i</sub>) + F₀ e<sup>iΩt</sup></div>
+        <hr class="eq-hr">
+        <div class="eq-sub">z̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the single oscillator</div>`,
+      explain:'N copies of the oscillator above, each pulled toward the network mean z̄ by coupling G — exactly the paper\'s diffusive coupling term (Eq. 2.28), (G/N)Σⱼ Cᵢⱼ(zⱼ−zᵢ), once the connectivity Cᵢⱼ is uniform and all-to-all. Nodes get a slightly different ω so coupling has something to synchronize; the F₀/Ω drive is applied to every node. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>',
+      params:[
+        {id:'omega',       label:'ω  (rad/s)', min:1, max:100, step:0.5, def:TWO_PI*1},
+        {id:'alpha',       label:'α  (growth/damping)', min:-1, max:1, step:0.01, def:-0.1, zeroLabel:'undamped'},
+        {id:'F0',          label:'F₀  (drive amplitude, 0 = off)', min:0, max:2, step:0.05, def:0, zeroLabel:'unforced'},
+        {id:'omega_drive', label:'Ω  (drive frequency)', min:1, max:100, step:0.5, def:TWO_PI*0.7},
+        {id:'z0r',         label:'z₀ (start radius)', min:0.1, max:2, step:0.05, def:1},
+        {id:'N', label:'N  (network size)', min:2, max:6, step:1, def:3},
+        {id:'G', label:'G  (coupling strength)', min:0, max:5, step:0.05, def:1.5},
+      ],
     },
     'Phase-only (Kuramoto)':{
       eqHtml:`<div class="eq-main">dθ<sub>i</sub>/dt = ω<sub>i</sub> + (G/N) Σ<sub>j</sub> sin(θ<sub>j</sub> − θ<sub>i</sub>)</div>
@@ -443,7 +454,7 @@ const HO = {
   },
 
   simulate(variant, p){
-    if(variant==='Oscillator'){
+    if(variant==='Oscillator'||variant==='Network'){
       const {omega,alpha,F0,omega_drive,z0r,N,G}=p;
       if(N<=1){
         return integrate((t,[re,im])=>[
@@ -494,7 +505,7 @@ const HO = {
   plots(variant, p, sim){
     const {ts,ys}=sim;
 
-    if(variant==='Oscillator' && p.N<=1){
+    if((variant==='Oscillator'||variant==='Network') && p.N<=1){
       const {omega,alpha,F0,omega_drive,z0r}=p;
       const isForced=F0>0.001;
       const re=ys.map(y=>y[0]), im=ys.map(y=>y[1]);
@@ -580,7 +591,7 @@ const HO = {
       ];
     }
 
-    if(variant==='Oscillator'){
+    if(variant==='Oscillator'||variant==='Network'){
       const {G,alpha}=p;
       const N=sim.N, omegas=sim.omegas;
       const reAll=Array.from({length:N},(_,k)=>downsample(ys.map(y=>y[2*k]),1200));
@@ -692,7 +703,7 @@ const HO = {
 // state = [x, y] per oscillator; dt = 0.01 s
 // ============================================================
 const SL = {
-  variants:['Oscillator'],
+  variants:['Oscillator','Network'],
   cfg:{
     Oscillator:{
       eqHtml:`<div class="eq-main">ż = (α + iω)z − (γ + iβ)|z|²z</div>
@@ -700,21 +711,31 @@ const SL = {
         <div class="eq-sub">Cartesian: ẋ = αx − ωy − γ(x²+y²)x + β(x²+y²)y &nbsp;·&nbsp; ẏ = αy + ωx − γ(x²+y²)y − β(x²+y²)x</div>
         <div class="eq-sub">α &gt; 0 → limit cycle at r* = √(α/γ) &nbsp;·&nbsp; γ &gt; 0 required</div>`,
       explain:'α is the Hopf bifurcation parameter: negative decays to rest, positive gives a self-sustained rhythm at radius r* = √(α/γ). ω sets the rotation speed and doesn\'t affect r* or the bifurcation diagram. γ (&gt;0) caps the amplitude — bigger γ means a smaller, tighter limit cycle. β doesn\'t change the amplitude either; it only shifts the instantaneous frequency as amplitude grows ("shear"). F₀/Ω add a periodic push (set F₀ = 0 to remove it).',
+      fixed:{N:1, G:0},
       params:[
-        {id:'alpha', label:'α  (growth/decay)', min:-1, max:2, step:0.05, def:1},
+        {id:'alpha', label:'α  (growth/decay)', min:-1, max:2, step:0.05, def:1, zeroLabel:'undamped'},
         {id:'omega', label:'ω  (rad/s)', min:0.5, max:10, step:0.1, def:2},
         {id:'gamma', label:'γ  (saturation, &gt;0)', min:0.1, max:3, step:0.05, def:1},
         {id:'beta',  label:'β  (shear)', min:-3, max:3, step:0.05, def:1},
-        {id:'F0',          label:'F₀  (drive amplitude, 0 = off)', min:0, max:2, step:0.05, def:0},
+        {id:'F0',          label:'F₀  (drive amplitude, 0 = off)', min:0, max:2, step:0.05, def:0, zeroLabel:'unforced'},
         {id:'omega_drive', label:'Ω  (drive frequency)', min:0.5, max:10, step:0.1, def:2},
       ],
-      network:{
-        note:`<span class="eq-sub" style="display:block;margin-bottom:0.35rem;">+ G(z̄ − zᵢ) added to the equation above, z̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the single oscillator above</span>Nodes get a slightly different ω so coupling has something to synchronize. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>`,
-        params:[
-          {id:'N', label:'N  (network size)', min:1, max:6, step:1, def:1},
-          {id:'G', label:'G  (coupling strength)', min:0, max:3, step:0.05, def:0},
-        ]
-      }
+    },
+    Network:{
+      eqHtml:`<div class="eq-main">ż<sub>i</sub> = (α + iω<sub>i</sub>)z<sub>i</sub> − (γ + iβ)|z<sub>i</sub>|²z<sub>i</sub> + G(z̄ − z<sub>i</sub>) + F₀ e<sup>iΩt</sup></div>
+        <hr class="eq-hr">
+        <div class="eq-sub">z̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the single oscillator</div>`,
+      explain:'N copies of the limit-cycle oscillator above, each pulled toward the network mean z̄ by coupling G — exactly the paper\'s diffusive coupling term (Eq. 3.8), (G/N)Σⱼ Cᵢⱼ(zⱼ−zᵢ), once the connectivity Cᵢⱼ is uniform and all-to-all. Nodes get a slightly different ω so coupling has something to synchronize. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>',
+      params:[
+        {id:'alpha', label:'α  (growth/decay)', min:-1, max:2, step:0.05, def:1, zeroLabel:'undamped'},
+        {id:'omega', label:'ω  (rad/s)', min:0.5, max:10, step:0.1, def:2},
+        {id:'gamma', label:'γ  (saturation, &gt;0)', min:0.1, max:3, step:0.05, def:1},
+        {id:'beta',  label:'β  (shear)', min:-3, max:3, step:0.05, def:1},
+        {id:'F0',          label:'F₀  (drive amplitude, 0 = off)', min:0, max:2, step:0.05, def:0, zeroLabel:'unforced'},
+        {id:'omega_drive', label:'Ω  (drive frequency)', min:0.5, max:10, step:0.1, def:2},
+        {id:'N', label:'N  (network size)', min:2, max:6, step:1, def:3},
+        {id:'G', label:'G  (coupling strength)', min:0, max:3, step:0.05, def:1},
+      ],
     },
   },
 
@@ -942,7 +963,7 @@ function computeBifurcation(wxx, taux){
 
 
 const WILCO = {
-  variants:['Single Node'],
+  variants:['Single Node','Network'],
   cfg:{
     'Single Node':{
       eqHtml:`<div class="eq-main">τ<sub>x</sub>ẋ + x = σ(w<sub>xx</sub>x − w<sub>xy</sub>y + P<sub>x</sub> + F<sub>e</sub>(t))</div>
@@ -951,20 +972,30 @@ const WILCO = {
         <div class="eq-sub">F<sub>e</sub>(t) = A · sin(2π·f·t / 1000) &nbsp;·&nbsp; A = 0 → unforced</div>
         <div class="eq-sub">σ(I) = 1 / (1 + e<sup>slope·(I0 − I)</sup>) &nbsp;·&nbsp; fixed: τ<sub>y</sub>=8, w<sub>xy</sub>=12, w<sub>yx</sub>=15, w<sub>yy</sub>=3</div>`,
       explain:'x is the excitatory firing rate and y the inhibitory firing rate. P_x is a constant background drive — turn it up and the E–I loop can start oscillating on its own (a Hopf bifurcation). A and f add a rhythmic input on top of that; set A = 0 to remove it.',
+      fixed:{N:1, G:0},
       params:[
         {id:'Px',    label:'P<sub>x</sub>  (drive)', min:0, max:6, step:0.05, def:1.5},
         {id:'wxx',   label:'w<sub>xx</sub>  (E→E)',  min:0, max:20, step:0.5, def:16},
         {id:'taux',  label:'τ<sub>x</sub>  (ms)',    min:1, max:20, step:0.5, def:8},
-        {id:'A',     label:'A  (forcing amplitude, 0 = off)', min:0, max:0.2, step:0.005, def:0},
+        {id:'A',     label:'A  (forcing amplitude, 0 = off)', min:0, max:0.2, step:0.005, def:0, zeroLabel:'unforced'},
         {id:'fStim', label:'f<sub>stim</sub>  (Hz)', min:1, max:80, step:1, def:24},
       ],
-      network:{
-        note:`<span class="eq-sub" style="display:block;margin-bottom:0.35rem;">+ G(x̄ − xᵢ) added inside σ for xᵢ above, x̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the node above</span>Nodes get a slightly different P<sub>x</sub> so some may need coupling to oscillate at all; only node 0 feels A/f<sub>stim</sub> directly — watch it reach the others only through coupling. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>`,
-        params:[
-          {id:'N', label:'N  (network size)', min:1, max:5, step:1, def:1},
-          {id:'G', label:'G  (coupling strength)', min:0, max:5, step:0.1, def:0},
-        ]
-      }
+    },
+    Network:{
+      eqHtml:`<div class="eq-main">τ<sub>x</sub>ẋ<sub>i</sub> + x<sub>i</sub> = σ(w<sub>xx</sub>x<sub>i</sub> − w<sub>xy</sub>y<sub>i</sub> + P<sub>x,i</sub> + F<sub>e,i</sub>(t) + G(x̄ − x<sub>i</sub>))</div>
+        <div class="eq-main">τ<sub>y</sub>ẏ<sub>i</sub> + y<sub>i</sub> = σ(w<sub>yx</sub>x<sub>i</sub> − w<sub>yy</sub>y<sub>i</sub>)</div>
+        <hr class="eq-hr">
+        <div class="eq-sub">x̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the single node</div>`,
+      explain:'N copies of the node above, each pulled toward the network mean firing rate x̄ by coupling G, added inside σ — a diffusive stand-in for the paper\'s row-summed term (Eq. 5.5), G Σⱼ Cᵢⱼxⱼ, chosen so the coupling input stays bounded as N grows instead of scaling with it. Nodes get a slightly different P<sub>x</sub> so some may need coupling to oscillate at all; only node 0 feels A/f<sub>stim</sub> directly — watch it reach the others only through coupling. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>',
+      params:[
+        {id:'Px',    label:'P<sub>x</sub>  (drive)', min:0, max:6, step:0.05, def:1.5},
+        {id:'wxx',   label:'w<sub>xx</sub>  (E→E)',  min:0, max:20, step:0.5, def:16},
+        {id:'taux',  label:'τ<sub>x</sub>  (ms)',    min:1, max:20, step:0.5, def:8},
+        {id:'A',     label:'A  (forcing amplitude, 0 = off)', min:0, max:0.2, step:0.005, def:0, zeroLabel:'unforced'},
+        {id:'fStim', label:'f<sub>stim</sub>  (Hz)', min:1, max:80, step:1, def:24},
+        {id:'N', label:'N  (network size)', min:2, max:5, step:1, def:3},
+        {id:'G', label:'G  (coupling strength)', min:0, max:5, step:0.1, def:1.5},
+      ],
     },
   },
 
@@ -1194,7 +1225,7 @@ function computeNMM1Bifurcation(tau_x,tau_y,gx,gy,wxy,wyx,Fe){
 }
 
 const NMM1 = {
-  variants:['Single Node'],
+  variants:['Single Node','Network'],
   cfg:{
     'Single Node':{
       eqHtml:`<div class="eq-main">τₓ² ẍ + 2τₓ ẋ + x = γₓ σ(−wₓᵧy + Fₑ)</div>
@@ -1203,6 +1234,7 @@ const NMM1 = {
         <div class="eq-sub">σ(v) = tanh(a·v) &nbsp;·&nbsp; K = γₓγᵧwₓᵧwᵧₓa²</div>
         <div class="eq-sub">Oscillates when K &gt; K<sub>crit</sub> = 2 + τₓ/τᵧ + τᵧ/τₓ &nbsp;(≥ 4, lowest when τₓ = τᵧ)</div>`,
       explain:'x and y are excitatory/inhibitory post-synaptic potentials, not firing rates — each obeys a critically-damped second-order filter, so a single synapse alone can never oscillate. Once the loop gain K crosses K_crit, the two synapses\' own phase lag is enough to sustain a rhythm with no self-coupling at all (the Barkhausen criterion). Fₑ shifts the operating point on the sigmoid and can quench an oscillation that exists at Fₑ = 0.',
+      fixed:{N:1, G:0},
       params:[
         {id:'tau_x', label:'τₓ  (exc. synaptic time)', min:0.05, max:3, step:0.05, def:0.5},
         {id:'tau_y', label:'τᵧ  (inh. synaptic time)', min:0.05, max:3, step:0.05, def:0.5},
@@ -1213,13 +1245,25 @@ const NMM1 = {
         {id:'a',     label:'a  (sigmoid slope)', min:0.3, max:4, step:0.05, def:2.5},
         {id:'Fe',    label:'Fₑ  (exogenous drive)', min:0, max:2, step:0.05, def:0},
       ],
-      network:{
-        note:`<span class="eq-sub" style="display:block;margin-bottom:0.35rem;">+ G(x̄ − xᵢ) added inside σ for xᵢ above, x̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the node above</span>Nodes get a slightly different sigmoid slope a so coupling has something to synchronize. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>`,
-        params:[
-          {id:'N', label:'N  (network size)', min:1, max:5, step:1, def:1},
-          {id:'G', label:'G  (coupling strength)', min:0, max:0.6, step:0.02, def:0},
-        ]
-      }
+    },
+    Network:{
+      eqHtml:`<div class="eq-main">τₓ² ẍ<sub>i</sub> + 2τₓ ẋ<sub>i</sub> + x<sub>i</sub> = γₓ σ(−wₓᵧy<sub>i</sub> + Fₑ + G(x̄ − x<sub>i</sub>))</div>
+        <div class="eq-main">τᵧ² ÿ<sub>i</sub> + 2τᵧ ẏ<sub>i</sub> + y<sub>i</sub> = γᵧ σ(wᵧₓx<sub>i</sub>)</div>
+        <hr class="eq-hr">
+        <div class="eq-sub">x̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the single node</div>`,
+      explain:'N copies of the node above, each pulled toward the network mean excitatory PSP x̄ by coupling G, added inside the excitatory sigmoid — a concrete, diffusive instantiation of the paper\'s general connectivity framework (Eq. 6.4–6.5), rather than a full connectivity matrix Cₘₙ. Nodes get a slightly different sigmoid slope a so coupling has something to synchronize. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>',
+      params:[
+        {id:'tau_x', label:'τₓ  (exc. synaptic time)', min:0.05, max:3, step:0.05, def:0.5},
+        {id:'tau_y', label:'τᵧ  (inh. synaptic time)', min:0.05, max:3, step:0.05, def:0.5},
+        {id:'gx',    label:'γₓ  (exc. synaptic gain)', min:0.1, max:2, step:0.05, def:1},
+        {id:'gy',    label:'γᵧ  (inh. synaptic gain)', min:0.1, max:2, step:0.05, def:1},
+        {id:'wxy',   label:'wₓᵧ  (I→E, "pull")', min:0.1, max:2, step:0.05, def:1},
+        {id:'wyx',   label:'wᵧₓ  (E→I, "push")', min:0.1, max:2, step:0.05, def:1},
+        {id:'a',     label:'a  (sigmoid slope)', min:0.3, max:4, step:0.05, def:2.5},
+        {id:'Fe',    label:'Fₑ  (exogenous drive)', min:0, max:2, step:0.05, def:0},
+        {id:'N', label:'N  (network size)', min:2, max:5, step:1, def:3},
+        {id:'G', label:'G  (coupling strength)', min:0, max:0.6, step:0.02, def:0.2},
+      ],
     },
   },
 
@@ -1467,7 +1511,7 @@ wilco: {
     </div>
     <div class="info-eq-box" style="border-left-color:var(--coral);">
       <div class="eq-name" style="color:var(--coral);">In the Demo</div>
-      <div class="eq-note" style="font-size:0.85rem;">Unforced and forced are the same equation with F₀ = 0 or not, so the Demo tab combines them into one node — set A = 0 to remove the rhythmic stimulus. Turning N above 1 in the Network section below adds the coupling term without changing anything above it — see the <a href="tutorial.html#coupling" target="_blank">Tutorial</a>.</div>
+      <div class="eq-note" style="font-size:0.85rem;">Unforced and forced are the same equation with F₀ = 0 or not, so the Demo tab combines them into one "Single Node" variant — set A = 0 to remove the rhythmic stimulus. Coupling is structurally different (multiple nodes, a mean-field term), so it gets its own "Network" variant instead of a slider on this one. That variant writes the coupling as G(x̄ − xᵢ) — a diffusive simplification of the paper's row-summed GΣⱼCᵢⱼxⱼ that keeps each node's coupling input centered on the network average and bounded regardless of network size N, rather than growing with it — see the <a href="tutorial.html#coupling" target="_blank">Tutorial</a>.</div>
     </div>`,
   how: `<p>WILCO replaces the HO/SL's abstract complex number with two concrete, biologically legible variables: an excitatory firing rate x and an inhibitory firing rate y, wired together through a sigmoid σ(·) instead of a simple linear term. Turning up the tonic drive Pₓ moves the operating point along the steep part of the sigmoid; the paper shows a Hopf bifurcation needs three ingredients — reciprocal E–I coupling (wₓᵧwᵧₓ &lt; 0), enough self-excitation or drive to sit on the steep part of σ, and the sigmoid's curvature to supply the cubic term that caps the oscillation's growth.</p>
     <p>Once those conditions are met, the fixed point destabilizes and a self-sustained limit-cycle rhythm switches on spontaneously — no external clock required. Near that bifurcation point, a Taylor expansion of the WILCO equations recovers exactly the Stuart–Landau normal form (§5.2, Eq. 5.4): the sigmoid's first derivative sets the linear gain, and its second derivative supplies the nonlinear term that stabilizes the limit cycle. This is why the paper describes WILCO as "SL in disguise" — the same universal bifurcation machinery, now anchored to measurable biophysical quantities.</p>`,
@@ -1509,6 +1553,10 @@ nmm1: {
       <div class="eq-name">General network (Eq. 6.4–6.5)</div>
       <div class="eq-main">L̂ₘₙ[uₘₙ] = Cₘₙ rₙ,&nbsp;&nbsp; vₘ = Σₙ uₘₙ + [field terms],&nbsp;&nbsp; rₘ = σₘ(vₘ)</div>
       <div class="eq-note">A synapse filter turns each incoming firing rate into a PSP; PSPs sum into a membrane perturbation; a sigmoid converts that back into a firing rate.</div>
+    </div>
+    <div class="info-eq-box" style="border-left-color:var(--coral);">
+      <div class="eq-name" style="color:var(--coral);">In the Demo</div>
+      <div class="eq-note" style="font-size:0.85rem;">The L̂/C formalism above is deliberately general — it doesn't commit to a specific connectivity. The interactive demo instantiates it with the same diffusive coupling used by every other model on this site: a "Network" variant adds G(x̄ − xᵢ) inside the excitatory sigmoid, pulling each node toward the network's mean excitatory PSP x̄ rather than a full connectivity matrix.</div>
     </div>`,
   how: `<p>WILCO's single firing-rate equation implicitly assumes synaptic transmission is instantaneous. NMM1 makes it explicit: each post-synaptic potential is the output of a proper linear filter with its own rise and decay time constants, not just a first-order lag. Multiple PSPs are then summed into a membrane perturbation v, and a static sigmoid converts that perturbation into an output firing rate — cleanly separating "synapse" (the filter) from "soma" (the sigmoid).</p>
     <p>The payoff is that a second-order synaptic filter introduces its own frequency-dependent phase shift. By the Barkhausen stability criterion, a feedback loop oscillates once its total gain is 1 and its total phase shift is a multiple of 360°; in a push-pull E–I loop, the phase lag from realistic synaptic kinetics alone can satisfy that condition — so, unlike Wilson–Cowan, NMM1 can sustain oscillations without any explicit self-coupling term.</p>`,
@@ -1719,8 +1767,8 @@ function renderBuildupDemo(modelId, stepId, hostId){
   if(!host || host.dataset.mounted) return;
   host.dataset.mounted='1';
   const step=MODEL_INFO[modelId].buildup.find(s=>s.id===stepId);
-  const {variant,cfg,vals}=buildupDefaults(modelId, step);
-  const sp=cfgAllParams(cfg).find(s=>s.id===step.param);
+  const {variant,vals}=buildupDefaults(modelId, step);
+  const sp=findParamDef(modelId, step.param);
   host.innerHTML=`
     <div class="slider-group mini-demo-slider">
       <div class="slider-row">
@@ -1745,21 +1793,34 @@ function toggleBuildupStep(header, modelId, stepId, hostId){
   if(opening) renderBuildupDemo(modelId, stepId, hostId);
 }
 
-// Every model's Network section is optional (cfg.network) and additive-only: it never
-// changes the base cfg.params, it only appends G/N-style sliders. Kept as one flat list
-// here so callers don't need to know the split.
 function cfgAllParams(cfg){
-  return cfg.network ? cfg.params.concat(cfg.network.params) : cfg.params;
+  return cfg.params;
+}
+// Slider definitions live inside a specific variant's cfg (e.g. G/N only exist on the
+// "Network" variant now), but buildup-step demos always run against the model's first
+// variant. Search every variant so a step can reference a slider owned by another one.
+function findParamDef(modelId, paramId){
+  const impl=MODELS[modelId].impl;
+  for(const v of impl.variants){
+    const sp=cfgAllParams(impl.cfg[v]).find(s=>s.id===paramId);
+    if(sp) return sp;
+  }
+  return null;
 }
 function sliderGroupHtml(sp, params){
+  const val=params[sp.id]??sp.def;
+  const isZero=Math.abs(val)<1e-9;
+  const zeroBadge=sp.zeroLabel ? `
+      <button type="button" class="zero-badge ${isZero?'active':''}" id="zb_${sp.id}"
+        onclick="setSliderZero('${sp.id}')" ${isZero?'disabled':''}>${sp.zeroLabel}</button>` : '';
   return `
     <div class="slider-group">
       <div class="slider-row">
         <label for="sl_${sp.id}">${sp.label}</label>
-        <span class="val" id="val_${sp.id}">${(params[sp.id]??sp.def).toFixed(2)}</span>
+        <span class="val" id="val_${sp.id}">${val.toFixed(2)}</span>
       </div>
       <input type="range" id="sl_${sp.id}" min="${sp.min}" max="${sp.max}" step="${sp.step}"
-        value="${params[sp.id]??sp.def}" oninput="onSlider('${sp.id}',this.value)">
+        value="${val}" oninput="onSlider('${sp.id}',this.value)">${zeroBadge}
     </div>`;
 }
 
@@ -1779,17 +1840,14 @@ function renderLeft(){
   if(!m||m.stub){panel.innerHTML='';return;}
   const cfg=m.impl.cfg[activeVariant];
   if(!cfg)return;
+  // cfg.fixed holds values this variant doesn't expose as a slider (e.g. N:1, G:0 on
+  // single-node variants) but that simulate()/plots() still expect on the params object.
+  if(cfg.fixed) Object.keys(cfg.fixed).forEach(k=>{if(params[k]===undefined)params[k]=cfg.fixed[k];});
   cfgAllParams(cfg).forEach(sp=>{if(params[sp.id]===undefined)params[sp.id]=sp.def;});
   panel.innerHTML=`
     <div class="eq-box">${cfg.eqHtml}</div>
     <div class="param-explain">${cfg.explain}</div>
-    ${cfg.params.map(sp=>sliderGroupHtml(sp,params)).join('')}
-    ${cfg.network ? `
-      <div class="network-section">
-        <div class="network-label">Network</div>
-        <div class="param-explain network-note">${cfg.network.note}</div>
-        ${cfg.network.params.map(sp=>sliderGroupHtml(sp,params)).join('')}
-      </div>` : ''}`;
+    ${cfg.params.map(sp=>sliderGroupHtml(sp,params)).join('')}`;
 }
 
 function renderRight(plots){
@@ -1884,11 +1942,26 @@ function selectVariant(v){
   renderRight(m.impl.plots(v,params,sim));
 }
 function onSlider(id,val){
-  params[id]=parseFloat(val);
+  const v=parseFloat(val);
+  params[id]=v;
   const el=document.getElementById('val_'+id);
-  if(el)el.textContent=parseFloat(val).toFixed(2);
+  if(el)el.textContent=v.toFixed(2);
+  const badge=document.getElementById('zb_'+id);
+  if(badge){
+    const isZero=Math.abs(v)<1e-9;
+    badge.classList.toggle('active',isZero);
+    badge.disabled=isZero;
+  }
   clearTimeout(debounce);
   debounce=setTimeout(runAndPlot,120);
+}
+// Lets the zero-badge chip (e.g. "undamped"/"unforced") jump a slider straight to 0
+// instead of dragging it there by hand.
+function setSliderZero(id){
+  const el=document.getElementById('sl_'+id);
+  if(!el) return;
+  el.value=0;
+  onSlider(id,'0');
 }
 function toggleExplain(h){
   h.nextElementSibling.classList.toggle('visible');
