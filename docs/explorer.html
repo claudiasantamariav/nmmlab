@@ -486,7 +486,7 @@ const HO = {
         return omegas[i]+(G/N)*s;
       });
       const sim=integrate(f,theta0,1000,0.01,4);
-      sim.N=N; sim.omegas=omegas;
+      sim.N=N; sim.omegas=omegas; sim.theta0=theta0;
       return sim;
     }
   },
@@ -610,7 +610,7 @@ const HO = {
     }
 
     if(variant==='Phase-only (Kuramoto)'){
-      const {N,G,spread}=p;
+      const {N,G}=p;
       const orderR=ys.map(theta=>{
         let re=0,im=0; for(let i=0;i<N;i++){re+=Math.cos(theta[i]);im+=Math.sin(theta[i]);}
         return Math.sqrt(re*re+im*im)/N;
@@ -624,17 +624,36 @@ const HO = {
       }));
       cosTraces.push({x:tD, y:downsample(orderR,1500), mode:'lines', line:{color:'black',width:2.5}, name:'R(t)'});
 
-      // synchronisation curve: mean R over the last half, sweeping G (same N/spread/seed)
-      const rng0=makeRng(42);
-      const theta0=Array.from({length:N},()=>rng0()*TWO_PI);
-      const omegas0=Array.from({length:N},()=>TWO_PI*(1+spread*(2*rng0()-1)));
+      // Final-time phase snapshot: one dot per oscillator at θᵢ(T), plus the order
+      // parameter vector R·e^{iΨ} as an arrow from the origin. Reuses the exact same
+      // simulated trajectory (ys) as panel 1 above — no separate run, so this is
+      // guaranteed to reflect the same R as the R(t) curve at its final instant.
+      const thetaFinal=ys[ys.length-1];
+      const snapX=thetaFinal.map(th=>Math.cos(th)), snapY=thetaFinal.map(th=>Math.sin(th));
+      let reBar=0, imBar=0; for(let i=0;i<N;i++){ reBar+=Math.cos(thetaFinal[i]); imBar+=Math.sin(thetaFinal[i]); }
+      const psi=Math.atan2(imBar/N, reBar/N);
+      const circlePts=Array.from({length:101},(_,i)=>i/100*TWO_PI);
+      const snapshotLayout=layPP('Phase snapshot','cos θᵢ','sin θᵢ');
+      snapshotLayout.xaxis={...snapshotLayout.xaxis, range:[-1.2,1.2]};
+      snapshotLayout.yaxis={...snapshotLayout.yaxis, range:[-1.2,1.2]};
+      snapshotLayout.annotations=[{
+        x:finalR*Math.cos(psi), y:finalR*Math.sin(psi), ax:0, ay:0,
+        xref:'x', yref:'y', axref:'x', ayref:'y',
+        showarrow:true, arrowhead:3, arrowsize:1.3, arrowwidth:2.5, arrowcolor:CORAL,
+      }];
+
+      // Synchronisation curve: mean R over the second half of an independent 8 s run
+      // per G value (discarding the initial transient), sweeping G — reuses the SAME
+      // θᵢ(0)/ωᵢ draw as the main simulation above (sim.theta0/sim.omegas) instead of
+      // a fresh independent draw, so the "your G" point lines up with panels 1 and 2.
+      const {theta0, omegas: omegas0}=sim;
       const Gmax=5, nG=25;
       const Gvals=[], Rmeans=[];
       for(let gi=0;gi<=nG;gi++){
         const Gv=Gmax*gi/nG;
         const fG=(t,theta)=>theta.map((th_i,i)=>{ let s=0; for(let j=0;j<N;j++) s+=Math.sin(theta[j]-th_i); return omegas0[i]+(Gv/N)*s; });
         const simG=integrate(fG, theta0, 400, 0.02, 2); // 8 s, coarser — this is a cheap sweep, not the main view
-        const tail=simG.ys.slice(Math.floor(simG.ys.length*0.5));
+        const tail=simG.ys.slice(Math.floor(simG.ys.length*0.5)); // second half only — discards the initial transient
         const rTail=tail.map(th=>{ let re=0,im=0; for(let j=0;j<N;j++){re+=Math.cos(th[j]);im+=Math.sin(th[j]);} return Math.sqrt(re*re+im*im)/N; });
         Gvals.push(Gv); Rmeans.push(rTail.reduce((a,b)=>a+b,0)/rTail.length);
       }
@@ -649,17 +668,18 @@ const HO = {
               : finalR>0.3 ? 'The thin lines are drifting into rough alignment — partial synchrony.'
               : 'The thin lines run at their own pace with no shared rhythm — incoherent.'},
         {data:[
-          {x:tD,y:downsample(orderR,1500),mode:'lines',line:{color:CORAL,width:2},showlegend:false},
-        ], layout:{...lay('Order parameter r(t)','t (s)','r'), yaxis:{range:[0,1.05],gridcolor:'#e0e4ef',title:'r'}},
-          capS:'r measures synchrony. r=1 fully in sync, r=0 incoherent.',
-          capD: finalR>0.9 ? `r ≈ ${finalR.toFixed(2)} — fully synchronised.`
-              : finalR>0.3 ? `r ≈ ${finalR.toFixed(2)} — partially synchronised.`
-              : `r ≈ ${finalR.toFixed(2)} — incoherent, oscillators running independently.`},
+          {x:circlePts.map(a=>Math.cos(a)),y:circlePts.map(a=>Math.sin(a)),mode:'lines',line:{color:'#cbd3e6',width:1,dash:'dot'},showlegend:false,hoverinfo:'skip'},
+          {x:snapX,y:snapY,mode:'markers',marker:{color:BLUE,size:8},showlegend:false,name:'oscillators'},
+        ], layout:snapshotLayout,
+          capS:'Unit circle: each blue dot is one oscillator\'s phase θᵢ at the final simulated instant. Coral arrow: the order parameter vector R·e^{iΨ} — its length is R (synchrony), its direction is the mean phase Ψ.',
+          capD: finalR>0.9 ? `R ≈ ${finalR.toFixed(2)} — dots clustered tightly, arrow reaching nearly to the unit circle.`
+              : finalR>0.3 ? `R ≈ ${finalR.toFixed(2)} — dots partly clustered, arrow partway to the unit circle.`
+              : `R ≈ ${finalR.toFixed(2)} — dots spread around the circle, arrow stays short near the origin.`},
         {data:[
           {x:Gvals,y:Rmeans,mode:'lines+markers',line:{color:BLUE,width:2},marker:{color:BLUE,size:4},showlegend:false},
           {x:[G,G],y:[0,1.05],mode:'lines',line:{color:CORAL,width:2,dash:'dash'},name:`your G = ${G.toFixed(2)}`},
         ], layout:{...lay('Synchronisation curve','Coupling G','⟨R⟩ (mean order parameter)'), yaxis:{range:[0,1.05],gridcolor:'#e0e4ef',title:'⟨R⟩'}},
-          capS:'Mean order parameter as coupling G is swept from 0 to 5. The coral line marks your current G.',
+          capS:'Mean order parameter (averaged over the second half of an 8 s run, after discarding the initial transient) as coupling G is swept from 0 to 5. The coral line marks your current G. With few oscillators (small N), expect a noisier, less monotonic curve — a genuine finite-size effect, not numerical error.',
           capD: `Synchrony switches on around G ≈ ${Gc}. Your G = ${G.toFixed(2)} gives ⟨R⟩ ≈ ${Rmeans[Math.min(nG,Math.round(G/Gmax*nG))]?.toFixed(2)}.`},
       ];
     }
@@ -679,12 +699,14 @@ const SL = {
         <hr class="eq-hr">
         <div class="eq-sub">Cartesian: ẋ = αx − ωy − γ(x²+y²)x + β(x²+y²)y &nbsp;·&nbsp; ẏ = αy + ωx − γ(x²+y²)y − β(x²+y²)x</div>
         <div class="eq-sub">α &gt; 0 → limit cycle at r* = √(α/γ) &nbsp;·&nbsp; γ &gt; 0 required</div>`,
-      explain:'α is the Hopf bifurcation parameter: negative decays to rest, positive gives a self-sustained rhythm at radius r* = √(α/γ). ω sets the rotation speed and doesn\'t affect r* or the bifurcation diagram. γ (&gt;0) caps the amplitude — bigger γ means a smaller, tighter limit cycle. β doesn\'t change the amplitude either; it only shifts the instantaneous frequency as amplitude grows ("shear").',
+      explain:'α is the Hopf bifurcation parameter: negative decays to rest, positive gives a self-sustained rhythm at radius r* = √(α/γ). ω sets the rotation speed and doesn\'t affect r* or the bifurcation diagram. γ (&gt;0) caps the amplitude — bigger γ means a smaller, tighter limit cycle. β doesn\'t change the amplitude either; it only shifts the instantaneous frequency as amplitude grows ("shear"). F₀/Ω add a periodic push (set F₀ = 0 to remove it).',
       params:[
         {id:'alpha', label:'α  (growth/decay)', min:-1, max:2, step:0.05, def:1},
         {id:'omega', label:'ω  (rad/s)', min:0.5, max:10, step:0.1, def:2},
         {id:'gamma', label:'γ  (saturation, &gt;0)', min:0.1, max:3, step:0.05, def:1},
         {id:'beta',  label:'β  (shear)', min:-3, max:3, step:0.05, def:1},
+        {id:'F0',          label:'F₀  (drive amplitude, 0 = off)', min:0, max:2, step:0.05, def:0},
+        {id:'omega_drive', label:'Ω  (drive frequency)', min:0.5, max:10, step:0.1, def:2},
       ],
       network:{
         note:`<span class="eq-sub" style="display:block;margin-bottom:0.35rem;">+ G(z̄ − zᵢ) added to the equation above, z̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the single oscillator above</span>Nodes get a slightly different ω so coupling has something to synchronize. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>`,
@@ -697,19 +719,21 @@ const SL = {
   },
 
   simulate(variant, p){
-    const {alpha,omega,gamma,beta,N,G}=p;
+    const {alpha,omega,gamma,beta,F0,omega_drive,N,G}=p;
     if(N<=1){
       return integrate((t,[x,y])=>{
         const r2=x*x+y*y;
         return [
-          alpha*x-omega*y-gamma*r2*x+beta*r2*y,
-          alpha*y+omega*x-gamma*r2*y-beta*r2*x,
+          alpha*x-omega*y-gamma*r2*x+beta*r2*y+F0*Math.cos(omega_drive*t),
+          alpha*y+omega*x-gamma*r2*y-beta*r2*x+F0*Math.sin(omega_drive*t),
         ];
       }, [0.1,0], 3000, 0.01, 4);
     }
     // Networked: N copies of the same node above, each nudged toward the network
     // mean by G(z̄−zᵢ). A small ω spread across nodes is the only structural
     // difference — otherwise identical nodes would give G nothing to visibly do.
+    // The F₀/Ω drive above is applied to every node, per the model's own §3.8-3.9
+    // equations (F̂ₑ,ᵢ(t)).
     const omegas=Array.from({length:N},(_,i)=>omega*(1+0.12*(i-(N-1)/2)));
     const rng=makeRng(7);
     const z0=[];
@@ -719,10 +743,11 @@ const SL = {
       let sx=0, sy=0;
       for(let i=0;i<N;i++){ sx+=y[2*i]; sy+=y[2*i+1]; }
       const zxBar=sx/N, zyBar=sy/N;
+      const driveRe=F0*Math.cos(omega_drive*t), driveIm=F0*Math.sin(omega_drive*t);
       for(let i=0;i<N;i++){
         const x=y[2*i], yy=y[2*i+1], r2=x*x+yy*yy;
-        out[2*i]  = alpha*x  - omegas[i]*yy - gamma*r2*x  + beta*r2*yy + G*(zxBar-x);
-        out[2*i+1]= alpha*yy + omegas[i]*x  - gamma*r2*yy - beta*r2*x  + G*(zyBar-yy);
+        out[2*i]  = alpha*x  - omegas[i]*yy - gamma*r2*x  + beta*r2*yy + G*(zxBar-x) + driveRe;
+        out[2*i+1]= alpha*yy + omegas[i]*x  - gamma*r2*yy - beta*r2*x  + G*(zyBar-yy) + driveIm;
       }
       return out;
     };
@@ -733,7 +758,7 @@ const SL = {
 
   plots(variant, p, sim){
     const {ts,ys}=sim;
-    const {alpha,omega,gamma,beta,N,G}=p;
+    const {alpha,omega,gamma,beta,F0,omega_drive,N,G}=p;
 
     if(N<=1){
       const x=ys.map(y=>y[0]), yv=ys.map(y=>y[1]);
@@ -742,16 +767,29 @@ const SL = {
       const hasLC=alpha>1e-9;
       const rStar=hasLC?Math.sqrt(alpha/gamma):0;
       const rFinal=r[r.length-1];
+      const isForced=F0>0.001;
 
       let tsCap;
-      if(alpha<-1e-9) tsCap=`Decaying to rest — α = ${alpha.toFixed(2)} < 0, no sustained rhythm.`;
-      else if(alpha>1e-9) tsCap=`Self-sustained limit cycle — amplitude settles at r* = √(α/γ) ≈ ${rStar.toFixed(2)}.`;
-      else tsCap=`Right at the Hopf bifurcation (α = 0) — the origin is only marginally stable.`;
+      if(!isForced){
+        if(alpha<-1e-9) tsCap=`Decaying to rest — α = ${alpha.toFixed(2)} < 0, no sustained rhythm.`;
+        else if(alpha>1e-9) tsCap=`Self-sustained limit cycle — amplitude settles at r* = √(α/γ) ≈ ${rStar.toFixed(2)}.`;
+        else tsCap=`Right at the Hopf bifurcation (α = 0) — the origin is only marginally stable.`;
+      } else {
+        if(alpha<-1e-9) tsCap=`Forced on top of a damped oscillator (α = ${alpha.toFixed(2)} &lt; 0) — the drive keeps a rhythm going instead of letting it decay to rest.`;
+        else if(alpha>1e-9) tsCap=`Forced on top of an existing limit cycle (unforced r* ≈ ${rStar.toFixed(2)}) — the drive can pull the rhythm's amplitude and phase away from that natural radius.`;
+        else tsCap=`Forced right at the Hopf bifurcation (α = 0) — the drive alone is sustaining any rhythm at all.`;
+      }
 
       let ppCap;
-      if(alpha<-1e-9) ppCap='Inward spiral to the origin — the cubic term only matters once α ≥ 0.';
-      else if(alpha>1e-9) ppCap=`Spirals onto a fixed-radius limit cycle at r* ≈ ${rStar.toFixed(2)}, regardless of starting point.`;
-      else ppCap='Marginal — the origin is the only fixed point, and only weakly (non-exponentially) stable.';
+      if(!isForced){
+        if(alpha<-1e-9) ppCap='Inward spiral to the origin — the cubic term only matters once α ≥ 0.';
+        else if(alpha>1e-9) ppCap=`Spirals onto a fixed-radius limit cycle at r* ≈ ${rStar.toFixed(2)}, regardless of starting point.`;
+        else ppCap='Marginal — the origin is the only fixed point, and only weakly (non-exponentially) stable.';
+      } else {
+        if(alpha<-1e-9) ppCap='Spirals toward a forced, off-centre steady orbit instead of collapsing to the origin — forcing shifts where the oscillator settles.';
+        else if(alpha>1e-9) ppCap=`Pulled off the unforced limit cycle (dotted, r* ≈ ${rStar.toFixed(2)}) by the drive — depending on Ω vs ω this can show beating or phase-locking.`;
+        else ppCap='Forcing alone sustains a driven orbit right at the marginal bifurcation point.';
+      }
 
       // Bifurcation diagram is analytic (r* = √(α/γ)), so no simulation sweep needed —
       // cheap to redraw live on every slider move, unlike WILCO's numerically-swept one.
@@ -785,8 +823,10 @@ const SL = {
           {x:[0,0],y:[0,maxRLC*1.1],mode:'lines',line:{color:CORAL,width:1.2,dash:'dot'},name:'Hopf bifurcation (α=0)'},
           {x:[alpha],y:[rFinal],mode:'markers',marker:{color:'#FF6F00',size:10},name:`current α=${alpha.toFixed(2)}`},
         ], layout:lay('Bifurcation diagram','α','long-run amplitude r',{yaxis:{range:[-0.05,maxRLC*1.2],gridcolor:'#e0e4ef',title:'r'}}),
-          capS:'Long-run amplitude as the bifurcation parameter α is swept (analytic curve; γ fixed at the current slider value).',
-          capD:`γ = ${gamma.toFixed(2)} sets how sharply the limit-cycle branch rises above α = 0.`},
+          capS:'Long-run amplitude as the bifurcation parameter α is swept (analytic curve for F₀ = 0; γ fixed at the current slider value).',
+          capD: isForced
+            ? `γ = ${gamma.toFixed(2)} sets the unforced branch shown here — with F₀ = ${F0.toFixed(2)} &gt; 0, your actual amplitude can sit off this curve.`
+            : `γ = ${gamma.toFixed(2)} sets how sharply the limit-cycle branch rises above α = 0.`},
       ];
     }
 
@@ -1334,13 +1374,13 @@ ho: {
   how: `<p>Every model on this site is built from the same "push–pull" motif: two variables, x and y, that continuously drive each other. A positive y suppresses x (acting like inhibition), while a positive x excites y — this reciprocal chase is what makes the pair rotate instead of settling. Written as one complex number z = x + iy, that rotation is just ż = iωz, a circle traced out at constant amplitude and angular speed ω.</p>
     <p>Adding a damping term α turns the neutral circle into a spiral: negative α leaks energy out every cycle (a stable, decaying oscillation), positive α pumps energy in (unstable, growing). Forcing F(t) shifts where the oscillator settles and, if oscillatory, can pull its phase and amplitude toward the drive — the seed of resonance and entrainment. Coupling several of these oscillators together makes them pull toward each other's state; in the special case of identical amplitudes and only phase differences mattering, this coupled network reduces exactly to the Kuramoto model, the standard tool for describing how brain rhythms synchronize.</p>`,
   params: [
-    {name:'ω (omega)', meaning:'Natural angular frequency', effect:'Sets rotation speed; frequency in Hz is f = ω/2π. Reflects effective synaptic/membrane time constants.'},
-    {name:'α (alpha)', meaning:'Linear damping / growth rate', effect:'α &lt; 0 → stable, decaying spiral (decay time −1/α); α = 0 → neutral circle; α &gt; 0 → unstable, growing spiral.'},
-    {name:'F(t), F̂ₑ(t)', meaning:'External forcing (deterministic and/or stochastic)', effect:'Shifts the equilibrium point; oscillatory forcing near Ω ≈ ω produces resonance and can entrain the oscillator.'},
-    {name:'G', meaning:'Global coupling gain', effect:'How strongly oscillators are pulled toward the network / toward each other\'s phase.'},
-    {name:'Cᵢⱼ', meaning:'Connectivity weight from node j to i', effect:'Which oscillators influence which, and how strongly (structural, functional, or synthetic connectome).'},
-    {name:'N', meaning:'Number of oscillators / nodes', effect:'Network size.'},
-    {name:'θᵢ, r', meaning:'Phase and order parameter (Kuramoto)', effect:'r = |mean of e^(iθ)| measures synchrony: r = 1 fully locked, r = 0 incoherent.'},
+    {name:'ω (omega)', unit:'rad/s', meaning:'Natural angular frequency', effect:'Sets rotation speed; frequency in Hz is f = ω/2π. Reflects effective synaptic/membrane time constants.'},
+    {name:'α (alpha)', unit:'s⁻¹', meaning:'Linear damping / growth rate', effect:'α &lt; 0 → stable, decaying spiral (decay time −1/α); α = 0 → neutral circle; α &gt; 0 → unstable, growing spiral.'},
+    {name:'F(t), F̂ₑ(t)', unit:'a.u./s', meaning:'External forcing (deterministic and/or stochastic)', effect:'Shifts the equilibrium point; oscillatory forcing near Ω ≈ ω produces resonance and can entrain the oscillator.'},
+    {name:'G', unit:'s⁻¹', meaning:'Global coupling gain', effect:'How strongly oscillators are pulled toward the network / toward each other\'s phase.'},
+    {name:'Cᵢⱼ', unit:'dimensionless', meaning:'Connectivity weight from node j to i', effect:'Which oscillators influence which, and how strongly (structural, functional, or synthetic connectome).'},
+    {name:'N', unit:'count', meaning:'Number of oscillators / nodes', effect:'Network size.'},
+    {name:'θᵢ, r', unit:'rad (θᵢ); dimensionless (r)', meaning:'Phase and order parameter (Kuramoto)', effect:'r = |mean of e^(iθ)| measures synchrony: r = 1 fully locked, r = 0 incoherent.'},
   ],
   buildup: [
     {id:'free', step:1, title:'Free rotation — undamped, unforced, uncoupled', param:'z0r', startVal:1,
@@ -1384,18 +1424,23 @@ sl: {
   how: `<p>Purely linear oscillators like the HO can't describe real neural rhythms on their own: without some regulating nonlinearity, activity would either grow without bound or decay to nothing. The Stuart–Landau oscillator adds the simplest possible fix — a cubic term −γ|z|²z — that grows the same way as the HO for small amplitudes but pushes back once |z| gets large. The result is a genuine <em>limit cycle</em>: for α &gt; 0 the amplitude relaxes onto a fixed radius r* = √(α/γ) regardless of where it started, unlike the HO's neutral circle whose size is set entirely by the initial condition.</p>
     <p>This is the normal form of a Hopf bifurcation — the minimal, universal model for any system transitioning from a damped fixed point to a self-sustained oscillation. Forcing displaces the limit cycle to a new operating point; coupling many SL nodes diffusively (each pulled toward the network average) produces synchronization, clustering, and even "amplitude death," while the cubic term keeps every node's amplitude bounded.</p>`,
   params: [
-    {name:'α (alpha)', meaning:'Bifurcation parameter (linear growth/decay)', effect:'α &lt; 0 → damped, noise-driven fluctuations; α &gt; 0 → self-sustained limit cycle of radius √(α/γ).'},
-    {name:'ω (omega)', meaning:'Intrinsic angular frequency', effect:'Sets the base rotation rate, further shifted by β once amplitude grows.'},
-    {name:'γ (gamma) &gt; 0', meaning:'Nonlinear amplitude saturation', effect:'Caps the limit-cycle radius; larger γ → smaller stable amplitude for the same α.'},
-    {name:'β (beta)', meaning:'Amplitude–phase coupling ("shear")', effect:'Couples amplitude to instantaneous frequency; captures nonlinear dispersion effects absent from the HO.'},
-    {name:'F(t)', meaning:'External forcing', effect:'Displaces the limit cycle to a new fixed point; periodic forcing yields nonlinear phase locking.'},
-    {name:'G, Cᵢⱼ', meaning:'Coupling gain and connectivity', effect:'Diffusive coupling toward the network mean; drives synchronization, clustering, amplitude death.'},
+    {name:'α (alpha)', unit:'s⁻¹', meaning:'Bifurcation parameter (linear growth/decay)', effect:'α &lt; 0 → damped, noise-driven fluctuations; α &gt; 0 → self-sustained limit cycle of radius √(α/γ).'},
+    {name:'ω (omega)', unit:'rad/s', meaning:'Intrinsic angular frequency', effect:'Sets the base rotation rate, further shifted by β once amplitude grows.'},
+    {name:'γ (gamma) &gt; 0', unit:'s⁻¹·a.u.⁻²', meaning:'Nonlinear amplitude saturation', effect:'Caps the limit-cycle radius; larger γ → smaller stable amplitude for the same α.'},
+    {name:'β (beta)', unit:'rad·s⁻¹·a.u.⁻²', meaning:'Amplitude–phase coupling ("shear")', effect:'Couples amplitude to instantaneous frequency; captures nonlinear dispersion effects absent from the HO.'},
+    {name:'F(t)', unit:'a.u./s', meaning:'External forcing', effect:'Displaces the limit cycle to a new fixed point; periodic forcing yields nonlinear phase locking.'},
+    {name:'G, Cᵢⱼ', unit:'s⁻¹ (G); dimensionless (Cᵢⱼ)', meaning:'Coupling gain and connectivity', effect:'Diffusive coupling toward the network mean; drives synchronization, clustering, amplitude death.'},
   ],
-  breakdown: [
-    {id:'alpha', title:'α — linear growth/decay rate', prose:'α sets whether oscillations exist at all: α &lt; 0 means every trajectory decays back to the origin; α &gt; 0 gives a self-sustained limit cycle with radius r* = √(α/γ). α = 0 is the Hopf bifurcation point itself — the origin is only marginally stable, and amplitude decays algebraically rather than exponentially.'},
-    {id:'omega', title:'ω — intrinsic angular frequency', prose:'ω sets the rotation speed only. It does not appear in the amplitude equation ṙ = αr − γr³, so it has no effect on r* and no effect on the bifurcation diagram — two systems with different ω but the same α, γ trace out the same size limit cycle, just at different speeds.'},
-    {id:'gamma', title:'γ — nonlinear amplitude saturation', prose:'γ (&gt; 0) scales the limit-cycle radius: r* = √(α/γ). A larger γ gives a smaller, tighter oscillation for the same α. Unlike ω, γ does reshape the bifurcation diagram — it scales how quickly the limit-cycle branch rises above the Hopf point.'},
-    {id:'beta', title:'β — amplitude–phase coupling ("shear")', prose:'β shifts the instantaneous frequency with amplitude: the rotation rate becomes ω − βr² instead of a flat ω. Like ω, β does not appear in the amplitude equation, so it leaves r* and the bifurcation diagram completely unchanged — its only visible effect is a change in rotation speed once the system has grown to its limit cycle.'},
+  buildup: [
+    {id:'bifurcation', step:1, title:'Undamped / damped — α crosses zero', param:'alpha', startVal:0,
+     fixed:{omega:2, gamma:1, beta:0, F0:0, G:0, N:1},
+     prose:'SL doesn\'t have a literal undamped case the way the HO does — the cubic term is always there — but α still governs the same basic split between a damped system and a self-sustained one. Drag it through zero: below zero the oscillator is damped, every trajectory decaying back to the origin (r = 0 is the only, stable, fixed point); above zero it becomes self-sustained — that fixed point loses stability and a genuine limit cycle appears at r* = √(α/γ). This Hopf bifurcation is the one mechanism the whole SL model is built around.'},
+    {id:'forced', step:2, title:'Forced / unforced', param:'F0', startVal:0,
+     fixed:{alpha:1, omega:2, gamma:1, beta:0, omega_drive:2, G:0, N:1},
+     prose:'With α now fixed at 1 (past the bifurcation, so a self-sustained limit cycle already exists), drag the forcing amplitude F₀ up from 0. At F₀ = 0 the oscillator is unforced, settling onto its natural limit cycle at r* = √(α/γ); turning up F₀ adds a periodic drive at frequency Ω that pulls the amplitude and phase away from that natural rhythm. Same forced/unforced distinction as the HO\'s own Forced variant (Eq. 2.11), now acting on a genuinely nonlinear limit cycle instead of a linear spiral.'},
+    {id:'coupling', step:3, title:'Coupled network', param:'G', startVal:0,
+     fixed:{alpha:1, gamma:1, beta:0, omega:2, F0:0, N:3},
+     prose:'Finally, turn forcing back off and connect three of these limit-cycle oscillators — each with a slightly different natural frequency — and drag G. At G = 0 they run independently, each at its own pace; diffusive coupling toward the network mean pulls them toward a shared rhythm as G increases. Same synchronization mechanism as the HO\'s coupled case, but now every node\'s amplitude is self-stabilized by γ rather than fixed by its initial condition.'},
   ],
   about: `Stuart–Landau traces back to Landau's 1944 model of the laminar-turbulent transition and Stuart's rigorous derivation for shear flows — it is now understood as <em>the</em> normal form of a Hopf bifurcation. <strong>Castaldo et al.</strong> place it directly above the HO on the ladder: same push-pull skeleton, now with a physiologically essential self-limiting mechanism. SL networks tuned near their Hopf bifurcation are widely used to reproduce resting-state functional connectivity and its variability (FCD) in whole-brain fMRI and MEG models.`,
 },
@@ -1427,21 +1472,25 @@ wilco: {
   how: `<p>WILCO replaces the HO/SL's abstract complex number with two concrete, biologically legible variables: an excitatory firing rate x and an inhibitory firing rate y, wired together through a sigmoid σ(·) instead of a simple linear term. Turning up the tonic drive Pₓ moves the operating point along the steep part of the sigmoid; the paper shows a Hopf bifurcation needs three ingredients — reciprocal E–I coupling (wₓᵧwᵧₓ &lt; 0), enough self-excitation or drive to sit on the steep part of σ, and the sigmoid's curvature to supply the cubic term that caps the oscillation's growth.</p>
     <p>Once those conditions are met, the fixed point destabilizes and a self-sustained limit-cycle rhythm switches on spontaneously — no external clock required. Near that bifurcation point, a Taylor expansion of the WILCO equations recovers exactly the Stuart–Landau normal form (§5.2, Eq. 5.4): the sigmoid's first derivative sets the linear gain, and its second derivative supplies the nonlinear term that stabilizes the limit cycle. This is why the paper describes WILCO as "SL in disguise" — the same universal bifurcation machinery, now anchored to measurable biophysical quantities.</p>`,
   params: [
-    {name:'τₓ, τᵧ', meaning:'Membrane/synaptic time constants', effect:'Sets how fast each population responds; the E–I timescale separation shapes the oscillation frequency.'},
-    {name:'wₓₓ', meaning:'E→E weight (self-excitation)', effect:'Needed (with drive) to push the operating point onto the steep part of the sigmoid.'},
-    {name:'wₓᵧ, wᵧₓ', meaning:'I→E and E→I weights', effect:'Reciprocal coupling; wₓᵧwᵧₓ &lt; 0 is required for a Hopf bifurcation to exist at all.'},
-    {name:'wᵧᵧ', meaning:'I→I weight (self-inhibition)', effect:'Additional damping on the inhibitory population.'},
-    {name:'Pₓ', meaning:'Tonic drive to the excitatory population', effect:'The bifurcation control parameter — sweeping it switches the oscillation on and off (Hopf onset).'},
-    {name:'σ(·)', meaning:'Sigmoid transfer function (slope, threshold)', effect:'Converts total input current to a bounded firing rate; its curvature is what stabilizes the limit cycle.'},
-    {name:'F̂ₑ(t)', meaning:'External / rhythmic forcing on the excitatory population', effect:'Entrains the network; near Hopf, periodic forcing produces phase-locking regions.'},
-    {name:'G, Cᵢⱼ', meaning:'Coupling gain and (row-normalized) connectivity', effect:'Long-range excitatory drive from other nodes, added inside the sigmoid of the receiving node.'},
+    {name:'τₓ, τᵧ', unit:'ms', meaning:'Membrane/synaptic time constants', effect:'Sets how fast each population responds; the E–I timescale separation shapes the oscillation frequency.'},
+    {name:'wₓₓ', unit:'dimensionless', meaning:'E→E weight (self-excitation)', effect:'Needed (with drive) to push the operating point onto the steep part of the sigmoid.'},
+    {name:'wₓᵧ, wᵧₓ', unit:'dimensionless', meaning:'I→E and E→I weights', effect:'Reciprocal coupling; wₓᵧwᵧₓ &lt; 0 is required for a Hopf bifurcation to exist at all.'},
+    {name:'wᵧᵧ', unit:'dimensionless', meaning:'I→I weight (self-inhibition)', effect:'Additional damping on the inhibitory population.'},
+    {name:'Pₓ', unit:'dimensionless (normalized input current)', meaning:'Tonic drive to the excitatory population', effect:'The bifurcation control parameter — sweeping it switches the oscillation on and off (Hopf onset).'},
+    {name:'σ(·)', unit:'dimensionless → dimensionless (0–1)', meaning:'Sigmoid transfer function (slope, threshold)', effect:'Converts total input current to a bounded firing rate; its curvature is what stabilizes the limit cycle.'},
+    {name:'F̂ₑ(t)', unit:'dimensionless (same units as Pₓ)', meaning:'External / rhythmic forcing on the excitatory population', effect:'Entrains the network; near Hopf, periodic forcing produces phase-locking regions.'},
+    {name:'G, Cᵢⱼ', unit:'dimensionless', meaning:'Coupling gain and (row-normalized) connectivity', effect:'Long-range excitatory drive from other nodes, added inside the sigmoid of the receiving node.'},
   ],
-  breakdown: [
-    {id:'Px', title:'Pₓ — tonic drive to the excitatory population', prose:'Pₓ is the bifurcation control parameter for the whole model: it is a constant background current that shifts where the excitatory population sits on the sigmoid. Turn it up enough and the fixed point destabilizes — a Hopf bifurcation switches on a self-sustained limit-cycle rhythm with no external clock required. The bifurcation diagram in the main Demo shows this onset as a sharp cliff, not a gradual fade.'},
-    {id:'wxx', title:'wₓₓ — excitatory self-coupling (E→E)', prose:'wₓₓ is how strongly the excitatory population reinforces itself. Together with the drive Pₓ, it needs to be large enough to push the operating point onto the steep part of the sigmoid — without sufficient self-excitation, no amount of drive alone will trigger the Hopf bifurcation.'},
-    {id:'taux', title:'τₓ — excitatory time constant', prose:'τₓ sets how quickly the excitatory population responds to its input. Along with the fixed inhibitory time constant (τᵧ = 8 ms here), the E–I timescale separation between the two populations is what shapes the frequency of the emergent rhythm once the network starts oscillating.'},
-    {id:'A', title:'A — forcing amplitude', prose:'A turns on a rhythmic external stimulus at frequency fₛₜᵢₘ, added to the excitatory population\'s input. At A = 0 the node is fully autonomous; a large enough A can entrain the network to the stimulus frequency even away from the network\'s own natural rhythm.'},
-    {id:'fStim', title:'fₛₜᵢₘ — stimulus frequency', prose:'fₛₜᵢₘ is the frequency of the rhythmic drive (only relevant once A &gt; 0). When it\'s close to the network\'s own natural frequency, entrainment happens at low forcing amplitude; far from it, much stronger forcing is needed to pull the rhythm away from its natural pace.'},
+  buildup: [
+    {id:'onset', step:1, title:'Unforced, uncoupled — cross the Hopf bifurcation', param:'Px', startVal:0,
+     fixed:{wxx:16, taux:8, A:0, N:1, G:0},
+     prose:'Start with no background drive at all (Pₓ = 0, node silent) and drag Pₓ up. Pₓ is a constant background current that shifts where the excitatory population sits on the sigmoid; with self-excitation wₓₓ fixed high enough behind the scenes, turning up Pₓ eventually destabilizes the fixed point — a Hopf bifurcation switches on a self-sustained limit-cycle rhythm with no external clock required. This is WILCO\'s version of the HO\'s undamped/damped split: below the threshold, silence; above it, a sustained rhythm.'},
+    {id:'forced', step:2, title:'Forced — rhythmic entrainment', param:'A', startVal:0,
+     fixed:{Px:1.5, wxx:16, taux:8, fStim:24, N:1, G:0},
+     prose:'With the node already oscillating on its own (Pₓ and wₓₓ fixed past the bifurcation), drag the forcing amplitude A up from 0. A turns on a rhythmic external stimulus at fₛₜᵢₘ = 24 Hz, added to the excitatory population\'s input. A large enough A can entrain the network to the stimulus frequency, pulling it away from its own natural rhythm.'},
+    {id:'coupled', step:3, title:'Coupled network', param:'G', startVal:0,
+     fixed:{Px:1.5, wxx:16, taux:8, A:0, N:3},
+     prose:'Finally, turn forcing back off and instead connect three nodes with slightly different drive Pₓ, and drag the coupling gain G. At G = 0 each node oscillates — or stays silent — purely on its own; strong enough coupling can pull a node that would be silent alone into a shared rhythm, entrained by its neighbours rather than generating the rhythm itself.'},
   ],
   about: `Wilson and Cowan introduced this model in the early 1970s as the first tractable mean-field description of interacting excitatory and inhibitory populations, and it remains a modeling workhorse today — from single microcircuits to whole-brain simulations fit to MEG, EEG, and fMRI. <strong>Castaldo et al.</strong> place WILCO directly above Stuart–Landau on the ladder: the same Hopf-bifurcation machinery, but every coefficient is now anchored to a measurable biophysical quantity (a synaptic weight, a time constant, a drive current) rather than an abstract normal-form parameter.`,
 },
@@ -1464,23 +1513,21 @@ nmm1: {
   how: `<p>WILCO's single firing-rate equation implicitly assumes synaptic transmission is instantaneous. NMM1 makes it explicit: each post-synaptic potential is the output of a proper linear filter with its own rise and decay time constants, not just a first-order lag. Multiple PSPs are then summed into a membrane perturbation v, and a static sigmoid converts that perturbation into an output firing rate — cleanly separating "synapse" (the filter) from "soma" (the sigmoid).</p>
     <p>The payoff is that a second-order synaptic filter introduces its own frequency-dependent phase shift. By the Barkhausen stability criterion, a feedback loop oscillates once its total gain is 1 and its total phase shift is a multiple of 360°; in a push-pull E–I loop, the phase lag from realistic synaptic kinetics alone can satisfy that condition — so, unlike Wilson–Cowan, NMM1 can sustain oscillations without any explicit self-coupling term.</p>`,
   params: [
-    {name:'x, y', meaning:'Excitatory / inhibitory post-synaptic potentials (PSPs)', effect:'Outputs of the second-order synaptic filters — not firing rates themselves.'},
-    {name:'τₓ, τᵧ (or rise/decay pairs)', meaning:'Synaptic time constants', effect:'Set each synapse\'s resonance frequency and intrinsic phase lag; distinct rise/decay values are what let phase lag accumulate.'},
-    {name:'γₓ, γᵧ', meaning:'Synaptic gains', effect:'Scale PSP amplitude for each synapse type.'},
-    {name:'wₓᵧ, wᵧₓ', meaning:'Local E→I / I→E coupling', effect:'The push-pull loop; self-coupling is typically omitted since synaptic phase lag alone can close the Barkhausen loop.'},
-    {name:'σ(·)', meaning:'Somatic sigmoid transfer function', effect:'Converts total membrane perturbation v into an output firing rate; slope sets gain, saturation bounds activity.'},
-    {name:'F̂ₑ(t)', meaning:'Exogenous drive (external input or field)', effect:'Adds directly to the membrane perturbation of the target population.'},
-    {name:'Cᵢⱼ', meaning:'Long-range connectivity', effect:'Typically targets the excitatory pathway between nodes.'},
+    {name:'x, y', unit:'mV', meaning:'Excitatory / inhibitory post-synaptic potentials (PSPs)', effect:'Outputs of the second-order synaptic filters — not firing rates themselves.'},
+    {name:'τₓ, τᵧ (or rise/decay pairs)', unit:'ms', meaning:'Synaptic time constants', effect:'Set each synapse\'s resonance frequency and intrinsic phase lag; distinct rise/decay values are what let phase lag accumulate.'},
+    {name:'γₓ, γᵧ', unit:'mV', meaning:'Synaptic gains', effect:'Scale PSP amplitude for each synapse type.'},
+    {name:'wₓᵧ, wᵧₓ', unit:'dimensionless', meaning:'Local E→I / I→E coupling', effect:'The push-pull loop; self-coupling is typically omitted since synaptic phase lag alone can close the Barkhausen loop.'},
+    {name:'σ(·)', unit:'mV → s⁻¹ (spikes/s)', meaning:'Somatic sigmoid transfer function', effect:'Converts total membrane perturbation v into an output firing rate; slope sets gain, saturation bounds activity.'},
+    {name:'F̂ₑ(t)', unit:'mV', meaning:'Exogenous drive (external input or field)', effect:'Adds directly to the membrane perturbation of the target population.'},
+    {name:'Cᵢⱼ', unit:'dimensionless', meaning:'Long-range connectivity', effect:'Typically targets the excitatory pathway between nodes.'},
   ],
-  breakdown: [
-    {id:'tau_x', title:'τₓ — excitatory synaptic time constant', prose:'τₓ sets how fast the excitatory synapse rises and decays. Together with τᵧ it fixes the natural frequency ω₀ = 1/√(τₓτᵧ) — but sustained oscillation only survives when τₓ and τᵧ are reasonably matched. Too fast or too slow relative to τᵧ raises the Barkhausen threshold K_crit = 2 + τₓ/τᵧ + τᵧ/τₓ above the fixed loop gain, quenching the rhythm even though nothing else has changed.'},
-    {id:'tau_y', title:'τᵧ — inhibitory synaptic time constant', prose:'τᵧ enters K_crit = 2 + τₓ/τᵧ + τᵧ/τₓ symmetrically with τₓ: the formula is unchanged under swapping τₓ↔τᵧ, so the same "resonance window" reappears here, centred on τᵧ = τₓ, and the natural frequency is still ω₀ = 1/√(τₓτᵧ).'},
-    {id:'gx', title:'γₓ — excitatory synaptic gain', prose:'γₓ scales how strongly excitatory synaptic drive translates into the PSP x. It enters the loop-gain product K = γₓγᵧwₓᵧwᵧₓa² linearly: below the critical value the fixed point is stable, above it a Hopf bifurcation creates a sustained limit cycle whose amplitude grows smoothly with γₓ.'},
-    {id:'gy', title:'γᵧ — inhibitory synaptic gain', prose:'γᵧ enters the same loop-gain product K as γₓ, so it plays an identical qualitative role: a Hopf bifurcation at a critical γᵧ, with amplitude growing smoothly beyond threshold.'},
-    {id:'wxy', title:'wₓᵧ — inhibitory→excitatory weight ("pull")', prose:'wₓᵧ sets the strength of y\'s negative feedback onto x. Like the gains above, it is just another multiplicative factor in the loop-gain product K, crossing the same kind of Hopf threshold.'},
-    {id:'wyx', title:'wᵧₓ — excitatory→inhibitory weight ("push")', prose:'wᵧₓ completes the push–pull loop (x drives y positively, y drives x negatively). It enters K identically to wₓᵧ, γₓ and γᵧ — the four parameters are mathematically interchangeable inside K, though each carries a distinct biological meaning.'},
-    {id:'a', title:'a — sigmoid slope (excitability)', prose:'a is the slope of σ(v) = tanh(av) at the operating point — how steeply firing rate responds to membrane perturbation. It enters K as a² (shared by both synapses), and also sets how quickly the sigmoid saturates, which is what ultimately caps the oscillation amplitude beyond onset.'},
-    {id:'Fe', title:'Fₑ — exogenous drive', prose:'Unlike ω or β in the Stuart–Landau oscillator, a constant drive Fₑ does affect the bifurcation here: it shifts the fixed point onto a shallower part of σ, lowering the effective slope and hence the effective loop gain. Strong enough drive can quench an oscillation that exists at Fₑ = 0 — a saturation effect with no Stuart–Landau analogue.'},
+  buildup: [
+    {id:'onset', step:1, title:'Uncoupled — cross the Barkhausen threshold', param:'gx', startVal:0.1,
+     fixed:{gy:1, wxy:1, wyx:1, tau_x:0.5, tau_y:0.5, a:2.5, Fe:0, N:1, G:0},
+     prose:'Start with γₓ near 0 — loop gain K = γₓγᵧwₓᵧwᵧₓa² far below threshold, both PSPs decay to their fixed point — and drag it up. Cross K_crit = 2 + τₓ/τᵧ + τᵧ/τₓ and a Hopf bifurcation switches on a sustained limit cycle, with no self-coupling term anywhere in the model — the synapses\' own second-order phase lag alone is enough to close the Barkhausen loop. This is NMM1\'s version of the HO\'s undamped/damped split and WILCO\'s silent/oscillating onset, driven here by synaptic gain instead of a tonic drive.'},
+    {id:'coupled', step:2, title:'Coupled network', param:'G', startVal:0,
+     fixed:{gx:1, gy:1, wxy:1, wyx:1, tau_x:0.5, tau_y:0.5, a:2.5, Fe:0, N:3},
+     prose:'Finally, connect three nodes — each with a slightly different sigmoid slope a — and drag the coupling gain G. At G = 0 every node oscillates independently at its own rate; increasing G pulls the network toward a shared rhythm, the same long-range coupling mechanism as every other model on this site.'},
   ],
   about: `NMM1 is the family that includes the classic <strong>Jansen–Rit</strong> model (three populations: pyramidal, excitatory and inhibitory interneurons), which reproduces alpha-band EEG and realistic evoked responses, and is the standard neuronal model inside Dynamic Causal Modeling (DCM). Related variants — <strong>Wendling's</strong> model (adds fast/slow inhibition, used to study epileptiform activity) and the <strong>laminar model (LaNMM)</strong> (adds depth-resolved, layer-specific generators) — sit in the same family. <strong>Castaldo et al.</strong> place NMM1 above WILCO on the ladder: the same E–I push-pull motif, but now with biologically explicit synaptic kinetics doing the work that WILCO's self-coupling term did more abstractly.`,
 },
@@ -1504,13 +1551,13 @@ nmm2: {
   how: `<p>Every earlier model on this ladder uses a static "wave-to-pulse" sigmoid to turn membrane potential into firing rate — a convenient but heuristic shortcut. NMM2 replaces it with something derived from first principles: Montbrió, Pazó and Roxin showed that a large population of quadratic integrate-and-fire (QIF) spiking neurons with a spread of excitabilities (drawn from a Lorentzian distribution) reduces <em>exactly</em>, with no approximation, to just two ODEs for the population's mean firing rate r(t) and mean membrane potential v(t).</p>
     <p>The key difference from a static sigmoid is that the r–v relationship is now dynamic: it has its own "inertia" and a gain that depends on the network's recent history, not a fixed curve. Self-coupling strength J shifts the population toward higher firing rates and closer to resonance, which is why NMM2 predicts an enhanced, state-dependent sensitivity to weak, spatially uniform inputs — such as the electric fields used in non-invasive brain stimulation — that static-sigmoid models like WILCO or NMM1 cannot capture on their own.</p>`,
   params: [
-    {name:'r(t)', meaning:'Population mean firing rate', effect:'The model\'s output variable — replaces the static sigmoid\'s instantaneous readout with genuine dynamics.'},
-    {name:'v(t)', meaning:'Population mean membrane potential', effect:'Evolves jointly with r(t); together they replace Freeman\'s static wave-to-pulse curve.'},
-    {name:'η̄ (eta-bar), Δ (delta)', meaning:'Mean and half-width of the Lorentzian excitability distribution', effect:'η̄ biases the population; larger Δ (more heterogeneity) damps coherence and broadens the response.'},
-    {name:'J', meaning:'Local recurrent self-coupling', effect:'J &gt; 0 (excitatory) shifts fixed points to higher rates and closer to a resonant/oscillatory regime.'},
-    {name:'s(t), K̂', meaning:'Synaptic activation and its filter', effect:'Filters the firing rate r into a synaptic current, same role as the synapse filters in NMM1.'},
-    {name:'I(t), F̂ₑ(t)', meaning:'External input (uniform current or electric field)', effect:'Because the r–v gain is state-dependent, the network\'s sensitivity to this input is itself dynamic — not fixed as in a static-sigmoid model.'},
-    {name:'Cₙₘ', meaning:'Long-range connectivity between populations/nodes', effect:'Same role as in every other network form on this site.'},
+    {name:'r(t)', unit:'s⁻¹', meaning:'Population mean firing rate', effect:'The model\'s output variable — replaces the static sigmoid\'s instantaneous readout with genuine dynamics.'},
+    {name:'v(t)', unit:'dimensionless (rescaled units)', meaning:'Population mean membrane potential', effect:'Evolves jointly with r(t); together they replace Freeman\'s static wave-to-pulse curve.'},
+    {name:'η̄ (eta-bar), Δ (delta)', unit:'s⁻¹', meaning:'Mean and half-width of the Lorentzian excitability distribution', effect:'η̄ biases the population; larger Δ (more heterogeneity) damps coherence and broadens the response.'},
+    {name:'J', unit:'s⁻¹', meaning:'Local recurrent self-coupling', effect:'J &gt; 0 (excitatory) shifts fixed points to higher rates and closer to a resonant/oscillatory regime.'},
+    {name:'s(t), K̂', unit:'s⁻¹', meaning:'Synaptic activation and its filter', effect:'Filters the firing rate r into a synaptic current, same role as the synapse filters in NMM1.'},
+    {name:'I(t), F̂ₑ(t)', unit:'s⁻¹', meaning:'External input (uniform current or electric field)', effect:'Because the r–v gain is state-dependent, the network\'s sensitivity to this input is itself dynamic — not fixed as in a static-sigmoid model.'},
+    {name:'Cₙₘ', unit:'dimensionless', meaning:'Long-range connectivity between populations/nodes', effect:'Same role as in every other network form on this site.'},
   ],
   about: `NMM2 is the newest rung: it keeps the E–I push-pull skeleton and the second-order synaptic filters from NMM1, but derives the transfer function itself from first principles (quadratic integrate-and-fire neurons) rather than assuming a sigmoid. <strong>Castaldo et al.</strong> frame this as a principled coarse-graining — in the language of renormalization, r and v are the "relevant" mesoscale variables that survive integrating out fast spiking detail. Applications so far include modeling the emergence of fast collective oscillations, whole-brain simulations on human connectomes, and theories of why densely self-coupled circuits respond more strongly to weak, uniform non-invasive stimulation.`,
 },
@@ -1559,8 +1606,8 @@ function renderInfoPanel(){
     <div class="info-section">
       <h3>Parameters</h3>
       <table class="param-table">
-        <thead><tr><th>Parameter</th><th>Meaning</th><th>Effect</th></tr></thead>
-        <tbody>${info.params.map(p=>`<tr><td>${p.name}</td><td>${p.meaning}</td><td>${p.effect}</td></tr>`).join('')}</tbody>
+        <thead><tr><th>Parameter</th><th>Unit</th><th>Meaning</th><th>Effect</th></tr></thead>
+        <tbody>${info.params.map(p=>`<tr><td>${p.name}</td><td>${p.unit||'—'}</td><td>${p.meaning}</td><td>${p.effect}</td></tr>`).join('')}</tbody>
       </table>
     </div>
     ${info.buildup ? `
@@ -1582,25 +1629,6 @@ function renderInfoPanel(){
           </div>`;
         }).join('')}
       </div>
-    </div>` : info.breakdown ? `
-    <div class="info-section">
-      <h3>Explore Each Parameter</h3>
-      <div class="breakdown-list">
-        ${info.breakdown.map((b,i)=>{
-          const hostId=`bd_${activeModel}_${i}_demo`;
-          return `
-          <div class="breakdown-item">
-            <div class="breakdown-header" onclick="toggleBreakdown(this,'${activeModel}','${b.id}','${hostId}')">
-              <span class="bd-title">${b.title}</span>
-              <span class="breakdown-chevron">&#9660;</span>
-            </div>
-            <div class="breakdown-body">
-              <div class="breakdown-prose">${b.prose}</div>
-              <div id="${hostId}"></div>
-            </div>
-          </div>`;
-        }).join('')}
-      </div>
     </div>` : ''}
     <div class="info-section">
       <h3>About This Model</h3>
@@ -1609,81 +1637,44 @@ function renderInfoPanel(){
 }
 
 // ============================================================
-// PER-PARAMETER MINI-DEMOS (Info tab) — reuse each model's own
-// simulate()/plots() (time series + phase portrait are always plots
-// [0] and [1]) so there is exactly one physics implementation per
-// model; the mini-demo only ever overrides one parameter at a time,
-// holding everything else — including the Network section — at its
-// single-node default.
+// BUILDUP DEMOS (Info tab) — reuse each model's own simulate()/plots()
+// (time series + phase portrait are always plots [0] and [1]) so there
+// is exactly one physics implementation per model. Each step layers a
+// fixed "backdrop" of previously introduced parameters (step.fixed)
+// instead of the model's global cfg defaults, so the sequence reads as
+// cumulative: e.g. free rotation → + damping → + forcing → + coupling,
+// one new ingredient at a time.
+//
+// Every step within a model's buildup section is forced onto the same
+// fixed x/y axis ranges (BUILDUP_AXIS_RANGES below) instead of each
+// plot auto-scaling to its own data — that way amplitude/scale changes
+// between steps are directly comparable rather than hidden by rescaling.
 // ============================================================
-function miniDemoDefaults(modelId){
-  const impl=MODELS[modelId].impl;
-  const variant=impl.variants[0];
-  const cfg=impl.cfg[variant];
-  const vals={};
-  cfgAllParams(cfg).forEach(sp=>{vals[sp.id]=sp.def;});
-  if('N' in vals) vals.N=1;
-  if('G' in vals) vals.G=0;
-  return {variant, cfg, vals};
-}
-function runMiniDemo(modelId, variant, vals, hostId){
-  const impl=MODELS[modelId].impl;
-  const sim=impl.simulate(variant, vals);
-  const plots=impl.plots(variant, vals, sim);
-  [0,1].forEach(i=>{
-    const el=document.getElementById(`${hostId}_p${i}`);
-    if(!el || !plots[i]) return;
-    Plotly.react(el.id, plots[i].data, {...plots[i].layout, margin:{t:24,b:28,l:36,r:6}, height:180, showlegend:false}, PCFG);
+const BUILDUP_AXIS_RANGES = {
+  ho:    {p0:{x:[0,10],  y:[-3,3]},   p1:{x:[-3,3],   y:[-3,3]}},
+  sl:    {p0:{x:[0,30],  y:[-4,4]},   p1:{x:[-4,4],   y:[-4,4]}},
+  wilco: {p0:{x:[0,500], y:[-0.05,1.05]}, p1:{x:[-0.05,1.05], y:[-0.05,1.05]}},
+  nmm1:  {p0:{x:[0,20],  y:[-2.5,2.5]}, p1:{x:[-2.5,2.5], y:[-2.5,2.5]}},
+};
+// The coupled (N>1) steps reuse each model's normal network view, which for
+// WILCO/NMM1 is a stacked one-row-per-node layout (xaxis, xaxis2, xaxis3, ...)
+// instead of the single xaxis/yaxis pair every other step uses — and for WILCO
+// specifically, the second plot becomes a power spectrum, not a phase portrait,
+// so it isn't a comparable quantity and is left auto-scaled rather than forced
+// onto the phase-portrait range.
+function applyBuildupAxisRange(layout, range){
+  const rowKeys=Object.keys(layout).filter(k=>/^(x|y)axis\d*$/.test(k));
+  const isStacked=rowKeys.some(k=>/\d/.test(k));
+  if(!isStacked){
+    layout.xaxis={...layout.xaxis, range:range.x, autorange:false};
+    layout.yaxis={...layout.yaxis, range:range.y, autorange:false};
+    return;
+  }
+  rowKeys.forEach(k=>{
+    if(k.startsWith('x')) layout[k]={...layout[k], range:range.x, autorange:false};
+    else layout[k]={...layout[k], range:range.y, autorange:false};
   });
 }
-let _miniDemoDebounce={};
-function onMiniDemoSlider(modelId, paramId, hostId, val){
-  const v=parseFloat(val);
-  const disp=document.getElementById(`mdval_${hostId}`); if(disp) disp.textContent=v.toFixed(2);
-  clearTimeout(_miniDemoDebounce[hostId]);
-  _miniDemoDebounce[hostId]=setTimeout(()=>{
-    const {variant,vals}=miniDemoDefaults(modelId);
-    vals[paramId]=v;
-    runMiniDemo(modelId, variant, vals, hostId);
-  }, 120);
-}
-function renderMiniDemo(modelId, paramId, hostId){
-  const host=document.getElementById(hostId);
-  if(!host || host.dataset.mounted) return;
-  host.dataset.mounted='1';
-  const {variant,cfg,vals}=miniDemoDefaults(modelId);
-  const sp=cfgAllParams(cfg).find(s=>s.id===paramId);
-  host.innerHTML=`
-    <div class="slider-group mini-demo-slider">
-      <div class="slider-row">
-        <label>${sp.label}</label>
-        <span class="val" id="mdval_${hostId}">${vals[paramId].toFixed(2)}</span>
-      </div>
-      <input type="range" min="${sp.min}" max="${sp.max}" step="${sp.step}" value="${vals[paramId]}"
-        oninput="onMiniDemoSlider('${modelId}','${paramId}','${hostId}',this.value)">
-    </div>
-    <div class="mini-demo-plots">
-      <div class="plot-box"><div id="${hostId}_p0" style="height:180px;"></div></div>
-      <div class="plot-box"><div id="${hostId}_p1" style="height:180px;"></div></div>
-    </div>`;
-  runMiniDemo(modelId, variant, vals, hostId);
-}
-function toggleBreakdown(header, modelId, paramId, hostId){
-  const body=header.nextElementSibling;
-  const chevron=header.querySelector('.breakdown-chevron');
-  const opening=!body.classList.contains('visible');
-  body.classList.toggle('visible');
-  chevron.classList.toggle('open');
-  if(opening) renderMiniDemo(modelId, paramId, hostId);
-}
-
-// ============================================================
-// BUILDUP DEMOS (Info tab) — same one-slider/two-plot mini-demo as
-// above, but each step layers a fixed "backdrop" of previously
-// introduced parameters (step.fixed) instead of the model's global
-// cfg defaults, so the sequence reads as cumulative: free rotation →
-// + damping → + forcing → + coupling, one new ingredient at a time.
-// ============================================================
 function buildupDefaults(modelId, step){
   const impl=MODELS[modelId].impl;
   const variant=impl.variants[0];
@@ -1698,10 +1689,17 @@ function runBuildupDemo(modelId, variant, vals, hostId){
   const impl=MODELS[modelId].impl;
   const sim=impl.simulate(variant, vals);
   const plots=impl.plots(variant, vals, sim);
+  const ranges=BUILDUP_AXIS_RANGES[modelId];
   [0,1].forEach(i=>{
     const el=document.getElementById(`${hostId}_p${i}`);
     if(!el || !plots[i]) return;
-    Plotly.react(el.id, plots[i].data, {...plots[i].layout, margin:{t:24,b:28,l:36,r:6}, height:180, showlegend:false}, PCFG);
+    const layout={...plots[i].layout};
+    const title=(layout.title && layout.title.text) || '';
+    const r=ranges && ranges[`p${i}`];
+    if(r && !/spectrum/i.test(title)) applyBuildupAxisRange(layout, r);
+    const h=plots[i].height || 180;
+    el.style.height=h+'px';
+    Plotly.react(el.id, plots[i].data, {...layout, margin:{t:24,b:28,l:36,r:6}, height:h, showlegend:false}, PCFG);
   });
 }
 let _buildupDebounce={};
