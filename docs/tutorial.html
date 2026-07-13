@@ -190,7 +190,7 @@
         <text x="343" y="100" text-anchor="middle" font-size="9.5" fill="#888" font-family="sans-serif" transform="rotate(-90 343 100)">rate →</text>
       </svg>
       <div class="diagram-caption">Left: many neurons, each with a sharp firing threshold. Right: population heterogeneity smooths that threshold
-      into a continuous <strong>sigmoid transfer function</strong> — the single curve every model on this site uses to turn "how excited is this population" into "how fast is it firing".</div>
+      into a continuous <strong>sigmoid transfer function</strong> — the curve that underlies every model on this site, explicit in the rate models (WILCO, NMM1, NMM2) and implicit — via the Hopf normal form — in HO and Stuart–Landau, turning "how excited is this population" into "how fast is it firing".</div>
     </div>
 
     <p>This is not a simplification made for convenience alone — it mirrors what EEG, MEG and LFP electrodes
@@ -236,7 +236,7 @@
       <tbody>
         <tr><td>HO</td><td>Re(z), Im(z) — two quadrature views of the same rotation; abstract, no biology attached yet.</td></tr>
         <tr><td>Stuart–Landau</td><td>Same (x, y) pair as HO, now with a cubic term that caps how far the "chase" can run.</td></tr>
-        <tr><td>WILCO</td><td>x, y are literally excitatory and inhibitory <strong>firing rates</strong> — the motif becomes biology.</td></tr>
+        <tr><td>WILCO</td><td>x, y are typically excitatory and inhibitory <strong>firing rates</strong> — though the paper's own WILCO equations admit an equally valid PSP reading of the same form.</td></tr>
         <tr><td>NMM1</td><td>x, y are excitatory and inhibitory <strong>post-synaptic potentials</strong> — same E/I loop, with realistic synaptic lag added.</td></tr>
       </tbody>
     </table>
@@ -315,18 +315,19 @@
     <table class="model-table">
       <thead><tr><th>Model</th><th>Isolated node</th><th>+ coupling term</th></tr></thead>
       <tbody>
-        <tr><td>HO / SL</td><td>ż = (α + iω)z − …</td><td>+ (G/N) Σⱼ (zⱼ − zᵢ) &nbsp;<span style="color:#888;font-family:sans-serif;font-size:0.8em;">— diffusive: pulled toward the network average</span></td></tr>
-        <tr><td>WILCO / NMM1</td><td>τẋ + x = σ(… + Fₑ)</td><td>+ inside σ(…): add G·Σⱼ Cᵢⱼxⱼ to the sigmoid's input &nbsp;<span style="color:#888;font-family:sans-serif;font-size:0.8em;">— one node's output becomes another's input current</span></td></tr>
+        <tr><td>HO / SL</td><td>ż = (α + iω)z − …</td><td>+ (G/N) Σⱼ (zⱼ − zᵢ) &nbsp;(all-to-all case) &nbsp;<span style="color:#888;font-family:sans-serif;font-size:0.8em;">— diffusive: pulled toward the network average; general form is G · Cᵢⱼ · (zⱼ − zᵢ) with a real connectome Cᵢⱼ</span></td></tr>
+        <tr><td>WILCO / NMM1</td><td>τẋ + x = σ(… + Fₑ)</td><td>+ inside σ(…): add Σⱼ Cᵢⱼxⱼ to the sigmoid's input &nbsp;<span style="color:#888;font-family:sans-serif;font-size:0.8em;">— one node's output becomes another's input current; G is explicit for the HO/SL/Kuramoto oscillator family, but folded into (or absent from, as written) Cᵢⱼ here</span></td></tr>
       </tbody>
     </table>
 
     <div class="callout">
       <div class="callout-label">What this means on the Explore page</div>
-      <p>Every model's Demo now shows <em>one</em> parameter panel — no more separate "single node" vs. "network"
-      tabs to flip between. The sliders above the divider are the node's own physics, exactly as in section 2.
-      The <strong>Network</strong> section below the divider only ever adds the term from the table above,
-      scaled by G, across N copies of that same node. Slide G to 0 (or N to 1) and you're back to the single node
-      you started with, guaranteed — not approximately, but by construction.</p>
+      <p>Every model's Demo page has a base variant (just the node's own physics, exactly as in section 2) and a
+      separate <strong>Network</strong> variant you switch to with the pill selector at the top. The Network
+      variant's sliders are the same node physics plus N and G on top, adding only the coupling term from the
+      table above across N copies of that same node. Slide the Network variant's G to 0 (or N to 1) and you get
+      exactly the base variant's dynamics back — not approximately, but by construction, since it's the identical
+      single-node equation with one additive term switched off.</p>
     </div>
   </section>
 
