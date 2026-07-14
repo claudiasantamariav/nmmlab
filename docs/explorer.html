@@ -713,7 +713,7 @@ const SL = {
       explain:'α is the Hopf bifurcation parameter: negative decays to rest, positive gives a self-sustained rhythm at radius r* = √(α/γ). ω sets the rotation speed and doesn\'t affect r* or the bifurcation diagram. γ (&gt;0) caps the amplitude — bigger γ means a smaller, tighter limit cycle. β doesn\'t change the amplitude either; it only shifts the instantaneous frequency as amplitude grows ("shear"). F₀/Ω add a periodic push (set F₀ = 0 to remove it).',
       fixed:{N:1, G:0},
       params:[
-        {id:'alpha', label:'α  (growth/decay)', min:-1, max:2, step:0.05, def:1, zeroLabel:'undamped'},
+        {id:'alpha', label:'α  (growth/decay)', min:-2, max:2, step:0.05, def:1, zeroLabel:'undamped'},
         {id:'omega', label:'ω  (rad/s)', min:0.5, max:10, step:0.1, def:2},
         {id:'gamma', label:'γ  (saturation, &gt;0)', min:0.1, max:3, step:0.05, def:1},
         {id:'beta',  label:'β  (shear)', min:-3, max:3, step:0.05, def:1},
@@ -727,7 +727,7 @@ const SL = {
         <div class="eq-sub">z̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the single oscillator</div>`,
       explain:'N copies of the limit-cycle oscillator above, each pulled toward the network mean z̄ by coupling G — exactly the paper\'s diffusive coupling term (Eq. 3.8), (G/N)Σⱼ Cᵢⱼ(zⱼ−zᵢ), once the connectivity Cᵢⱼ is uniform and all-to-all. Nodes get a slightly different ω so coupling has something to synchronize. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>',
       params:[
-        {id:'alpha', label:'α  (growth/decay)', min:-1, max:2, step:0.05, def:1, zeroLabel:'undamped'},
+        {id:'alpha', label:'α  (growth/decay)', min:-2, max:2, step:0.05, def:1, zeroLabel:'undamped'},
         {id:'omega', label:'ω  (rad/s)', min:0.5, max:10, step:0.1, def:2},
         {id:'gamma', label:'γ  (saturation, &gt;0)', min:0.1, max:3, step:0.05, def:1},
         {id:'beta',  label:'β  (shear)', min:-3, max:3, step:0.05, def:1},
@@ -1262,7 +1262,7 @@ const NMM1 = {
         {id:'a',     label:'a  (sigmoid slope)', min:0.3, max:4, step:0.05, def:2.5},
         {id:'Fe',    label:'Fₑ  (exogenous drive)', min:0, max:2, step:0.05, def:0},
         {id:'N', label:'N  (network size)', min:2, max:5, step:1, def:3},
-        {id:'G', label:'G  (coupling strength)', min:0, max:0.6, step:0.02, def:0.2},
+        {id:'G', label:'G  (coupling strength)', min:0, max:3, step:0.05, def:0.5},
       ],
     },
   },
