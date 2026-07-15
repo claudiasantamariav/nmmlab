@@ -208,6 +208,7 @@ input[type=range] { width: 100%; accent-color: var(--blue); cursor: pointer; mar
 </nav>
 
 <div class="model-tabs" id="modelTabs">
+  <button class="model-tab" data-model="kuramoto">Kuramoto</button>
   <button class="model-tab active" data-model="ho">HO</button>
   <button class="model-tab" data-model="sl">Stuart–Landau</button>
   <button class="model-tab" data-model="wilco">WILCO</button>
@@ -401,15 +402,127 @@ function stackedTraces(traceSets, colors, rowLabels, xlabel){
   return {data, layout};
 }
 
+const TWO_PI = 2*Math.PI;
+
+// ============================================================
+// KURAMOTO PHASE OSCILLATORS
+// state = [θ_1, ..., θ_N] — phase only, no amplitude
+// dt = 0.01 s throughout, per spec
+// ============================================================
+const KURAMOTO = {
+  variants:['Network'],
+  cfg:{
+    Network:{
+      eqHtml:`<div class="eq-main">dθ<sub>i</sub>/dt = ω<sub>i</sub> + (G/N) Σ<sub>j</sub> sin(θ<sub>j</sub> − θ<sub>i</sub>)</div>
+        <hr class="eq-hr">
+        <div class="eq-sub">r = |1/N · Σ e<sup>iθ</sup>|   (order parameter)</div>`,
+      explain:'Each oscillator has only a phase θ, no amplitude at all. The coupling nudges every oscillator toward the average phase of the group; above a critical G, they snap into synchrony. A lone Kuramoto oscillator is trivial — θ̇ = ω, just constant rotation — so unlike every other model here there\'s no separate "single node" variant: coupling isn\'t optional, it\'s the entire model.',
+      params:[
+        {id:'N',      label:'N  (oscillators)',     min:2, max:20, step:1, def:10},
+        {id:'G',      label:'G  (coupling strength)',min:0, max:5, step:0.1, def:2.0},
+        {id:'spread', label:'frequency spread',     min:0, max:2, step:0.05, def:0.5},
+      ]
+    },
+  },
+
+  simulate(variant, p){
+    const {N,G,spread}=p;
+    const rng=makeRng(42);
+    const theta0=Array.from({length:N},()=>rng()*TWO_PI);
+    const omegas=Array.from({length:N},()=>TWO_PI*(1+spread*(2*rng()-1)));
+    const f=(t,theta)=>theta.map((th_i,i)=>{
+      let s=0; for(let j=0;j<N;j++) s+=Math.sin(theta[j]-th_i);
+      return omegas[i]+(G/N)*s;
+    });
+    const sim=integrate(f,theta0,1000,0.01,4);
+    sim.N=N; sim.omegas=omegas; sim.theta0=theta0;
+    return sim;
+  },
+
+  plots(variant, p, sim){
+    const {ts,ys}=sim;
+    const {N,G}=p;
+    const orderR=ys.map(theta=>{
+      let re=0,im=0; for(let i=0;i<N;i++){re+=Math.cos(theta[i]);im+=Math.sin(theta[i]);}
+      return Math.sqrt(re*re+im*im)/N;
+    });
+    const finalR=orderR[orderR.length-1];
+    const tD=downsample(ts,1500);
+    const traceColor = G>1 ? 'rgba(255,102,87,0.25)' : 'rgba(0,40,120,0.2)';
+    const cosTraces=Array.from({length:N},(_,i)=>({
+      x:tD, y:downsample(ys.map(th=>Math.cos(th[i])),1500),
+      mode:'lines', line:{color:traceColor,width:0.8}, showlegend:false, hoverinfo:'skip',
+    }));
+    cosTraces.push({x:tD, y:downsample(orderR,1500), mode:'lines', line:{color:'black',width:2.5}, name:'R(t)'});
+
+    // Final-time phase snapshot: one dot per oscillator at θᵢ(T), plus the order
+    // parameter vector R·e^{iΨ} as an arrow from the origin. Reuses the exact same
+    // simulated trajectory (ys) as panel 1 above — no separate run, so this is
+    // guaranteed to reflect the same R as the R(t) curve at its final instant.
+    const thetaFinal=ys[ys.length-1];
+    const snapX=thetaFinal.map(th=>Math.cos(th)), snapY=thetaFinal.map(th=>Math.sin(th));
+    let reBar=0, imBar=0; for(let i=0;i<N;i++){ reBar+=Math.cos(thetaFinal[i]); imBar+=Math.sin(thetaFinal[i]); }
+    const psi=Math.atan2(imBar/N, reBar/N);
+    const circlePts=Array.from({length:101},(_,i)=>i/100*TWO_PI);
+    const snapshotLayout=layPP('Phase snapshot','cos θᵢ','sin θᵢ');
+    snapshotLayout.xaxis={...snapshotLayout.xaxis, range:[-1.2,1.2]};
+    snapshotLayout.yaxis={...snapshotLayout.yaxis, range:[-1.2,1.2]};
+    snapshotLayout.annotations=[{
+      x:finalR*Math.cos(psi), y:finalR*Math.sin(psi), ax:0, ay:0,
+      xref:'x', yref:'y', axref:'x', ayref:'y',
+      showarrow:true, arrowhead:3, arrowsize:1.3, arrowwidth:2.5, arrowcolor:CORAL,
+    }];
+
+    // Synchronisation curve: mean R over the second half of an independent 8 s run
+    // per G value (discarding the initial transient), sweeping G — reuses the SAME
+    // θᵢ(0)/ωᵢ draw as the main simulation above (sim.theta0/sim.omegas) instead of
+    // a fresh independent draw, so the "your G" point lines up with panels 1 and 2.
+    const {theta0, omegas: omegas0}=sim;
+    const Gmax=5, nG=25;
+    const Gvals=[], Rmeans=[];
+    for(let gi=0;gi<=nG;gi++){
+      const Gv=Gmax*gi/nG;
+      const fG=(t,theta)=>theta.map((th_i,i)=>{ let s=0; for(let j=0;j<N;j++) s+=Math.sin(theta[j]-th_i); return omegas0[i]+(Gv/N)*s; });
+      const simG=integrate(fG, theta0, 400, 0.02, 2); // 8 s, coarser — this is a cheap sweep, not the main view
+      const tail=simG.ys.slice(Math.floor(simG.ys.length*0.5)); // second half only — discards the initial transient
+      const rTail=tail.map(th=>{ let re=0,im=0; for(let j=0;j<N;j++){re+=Math.cos(th[j]);im+=Math.sin(th[j]);} return Math.sqrt(re*re+im*im)/N; });
+      Gvals.push(Gv); Rmeans.push(rTail.reduce((a,b)=>a+b,0)/rTail.length);
+    }
+    const gcIdx=Rmeans.findIndex(r=>r>0.5);
+    const Gc=gcIdx>=0?Gvals[gcIdx].toFixed(2):`> ${Gmax}`;
+
+    return [
+      {data:cosTraces,
+        layout:{...lay(`cos θᵢ(t) and R(t) — G = ${G.toFixed(2)}`,'t (s)','cos θᵢ  /  R(t)'), yaxis:{range:[-1.05,1.05],gridcolor:'#e0e4ef',title:'cos θᵢ  /  R(t)'}},
+        capS:'Thin lines: cos(θᵢ) for each oscillator. Bold black line: order parameter R(t).',
+        capD: finalR>0.9 ? 'The thin lines have locked into a single shared rhythm — fully synchronised.'
+            : finalR>0.3 ? 'The thin lines are drifting into rough alignment — partial synchrony.'
+            : 'The thin lines run at their own pace with no shared rhythm — incoherent.'},
+      {data:[
+        {x:circlePts.map(a=>Math.cos(a)),y:circlePts.map(a=>Math.sin(a)),mode:'lines',line:{color:'#cbd3e6',width:1,dash:'dot'},showlegend:false,hoverinfo:'skip'},
+        {x:snapX,y:snapY,mode:'markers',marker:{color:BLUE,size:8},showlegend:false,name:'oscillators'},
+      ], layout:snapshotLayout,
+        capS:'Unit circle: each blue dot is one oscillator\'s phase θᵢ at the final simulated instant. Coral arrow: the order parameter vector R·e^{iΨ} — its length is R (synchrony), its direction is the mean phase Ψ.',
+        capD: finalR>0.9 ? `R ≈ ${finalR.toFixed(2)} — dots clustered tightly, arrow reaching nearly to the unit circle.`
+            : finalR>0.3 ? `R ≈ ${finalR.toFixed(2)} — dots partly clustered, arrow partway to the unit circle.`
+            : `R ≈ ${finalR.toFixed(2)} — dots spread around the circle, arrow stays short near the origin.`},
+      {data:[
+        {x:Gvals,y:Rmeans,mode:'lines+markers',line:{color:BLUE,width:2},marker:{color:BLUE,size:4},showlegend:false},
+        {x:[G,G],y:[0,1.05],mode:'lines',line:{color:CORAL,width:2,dash:'dash'},name:`your G = ${G.toFixed(2)}`},
+      ], layout:{...lay('Synchronisation curve','Coupling G','⟨R⟩ (mean order parameter)'), yaxis:{range:[0,1.05],gridcolor:'#e0e4ef',title:'⟨R⟩'}},
+        capS:'Mean order parameter (averaged over the second half of an 8 s run, after discarding the initial transient) as coupling G is swept from 0 to 5. The coral line marks your current G. With few oscillators (small N), expect a noisier, less monotonic curve — a genuine finite-size effect, not numerical error.',
+        capD: `Synchrony switches on around G ≈ ${Gc}. Your G = ${G.toFixed(2)} gives ⟨R⟩ ≈ ${Rmeans[Math.min(nG,Math.round(G/Gmax*nG))]?.toFixed(2)}.`},
+    ];
+  }
+};
+
 // ============================================================
 // HARMONIC OSCILLATORS
 // state = [Re z, Im z]  (or concatenated per-oscillator for networks)
 // dt = 0.01 s throughout, per spec
 // ============================================================
-const TWO_PI = 2*Math.PI;
-
 const HO = {
-  variants:['Oscillator','Network','Phase-only (Kuramoto)'],
+  variants:['Oscillator','Network'],
   cfg:{
     Oscillator:{
       eqHtml:`<div class="eq-main">dz/dt = (α + iω) z + F₀ e<sup>iΩt</sup></div>
@@ -439,17 +552,6 @@ const HO = {
         {id:'N', label:'N  (network size)', min:2, max:6, step:1, def:3},
         {id:'G', label:'G  (coupling strength)', min:0, max:5, step:0.05, def:1.5},
       ],
-    },
-    'Phase-only (Kuramoto)':{
-      eqHtml:`<div class="eq-main">dθ<sub>i</sub>/dt = ω<sub>i</sub> + (G/N) Σ<sub>j</sub> sin(θ<sub>j</sub> − θ<sub>i</sub>)</div>
-        <hr class="eq-hr">
-        <div class="eq-sub">r = |1/N · Σ e<sup>iθ</sup>|   (order parameter)</div>`,
-      explain:'Each oscillator now has only a phase θ, no amplitude. The coupling nudges every oscillator toward the average phase of the group; above a critical G, they snap into synchrony.',
-      params:[
-        {id:'N',      label:'N  (oscillators)',     min:2, max:20, step:1, def:10},
-        {id:'G',      label:'G  (coupling strength)',min:0, max:5, step:0.1, def:2.0},
-        {id:'spread', label:'frequency spread',     min:0, max:2, step:0.05, def:0.5},
-      ]
     },
   },
 
@@ -485,19 +587,6 @@ const HO = {
       };
       const sim=integrate(f,z0,1000,0.01,8);
       sim.N=N; sim.omegas=omegas;
-      return sim;
-    }
-    if(variant==='Phase-only (Kuramoto)'){
-      const {N,G,spread}=p;
-      const rng=makeRng(42);
-      const theta0=Array.from({length:N},()=>rng()*TWO_PI);
-      const omegas=Array.from({length:N},()=>TWO_PI*(1+spread*(2*rng()-1)));
-      const f=(t,theta)=>theta.map((th_i,i)=>{
-        let s=0; for(let j=0;j<N;j++) s+=Math.sin(theta[j]-th_i);
-        return omegas[i]+(G/N)*s;
-      });
-      const sim=integrate(f,theta0,1000,0.01,4);
-      sim.N=N; sim.omegas=omegas; sim.theta0=theta0;
       return sim;
     }
   },
@@ -603,7 +692,7 @@ const HO = {
       });
       const spread=Math.max(...ampFinal)-Math.min(...ampFinal);
       const synced = G>1 && spread<0.2;
-      const kuraNote = 'In the limit of identical frequencies and fixed amplitude, this network reduces to the Kuramoto model.';
+      const kuraNote = 'In the limit of identical amplitudes and only phase differences mattering, this network reduces to the Kuramoto model — see its own tab.';
       return [
         {data:reAll.map((r,k)=>({x:tD,y:r,name:`z${k+1} (ω=${omegas[k].toFixed(2)})`,line:{color:PALETTE[k%PALETTE.length],width:1.3}})),
           layout:lay('Time series (each oscillator)','t (s)','Re(z)'),
@@ -617,81 +706,6 @@ const HO = {
           capD: synced
             ? 'Orbits overlap almost perfectly — synchronised.'
             : 'Orbits stay distinct — not yet synchronised.'},
-      ];
-    }
-
-    if(variant==='Phase-only (Kuramoto)'){
-      const {N,G}=p;
-      const orderR=ys.map(theta=>{
-        let re=0,im=0; for(let i=0;i<N;i++){re+=Math.cos(theta[i]);im+=Math.sin(theta[i]);}
-        return Math.sqrt(re*re+im*im)/N;
-      });
-      const finalR=orderR[orderR.length-1];
-      const tD=downsample(ts,1500);
-      const traceColor = G>1 ? 'rgba(255,102,87,0.25)' : 'rgba(0,40,120,0.2)';
-      const cosTraces=Array.from({length:N},(_,i)=>({
-        x:tD, y:downsample(ys.map(th=>Math.cos(th[i])),1500),
-        mode:'lines', line:{color:traceColor,width:0.8}, showlegend:false, hoverinfo:'skip',
-      }));
-      cosTraces.push({x:tD, y:downsample(orderR,1500), mode:'lines', line:{color:'black',width:2.5}, name:'R(t)'});
-
-      // Final-time phase snapshot: one dot per oscillator at θᵢ(T), plus the order
-      // parameter vector R·e^{iΨ} as an arrow from the origin. Reuses the exact same
-      // simulated trajectory (ys) as panel 1 above — no separate run, so this is
-      // guaranteed to reflect the same R as the R(t) curve at its final instant.
-      const thetaFinal=ys[ys.length-1];
-      const snapX=thetaFinal.map(th=>Math.cos(th)), snapY=thetaFinal.map(th=>Math.sin(th));
-      let reBar=0, imBar=0; for(let i=0;i<N;i++){ reBar+=Math.cos(thetaFinal[i]); imBar+=Math.sin(thetaFinal[i]); }
-      const psi=Math.atan2(imBar/N, reBar/N);
-      const circlePts=Array.from({length:101},(_,i)=>i/100*TWO_PI);
-      const snapshotLayout=layPP('Phase snapshot','cos θᵢ','sin θᵢ');
-      snapshotLayout.xaxis={...snapshotLayout.xaxis, range:[-1.2,1.2]};
-      snapshotLayout.yaxis={...snapshotLayout.yaxis, range:[-1.2,1.2]};
-      snapshotLayout.annotations=[{
-        x:finalR*Math.cos(psi), y:finalR*Math.sin(psi), ax:0, ay:0,
-        xref:'x', yref:'y', axref:'x', ayref:'y',
-        showarrow:true, arrowhead:3, arrowsize:1.3, arrowwidth:2.5, arrowcolor:CORAL,
-      }];
-
-      // Synchronisation curve: mean R over the second half of an independent 8 s run
-      // per G value (discarding the initial transient), sweeping G — reuses the SAME
-      // θᵢ(0)/ωᵢ draw as the main simulation above (sim.theta0/sim.omegas) instead of
-      // a fresh independent draw, so the "your G" point lines up with panels 1 and 2.
-      const {theta0, omegas: omegas0}=sim;
-      const Gmax=5, nG=25;
-      const Gvals=[], Rmeans=[];
-      for(let gi=0;gi<=nG;gi++){
-        const Gv=Gmax*gi/nG;
-        const fG=(t,theta)=>theta.map((th_i,i)=>{ let s=0; for(let j=0;j<N;j++) s+=Math.sin(theta[j]-th_i); return omegas0[i]+(Gv/N)*s; });
-        const simG=integrate(fG, theta0, 400, 0.02, 2); // 8 s, coarser — this is a cheap sweep, not the main view
-        const tail=simG.ys.slice(Math.floor(simG.ys.length*0.5)); // second half only — discards the initial transient
-        const rTail=tail.map(th=>{ let re=0,im=0; for(let j=0;j<N;j++){re+=Math.cos(th[j]);im+=Math.sin(th[j]);} return Math.sqrt(re*re+im*im)/N; });
-        Gvals.push(Gv); Rmeans.push(rTail.reduce((a,b)=>a+b,0)/rTail.length);
-      }
-      const gcIdx=Rmeans.findIndex(r=>r>0.5);
-      const Gc=gcIdx>=0?Gvals[gcIdx].toFixed(2):`> ${Gmax}`;
-
-      return [
-        {data:cosTraces,
-          layout:{...lay(`cos θᵢ(t) and R(t) — G = ${G.toFixed(2)}`,'t (s)','cos θᵢ  /  R(t)'), yaxis:{range:[-1.05,1.05],gridcolor:'#e0e4ef',title:'cos θᵢ  /  R(t)'}},
-          capS:'Thin lines: cos(θᵢ) for each oscillator. Bold black line: order parameter R(t).',
-          capD: finalR>0.9 ? 'The thin lines have locked into a single shared rhythm — fully synchronised.'
-              : finalR>0.3 ? 'The thin lines are drifting into rough alignment — partial synchrony.'
-              : 'The thin lines run at their own pace with no shared rhythm — incoherent.'},
-        {data:[
-          {x:circlePts.map(a=>Math.cos(a)),y:circlePts.map(a=>Math.sin(a)),mode:'lines',line:{color:'#cbd3e6',width:1,dash:'dot'},showlegend:false,hoverinfo:'skip'},
-          {x:snapX,y:snapY,mode:'markers',marker:{color:BLUE,size:8},showlegend:false,name:'oscillators'},
-        ], layout:snapshotLayout,
-          capS:'Unit circle: each blue dot is one oscillator\'s phase θᵢ at the final simulated instant. Coral arrow: the order parameter vector R·e^{iΨ} — its length is R (synchrony), its direction is the mean phase Ψ.',
-          capD: finalR>0.9 ? `R ≈ ${finalR.toFixed(2)} — dots clustered tightly, arrow reaching nearly to the unit circle.`
-              : finalR>0.3 ? `R ≈ ${finalR.toFixed(2)} — dots partly clustered, arrow partway to the unit circle.`
-              : `R ≈ ${finalR.toFixed(2)} — dots spread around the circle, arrow stays short near the origin.`},
-        {data:[
-          {x:Gvals,y:Rmeans,mode:'lines+markers',line:{color:BLUE,width:2},marker:{color:BLUE,size:4},showlegend:false},
-          {x:[G,G],y:[0,1.05],mode:'lines',line:{color:CORAL,width:2,dash:'dash'},name:`your G = ${G.toFixed(2)}`},
-        ], layout:{...lay('Synchronisation curve','Coupling G','⟨R⟩ (mean order parameter)'), yaxis:{range:[0,1.05],gridcolor:'#e0e4ef',title:'⟨R⟩'}},
-          capS:'Mean order parameter (averaged over the second half of an 8 s run, after discarding the initial transient) as coupling G is swept from 0 to 5. The coral line marks your current G. With few oscillators (small N), expect a noisier, less monotonic curve — a genuine finite-size effect, not numerical error.',
-          capD: `Synchrony switches on around G ≈ ${Gc}. Your G = ${G.toFixed(2)} gives ⟨R⟩ ≈ ${Rmeans[Math.min(nG,Math.round(G/Gmax*nG))]?.toFixed(2)}.`},
       ];
     }
   }
@@ -1573,6 +1587,32 @@ const NMM2 = {
 // ============================================================
 const MODEL_INFO = {
 
+kuramoto: {
+  title: 'Kuramoto Phase Oscillators',
+  tagline: 'The barest possible skeleton for synchronization — a phase and nothing else. Every later rung on this ladder is this bare rotation with detail (amplitude, biology) added on top.',
+  equations: `
+    <div class="info-eq-box">
+      <div class="eq-name">Single oscillator</div>
+      <div class="eq-main">θ̇ᵢ = ωᵢ</div>
+      <div class="eq-note">No amplitude, so nothing to damp, force, or saturate — the phase just advances at a constant rate. This triviality is exactly why Kuramoto has no "single node" Demo variant on this site, unlike every other model: there's nothing worth showing until at least two oscillators are coupled.</div>
+    </div>
+    <div class="info-eq-box">
+      <div class="eq-name">Coupled network (§2.1.4, Eq. 2.19, App. D)</div>
+      <div class="eq-main">θ̇ᵢ = ωᵢ + (G/N) Σⱼ sin(θⱼ − θᵢ)</div>
+      <div class="eq-note">Each oscillator is pulled toward every other oscillator's phase by the sine of their phase difference — a genuinely different functional form from the linear/diffusive and additive-sigmoid coupling used everywhere else on this site (see "How It Works").</div>
+    </div>`,
+  how: `<p>Every other model on this site couples nodes the same two ways: <em>diffusively</em> (HO, SL add a linear term pulling each node's state toward the network average, G·(z̄−zᵢ) or its weighted-connectome form G·Σⱼ Cᵢⱼ(zⱼ−zᵢ)) or <em>additively</em> (WILCO, NMM1, NMM2 sum a neighbor's output straight into the receiving node's input, G·Σⱼ Cᵢⱼxⱼ). Kuramoto's coupling is neither: it's a <strong>sine of the phase difference</strong>, sin(θⱼ−θᵢ) — a term that vanishes when two oscillators are already in phase, is strongest a quarter-cycle apart, and actually pushes <em>away</em> from synchrony beyond a half-cycle apart. That nonlinearity in the phase difference itself, not in any amplitude, is what makes Kuramoto the canonical toy model for synchronization phenomena in physics, biology, and neuroscience alike.</p>
+    <p>The reason it belongs on this ladder at all is that it isn't a separate invention — Castaldo et al. show (App. D) that it falls out <em>exactly</em> from the HO's coupled network (Eq. 2.28–2.29) in the special limit where every oscillator's amplitude is identical and fixed, so only relative phase can still vary. Presented here first, it's the leanest possible version of that idea: one real number per node, no damping, no saturation, nothing biological yet — just phase and coupling. Every later rung keeps this same "nudge toward the group" intuition but reattaches the machinery Kuramoto strips away, starting with amplitude in the very next model, HO.</p>`,
+  params: [
+    {name:'θᵢ', unit:'rad', meaning:'Phase of oscillator i', effect:'The model\'s only state variable — no amplitude exists at all.'},
+    {name:'ωᵢ', unit:'rad/s', meaning:'Natural (intrinsic) frequency of oscillator i', effect:'How fast oscillator i would spin on its own, absent coupling. A spread of ωᵢ across nodes is what coupling has to overcome to synchronize.'},
+    {name:'G', unit:'s⁻¹', meaning:'Global coupling gain', effect:'Strength of the pull toward the group\'s phase; synchrony switches on abruptly once G exceeds a critical value set by the spread of ωᵢ.'},
+    {name:'N', unit:'count', meaning:'Number of oscillators', effect:'Network size — the order parameter r becomes a sharper, less noisy measure of synchrony as N grows.'},
+    {name:'r (order parameter)', unit:'dimensionless, 0–1', meaning:'r = |1/N · Σ e^(iθ)|', effect:'r = 1 means every oscillator shares the same phase (fully locked); r = 0 means phases are spread uniformly around the circle (incoherent).'},
+  ],
+  about: `Introduced by Yoshiki Kuramoto in 1975, this is the canonical minimal model of spontaneous synchronization — the same phase-locking mechanism used to describe flashing fireflies, clapping audiences, power-grid generators, and, in neuroscience, the phase-locking of brain rhythms measured by EEG and MEG. <strong>Castaldo et al.</strong> place it on the ladder as the phase-only limit of the HO's coupled network (App. D): strip away amplitude entirely, and the diffusive coupling of the HO's network reduces exactly to Kuramoto's sine-coupling law. It's presented first on this site precisely because it's the most stripped-down rung — everything every later model adds (amplitude, nonlinearity, biophysical detail) is additional machinery layered on top of this same "nudge toward the group" idea.`,
+},
+
 ho: {
   title: 'Harmonic Oscillator (HO)',
   tagline: 'The starting point of the ladder — everything else on this site is a more biologically detailed version of the same push-pull loop.',
@@ -1598,14 +1638,9 @@ ho: {
       <div class="eq-main">Eq. 2.29 (general): żᵢ = (α + iωᵢ)zᵢ + G Σⱼ Cᵢⱼ(zⱼ(t−τᵢⱼ) − zᵢ(t)) + F̂ₑ,ᵢ(t)</div>
       <div class="eq-note">Eq. 2.28 is the uniform, all-to-all special case (Cᵢⱼ = 1/N, no delays); Eq. 2.29 generalizes to a weighted connectome with optional delays τᵢⱼ, with no 1/N factor.</div>
     </div>
-    <div class="info-eq-box">
-      <div class="eq-name">Kuramoto phase limit (§2.1.4, Eq. 2.19, App. D)</div>
-      <div class="eq-main">θ̇ᵢ = ωᵢ + (G/N) Σⱼ sin(θⱼ − θᵢ)</div>
-      <div class="eq-note">The canonical model of synchronization — amplitude is dropped entirely, only relative phase remains.</div>
-    </div>
     <div class="info-eq-box" style="border-left-color:var(--coral);">
       <div class="eq-name" style="color:var(--coral);">In the Demo</div>
-      <div class="eq-note" style="font-size:0.85rem;">Undamped, damped, and forced are the same equation with different parameters, so the Demo tab combines them into one "Oscillator" — set α = 0 for the undamped case, or F₀ = 0 to remove forcing. Coupled networks and the Kuramoto phase-only limit are structurally different (many oscillators, different state variables), so those stay as separate variants.</div>
+      <div class="eq-note" style="font-size:0.85rem;">Undamped, damped, and forced are the same equation with different parameters, so the Demo tab combines them into one "Oscillator" — set α = 0 for the undamped case, or F₀ = 0 to remove forcing. Coupled networks are structurally different (many oscillators), so they stay a separate variant. The phase-only limit of this network — amplitude dropped entirely, only relative phase left — is the Kuramoto model, presented as its own rung on this site rather than a variant here; see the <a href="explorer.html?model=kuramoto">Kuramoto tab</a>.</div>
     </div>`,
   how: `<p>Every model on this site is built from the same "push–pull" motif: two variables, x and y, that continuously drive each other. A positive y suppresses x (acting like inhibition), while a positive x excites y — this reciprocal chase is what makes the pair rotate instead of settling. Written as one complex number z = x + iy, that rotation is just ż = iωz, a circle traced out at constant amplitude and angular speed ω.</p>
     <p>Adding a damping term α turns the neutral circle into a spiral: negative α leaks energy out every cycle (a stable, decaying oscillation), positive α pumps energy in (unstable, growing). Forcing F(t) shifts where the oscillator settles and, if oscillatory, can pull its phase and amplitude toward the drive — the seed of resonance and entrainment. Coupling several of these oscillators together makes them pull toward each other's state; in the special case of identical amplitudes and only phase differences mattering, this coupled network reduces exactly to the Kuramoto model, the standard tool for describing how brain rhythms synchronize.</p>`,
@@ -1810,6 +1845,7 @@ nmm2: {
 // MODEL REGISTRY
 // ============================================================
 const MODELS={
+  kuramoto: {label:'Kuramoto', impl:KURAMOTO, stub:false},
   ho:   {label:'HO', impl:HO, stub:false},
   sl:   {label:'Stuart–Landau', impl:SL, stub:false},
   wilco:{label:'WILCO', impl:WILCO, stub:false},

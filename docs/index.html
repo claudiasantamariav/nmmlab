@@ -191,29 +191,38 @@
     <cite>— Richard Feynman</cite>
   </div>
   <p class="intro">
-    Five mathematical models, one unifying story. This site is the interactive companion to
+    Six mathematical models, one unifying story. This site is the interactive companion to
     <em>"A Rosetta Stone for Neural Mass Models"</em> — pick a model below to build intuition for how brain rhythms emerge,
-    from a simple spring all the way to a full neural mass model.
+    from a bare phase all the way to a full neural mass model.
   </p>
 </header>
 
 <main>
-  <div class="grid-label">The model ladder — five rungs from physics to neuroscience</div>
+  <div class="grid-label">The model ladder — six rungs from physics to neuroscience</div>
 
   <div class="card-grid">
 
+    <a class="card" href="explorer.html?model=kuramoto">
+      <div class="card-body">
+        <div class="card-title"><span class="num">1</span><h3>Kuramoto</h3><span class="rung">phase oscillators</span></div>
+        <p class="card-sub">phase only · no amplitude · the barest possible synchronization model</p>
+        <p class="card-desc">θ̇ᵢ = ωᵢ + (G/N)Σⱼ sin(θⱼ−θᵢ). The leanest possible skeleton for synchronization — every later model on this ladder adds detail, starting with amplitude, on top of this bare rotation.</p>
+        <div class="tags"><span class="tag accent">Interactive</span><span class="tag">network only</span></div>
+      </div>
+    </a>
+
     <a class="card" href="explorer.html?model=ho">
       <div class="card-body">
-        <div class="card-title"><span class="num">1</span><h3>HO</h3><span class="rung">harmonic oscillator</span></div>
+        <div class="card-title"><span class="num">2</span><h3>HO</h3><span class="rung">harmonic oscillator</span></div>
         <p class="card-sub">linear · closed-form solution · a mass on a spring</p>
-        <p class="card-desc">The starting point: ż = (α + iω)z. One complex equation captures damping, resonance, coupled networks, and the Kuramoto phase-only limit.</p>
-        <div class="tags"><span class="tag accent">Interactive</span><span class="tag">+ network</span><span class="tag">Kuramoto limit</span></div>
+        <p class="card-desc">Amplitude re-enters the picture: ż = (α + iω)z. One complex equation captures damping, resonance, and coupled networks — whose phase-only limit is the Kuramoto model, the rung just below.</p>
+        <div class="tags"><span class="tag accent">Interactive</span><span class="tag">+ network</span></div>
       </div>
     </a>
 
     <a class="card" href="explorer.html?model=sl">
       <div class="card-body">
-        <div class="card-title"><span class="num">2</span><h3>Stuart–Landau</h3></div>
+        <div class="card-title"><span class="num">3</span><h3>Stuart–Landau</h3></div>
         <p class="card-sub">adds nonlinearity · self-sustaining limit cycle</p>
         <p class="card-desc">A cubic nonlinearity turns the HO's neutral circle into a genuine limit cycle — the orbit locks onto a fixed size no matter where it starts. The first real rhythm.</p>
         <div class="tags"><span class="tag accent">Interactive</span><span class="tag">+ network</span></div>
@@ -222,7 +231,7 @@
 
     <a class="card" href="explorer.html?model=wilco">
       <div class="card-body">
-        <div class="card-title"><span class="num">3</span><h3>WILCO</h3><span class="rung">Wilson–Cowan</span></div>
+        <div class="card-title"><span class="num">4</span><h3>WILCO</h3><span class="rung">Wilson–Cowan</span></div>
         <p class="card-sub">excitatory + inhibitory populations · sigmoid · Hopf bifurcation</p>
         <p class="card-desc">Two neural populations replace the single oscillator. Turn up the background drive and the E–I loop spontaneously starts oscillating — a biologically grounded rhythm.</p>
         <div class="tags"><span class="tag accent">Interactive</span><span class="tag">+ network</span></div>
@@ -231,7 +240,7 @@
 
     <a class="card" href="explorer.html?model=nmm1">
       <div class="card-body">
-        <div class="card-title"><span class="num">4</span><h3>NMM1</h3></div>
+        <div class="card-title"><span class="num">5</span><h3>NMM1</h3></div>
         <p class="card-sub">explicit synaptic filtering · realistic time constants</p>
         <p class="card-desc">Synaptic dynamics get their own rise and decay time constants, refining the frequency and shape of the rhythm that emerges from the E–I loop.</p>
         <div class="tags"><span class="tag accent">Interactive</span><span class="tag">+ network</span></div>
@@ -240,7 +249,7 @@
 
     <a class="card" href="explorer.html?model=nmm2">
       <div class="card-body">
-        <div class="card-title"><span class="num">5</span><h3>NMM2</h3><span class="rung">next-generation mean field</span></div>
+        <div class="card-title"><span class="num">6</span><h3>NMM2</h3><span class="rung">next-generation mean field</span></div>
         <p class="card-sub">exact QIF reduction · dynamic firing-rate/potential pair</p>
         <p class="card-desc">Replaces the static sigmoid with an exact mean-field reduction of spiking QIF neurons (Montbrió–Pazó–Roxin) — same E/I push-pull skeleton, but the transfer function itself now has its own dynamics.</p>
         <div class="tags"><span class="tag accent">Interactive</span><span class="tag">+ network</span></div>
@@ -260,7 +269,8 @@
       <em>A Rosetta Stone for Neural Mass Models.</em>
       Shows that five widely-used models in computational neuroscience are not separate inventions but rungs on a
       single mathematical ladder. This website lets you interact with each model, tune its parameters,
-      and see exactly what changes at each step up the ladder.
+      and see exactly what changes at each step up the ladder — and adds the Kuramoto phase-oscillator model as an
+      extra rung at the very start, the phase-only skeleton the paper's own HO network reduces to in the right limit.
     </p>
   </div>
 </main>
