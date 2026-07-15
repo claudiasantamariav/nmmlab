@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build-up prototype — Rosetta Stone of NMMs</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #002878; --coral: #FF6657; --light-blue: #e8edf7;
+    --bg: #fafafa; --card-border: #e2e6f0; --text: #1a1a2e; --muted: #666; --faint: #8a8fa3;
+    --freq: #2f6df6; --damp: #0f9488; --sat: #e34a34; --coupl: #7c3aed; --filt: #c67608; --mf: #c026a8; --drive: #6b7280;
+  }
+  body { font-family: sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+  nav.topnav { background: var(--blue); color: white; display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 1.4rem; }
+  nav.topnav .brand { font-weight: 700; font-size: 0.95rem; }
+  nav.topnav .links a { color: #a0b4e0; text-decoration: none; margin-left: 1.4rem; font-size: 0.88rem; }
+  nav.topnav .links a.active { color: white; border-bottom: 2px solid var(--coral); padding-bottom: 3px; }
+
+  .banner { max-width: 900px; margin: 1.4rem auto -0.3rem; padding: 0.85rem 1.1rem; background: #fff8e6; border: 1px solid #f0e0a8; border-radius: 10px; font-size: 0.85rem; color: #6b5a20; line-height: 1.6; }
+  .banner b { color: #8a6d10; }
+
+  header { text-align: center; padding: 2.4rem 1.5rem 1rem; max-width: 760px; margin: 0 auto; }
+  header .label { font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--faint); margin-bottom: 0.9rem; }
+  header h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 700; margin-bottom: 1rem; }
+  header h1 span { color: var(--coral); }
+  header p { font-size: 0.96rem; color: var(--muted); line-height: 1.7; }
+
+  main { max-width: 940px; margin: 0 auto; padding: 1rem 1.5rem 4rem; }
+
+  section.block { margin-bottom: 3.4rem; padding-top: 1.4rem; border-top: 1px solid var(--card-border); }
+  section.block:first-of-type { border-top: none; }
+  section.block h2 { font-size: 1.3rem; color: var(--blue); margin-bottom: 0.4rem; display: flex; align-items: baseline; gap: 0.6rem; }
+  section.block h2 .num { font-size: 0.85rem; color: white; background: var(--coral); border-radius: 50%; width: 1.6rem; height: 1.6rem; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  section.block .tagline { color: var(--muted); font-size: 0.92rem; margin-bottom: 1.4rem; line-height: 1.6; max-width: 720px; }
+
+  .tm-new { background: linear-gradient(transparent 58%, #ffe98a 58%); border-radius: 2px; padding: 0 2px; font-weight: 700; }
+  .sep { color: var(--faint); margin: 0 0.3rem; }
+
+  /* ═══ EQUATIONS ═══ */
+  .role-legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; font-size: 0.78rem; color: var(--muted); margin-bottom: 1.2rem; }
+  .role-legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .role-legend .sw { width: 0.8rem; height: 0.8rem; border-radius: 3px; }
+  .eqlist { display: flex; flex-direction: column; gap: 0.7rem; }
+  .eqrow { display: flex; align-items: center; gap: 0.9rem; background: white; border: 1px solid var(--card-border); border-radius: 10px; padding: 0.8rem 1rem; }
+  .eqrow .er-ico { width: 38px; height: 38px; border-radius: 50%; background: #0d1330; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .eqrow .er-ico svg { width: 28px; height: 28px; }
+  .eqrow .er-body { min-width: 0; }
+  .eqrow .er-name { font-size: 0.8rem; font-weight: 700; color: var(--blue); margin-bottom: 0.15rem; }
+  .eqrow .er-eq { font-family: Georgia, 'Times New Roman', serif; font-size: 1rem; line-height: 1.5; }
+  .eqrow .er-eq .l2 { display: block; margin-top: 0.15rem; }
+  .eqrow .er-note { font-size: 0.78rem; color: var(--muted); margin-top: 0.3rem; }
+  .eqrow .er-note b { color: var(--coral); }
+
+  /* ═══ DIAGRAMS ═══ */
+  .diag-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+  .diag-card { background: white; border: 1px solid var(--card-border); border-radius: 12px; padding: 1rem; }
+  .diag-card.pending { border-style: dashed; }
+  .diag-card .d-name { font-size: 0.92rem; font-weight: 700; color: var(--blue); margin-bottom: 0.7rem; }
+  .diag-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .diag-cell { flex: 1; min-width: 120px; border: 1px solid #eef0f6; border-radius: 8px; padding: 0.5rem; background: #fcfcfe; text-align: center; }
+  .diag-cap { font-size: 0.7rem; color: var(--faint); margin-top: 0.35rem; line-height: 1.4; }
+
+  /* ═══ MIND MAP (branch & grow) ═══ */
+  .tree { display: flex; flex-direction: column; align-items: center; }
+  .node { background: white; border: 1px solid var(--card-border); border-radius: 12px; padding: 0.7rem 0.9rem; text-align: center; width: 100%; max-width: 300px; }
+  .node.pending { border-style: dashed; }
+  .node .n-head { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.4rem; }
+  .node .n-ico { width: 34px; height: 34px; border-radius: 50%; background: #0d1330; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .node .n-ico svg { width: 25px; height: 25px; }
+  .node .n-name { font-size: 0.95rem; font-weight: 700; color: var(--blue); }
+  .node .n-eq { font-family: Georgia, 'Times New Roman', serif; font-size: 0.92rem; line-height: 1.5; color: var(--text); }
+
+  .trunk { width: 2px; height: 22px; background: var(--card-border); }
+  .add-chip { display: inline-block; font-size: 0.76rem; font-weight: 700; color: var(--coral); background: #fff4f2; border: 1px solid #ffd9d2; border-radius: 20px; padding: 0.3rem 0.8rem; }
+  .add-chip.calm { color: var(--blue); background: var(--light-blue); border-color: var(--card-border); }
+  .add-chip small { display: block; font-weight: 400; color: var(--muted); font-size: 0.66rem; }
+
+  .fork { position: relative; width: 100%; max-width: 660px; height: 56px; }
+  .fork::before { content: ""; position: absolute; left: 50%; top: 0; width: 2px; height: 14px; background: var(--card-border); transform: translateX(-50%); }
+  .fork::after { content: ""; position: absolute; left: 25%; right: 25%; top: 14px; height: 2px; background: var(--card-border); }
+  .fork .drop { position: absolute; top: 14px; width: 2px; height: 42px; background: var(--card-border); }
+  .fork .drop.l { left: 25%; } .fork .drop.r { left: 75%; }
+  .fork .lbl { position: absolute; top: 22px; transform: translateX(-50%); }
+  .fork .lbl.l { left: 25%; } .fork .lbl.r { left: 75%; }
+
+  .lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; width: 100%; max-width: 660px; align-items: start; }
+  .lane { display: flex; flex-direction: column; align-items: center; }
+  .lane-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.7rem; padding: 0.2rem 0.7rem; border-radius: 20px; }
+  .lane.abstract .lane-title { color: var(--coupl); background: #f3ecff; }
+  .lane.bio .lane-title { color: var(--damp); background: #e6f6f4; }
+  .edge { display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 0.3rem 0; }
+  .edge .trunk { height: 12px; }
+  @media (max-width: 700px) {
+    .lanes { grid-template-columns: 1fr; }
+    .fork { height: 30px; }
+    .fork::after, .fork .drop.r { display: none; }
+    .fork .lbl.r { display: none; }
+    .fork .lbl.l { left: 50%; }
+  }
+
+  /* ---- ladder ---- */
+  .ladder-box {
+    background: white; border: 1px solid var(--card-border); border-radius: 12px;
+    padding: 1.6rem 1.8rem; margin: 1.4rem 0;
+  }
+  .ladder { position: relative; }
+  .ladder::before {
+    content: ""; position: absolute; left: 32px; top: 32px; bottom: 32px;
+    width: 2px; background: var(--card-border); z-index: 0;
+  }
+  .ladder-node { display: flex; align-items: center; gap: 1.1rem; position: relative; z-index: 1; }
+  .ladder-node.pending { opacity: 0.75; }
+  .ladder-icon {
+    width: 64px; height: 64px; border-radius: 50%; background: #0d1330; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 4px white;
+  }
+  .ladder-icon svg { width: 44px; height: 44px; }
+  .ladder-text h3 { font-size: 1.02rem; color: var(--blue); }
+  .ladder-text h3 span { font-size: 0.72rem; color: var(--faint); font-weight: 400; margin-left: 0.4rem; }
+  .ladder-text p { font-size: 0.86rem; color: var(--muted); line-height: 1.55; margin: 0.15rem 0 0; }
+  .ladder-edge { display: flex; align-items: center; gap: 1.1rem; position: relative; z-index: 1; padding: 0.5rem 0; }
+  .ladder-edge .spacer { width: 64px; flex-shrink: 0; display: flex; justify-content: center; }
+  .ladder-edge .chevron { color: var(--faint); font-size: 1.05rem; background: white; line-height: 1; padding: 0.1rem 0; }
+  .ladder-edge .edge-label {
+    font-size: 0.78rem; font-weight: 600; color: var(--blue); background: var(--light-blue);
+    border: 1px solid var(--card-border); padding: 0.35rem 0.8rem; border-radius: 20px;
+  }
+  .ladder-edge.pending .edge-label { color: var(--faint); background: #f4f4f4; }
+
+  .diag-viz { background: #0d1330; border-radius: 8px; padding: 0.5rem 0.35rem; }
+  .diag-viz svg { width: 100%; max-width: 260px; height: auto; display: block; margin: 0 auto; }
+
+  .diag-grid { grid-template-columns: 1fr; }
+  .diag-eq { font-family: Georgia, 'Times New Roman', serif; font-size: 0.92rem; color: var(--text); background: var(--light-blue); border-radius: 8px; padding: 0.55rem 0.8rem; margin-top: 0.8rem; line-height: 1.55; }
+  .diag-eq .hl { background: #ffe98a; border-radius: 2px; padding: 0 2px; font-weight: 700; }
+  .diag-eq .ref { display: block; font-family: sans-serif; font-size: 0.72rem; color: var(--faint); margin-top: 0.2rem; }
+
+  footer { text-align: center; font-size: 0.78rem; color: var(--faint); padding: 2rem; border-top: 1px solid var(--card-border); }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="aBlue" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#2f6df6"/></marker>
+  <marker id="aGrey" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L7,4 L0,8 Z" fill="#9aa0b4"/></marker>
+  <marker id="barI" markerWidth="10" markerHeight="12" refX="8" refY="6" orient="auto"><line x1="8" y1="1.5" x2="8" y2="10.5" stroke="#FF6657" stroke-width="2.2"/></marker>
+  <radialGradient id="sBlue" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#a9e8ff"/><stop offset="100%" stop-color="#0f7bb3"/></radialGradient>
+  <radialGradient id="sPurple" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#e0c8ff"/><stop offset="100%" stop-color="#8b3fd4"/></radialGradient>
+  <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#22c1ff"/></marker>
+  <marker id="barCoral" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><line x1="8" y1="1" x2="8" y2="9" stroke="#FF6657" stroke-width="2"/></marker>
+  <marker id="arrowLight" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#e8edf7"/></marker>
+  <radialGradient id="somaBlue" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#a9e8ff"/><stop offset="100%" stop-color="#0f7bb3"/></radialGradient>
+  <radialGradient id="somaCoral" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#ffcabf"/><stop offset="100%" stop-color="#d94b36"/></radialGradient>
+  <radialGradient id="somaPurple" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#e0c8ff"/><stop offset="100%" stop-color="#8b3fd4"/></radialGradient>
+  <marker id="arrowNet" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#5b6788"/></marker>
+</defs></svg>
+
+<nav class="topnav">
+  <div class="brand">Rosetta Stone of Neural Mass Models</div>
+  <div class="links"><a href="index.html">Home</a><a href="map.html">Map</a><a href="map-buildup.html" class="active">Build-up</a><a href="explorer.html">Explore</a></div>
+</nav>
+
+<div class="banner">
+  <b>Prototype.</b> Three separate sections — <b>equations</b>, <b>diagrams</b>, <b>mind map</b>. Neural diagrams redone as circuit-style flow schematics. HO &amp; Stuart–Landau in polar form (r, θ). The live <b>map.html</b> is untouched.
+</div>
+
+<header>
+  <div class="label">One oscillator, three ways to look at it</div>
+  <h1>Building the models from <span>one oscillator</span></h1>
+  <p>The same five models, shown three ways: what their equations are made of, what each one physically pictures, and how they all branch out from HO.</p>
+</header>
+
+<main>
+
+  <!-- ═══════════ 1 · EQUATIONS ═══════════ -->
+  <section class="block">
+    <h2><span class="num">1</span>The equations, term by term</h2>
+    <p class="tagline">Every term coloured by the job it does — the same colour means the same role across all models.</p>
+    <div class="role-legend">
+      <span><span class="sw" style="background:var(--freq)"></span>rotation</span>
+      <span><span class="sw" style="background:var(--damp)"></span>damping / relaxation</span>
+      <span><span class="sw" style="background:var(--sat)"></span>amplitude brake</span>
+      <span><span class="sw" style="background:var(--coupl)"></span>E–I coupling</span>
+      <span><span class="sw" style="background:var(--filt)"></span>synaptic filter</span>
+      <span><span class="sw" style="background:var(--mf)"></span>mean field</span>
+      <span><span class="sw" style="background:var(--drive)"></span>external input</span>
+    </div>
+
+    <div class="eqlist">
+      <div class="eqrow">
+        <span class="er-ico" data-ico="ho"></span>
+        <div class="er-body">
+          <div class="er-name">HO · harmonic oscillator (polar)</div>
+          <div class="er-eq">ṙ = <b style="color:var(--damp)">α r</b> <span class="sep">·</span> θ̇ = <b style="color:var(--freq)">ω</b></div>
+        </div>
+      </div>
+      <div class="eqrow">
+        <span class="er-ico" data-ico="sl"></span>
+        <div class="er-body">
+          <div class="er-name">Stuart–Landau (polar)</div>
+          <div class="er-eq">ṙ = <b style="color:var(--damp)">α r</b> <b style="color:var(--sat)">− γr³</b> <span class="sep">·</span> θ̇ = <b style="color:var(--freq)">ω</b> <b style="color:var(--sat)">− βr²</b></div>
+          <div class="er-note"><b>new:</b> the amplitude brake −γr³ locks r at r* = √(α/γ).</div>
+        </div>
+      </div>
+      <div class="eqrow">
+        <span class="er-ico" data-ico="wilco"></span>
+        <div class="er-body">
+          <div class="er-name">WILCO · Wilson–Cowan</div>
+          <div class="er-eq"><b style="color:var(--damp)">τₓẋ + x</b> = <b style="color:var(--sat)">σ</b>(<b style="color:var(--coupl)">wₓₓx − wₓᵧy</b> + <b style="color:var(--drive)">Pₓ</b>)<span class="l2"><b style="color:var(--damp)">τᵧẏ + y</b> = <b style="color:var(--sat)">σ</b>(<b style="color:var(--coupl)">wᵧₓx − wᵧᵧy</b>)</span></div>
+          <div class="er-note"><b>new:</b> two populations linked by reciprocal E–I coupling.</div>
+        </div>
+      </div>
+      <div class="eqrow">
+        <span class="er-ico" data-ico="nmm1"></span>
+        <div class="er-body">
+          <div class="er-name">NMM1 · second-order synapses</div>
+          <div class="er-eq"><b style="color:var(--filt)">τ²ẍ + 2τẋ</b> + x = γ <b style="color:var(--sat)">σ</b>(<b style="color:var(--coupl)">−wₓᵧy</b> + <b style="color:var(--drive)">F̂ₑ</b>)</div>
+          <div class="er-note"><b>new:</b> a second-order synaptic filter with its own rise and decay.</div>
+        </div>
+      </div>
+      <div class="eqrow">
+        <span class="er-ico" data-ico="nmm2"></span>
+        <div class="er-body">
+          <div class="er-name">NMM2 · next-gen mean field</div>
+          <div class="er-eq"><b style="color:var(--mf)">ṙ = Δ/π + 2rv</b><span class="l2"><b style="color:var(--mf)">v̇ = v² − π²r²</b> + <b style="color:var(--coupl)">Js</b> + <b style="color:var(--drive)">η̄ + I(t)</b></span></div>
+          <div class="er-note"><b>new:</b> an exact mean field from spiking QIF neurons (rate r, voltage v).</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 2 · DIAGRAMS ═══ -->
+  <section class="block">
+    <h2><span class="num">2</span>The diagrams — one node, then a network</h2>
+    <p class="tagline">For each model: what a <b>single node</b> is, and how nodes are <b>coupled into a whole-brain network</b> — with the paper’s exact coupling term (highlighted). HO &amp; SL couple <b>diffusively</b>; the neural models add coupling <b>inside the excitatory nonlinearity</b> (E→E).</p>
+    <div class="diag-grid">
+      <div class="diag-card">
+        <div class="d-name">HO — one oscillator</div>
+        <div class="diag-row">
+          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+      <line x1="34" y1="42" x2="34" y2="108" stroke="#e8edf7" stroke-width="4" stroke-linecap="round" opacity="0.85"/>
+      <line x1="34" y1="52" x2="20" y2="64" stroke="#e8edf7" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+      <line x1="34" y1="68" x2="20" y2="80" stroke="#e8edf7" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+      <line x1="34" y1="84" x2="20" y2="96" stroke="#e8edf7" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+      <line x1="34" y1="100" x2="20" y2="112" stroke="#e8edf7" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+      <path fill="none" stroke="#22c1ff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
+        d="M34,75 L58,58 L82,92 L107,58 L131,92 L155,58 L179,75">
+        <animate attributeName="d"
+          values="M34,75 L58,58 L82,92 L107,58 L131,92 L155,58 L179,75;
+                  M34,75 L63,58 L92,92 L121,58 L150,92 L179,58 L208,75;
+                  M34,75 L54,58 L74,92 L94,58 L114,92 L134,58 L154,75;
+                  M34,75 L58,58 L82,92 L107,58 L131,92 L155,58 L179,75"
+          keyTimes="0;0.33;0.66;1" dur="2.6s" repeatCount="indefinite"
+          calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1"/>
+      </path>
+      <circle cy="75" r="22" fill="url(#somaBlue)" stroke="white" stroke-width="2">
+        <animate attributeName="cx" values="199;228;174;199" keyTimes="0;0.33;0.66;1" dur="2.6s" repeatCount="indefinite"
+          calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1"/>
+      </circle>
+    </svg></div><div class="diag-cap">one node = one oscillator (a coarse-grained population)</div></div>
+          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="eho0" d="M118,42 L300,90" fill="none" stroke="#3a4568" stroke-width="2"/><path id="eho1" d="M94,116 L300,90" fill="none" stroke="#3a4568" stroke-width="2"/><path id="eho2" d="M118,42 L94,116" fill="none" stroke="#3a4568" stroke-width="2"/><text x="196" y="58" font-size="12" fill="#8a93b0" font-style="italic">Cᵢⱼ</text><circle cx="118" cy="42" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.0s" repeatCount="indefinite"/></circle><circle cx="94" cy="116" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.5s" repeatCount="indefinite"/></circle><circle cx="300" cy="90" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="1.0s" repeatCount="indefinite"/></circle><circle r="5" fill="#22c1ff"><animateMotion dur="2.4s" begin="0.0s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#eho0"/></animateMotion></circle><circle r="5" fill="#22c1ff"><animateMotion dur="2.4s" begin="0.4s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#eho1"/></animateMotion></circle><circle r="5" fill="#22c1ff"><animateMotion dur="2.4s" begin="0.8s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#eho2"/></animateMotion></circle></svg></div><div class="diag-cap">diffusive: each node is pulled toward its neighbours</div></div>
+        </div>
+        <div class="diag-eq">żᵢ = (α+iω)zᵢ + G Σⱼ <span class="hl">Cᵢⱼ(zⱼ − zᵢ)</span> <span class="ref">diffusive coupling · §2, Eq. 2.30</span></div>
+      </div>
+      <div class="diag-card">
+        <div class="d-name">Stuart–Landau — a locked rhythm</div>
+        <div class="diag-row">
+          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+      <circle cx="200" cy="75" r="44" fill="none" stroke="#ec4899" stroke-width="3.5" opacity="0.95"/>
+      <path d="M200,75 C214,71 219,53 202,47 C178,38 150,53 152,78 C154,106 189,120 218,106 C237,97 239,77 229,60"
+            fill="none" stroke="#c084fc" stroke-width="2" stroke-dasharray="4 4" opacity="0.7" stroke-linecap="round"/>
+      <circle r="7" fill="#c084fc" stroke="white" stroke-width="1.5">
+        <animateMotion dur="3.2s" repeatCount="indefinite" path="M244,75 A44,44 0 1,1 156,75 A44,44 0 1,1 244,75"/>
+      </circle>
+    </svg></div><div class="diag-cap">one node orbits a fixed ring (limit cycle)</div></div>
+          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="esl0" d="M118,42 L300,90" fill="none" stroke="#3a4568" stroke-width="2"/><path id="esl1" d="M94,116 L300,90" fill="none" stroke="#3a4568" stroke-width="2"/><path id="esl2" d="M118,42 L94,116" fill="none" stroke="#3a4568" stroke-width="2"/><text x="196" y="58" font-size="12" fill="#8a93b0" font-style="italic">Cᵢⱼ</text><circle cx="118" cy="42" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.0s" repeatCount="indefinite"/></circle><circle cx="94" cy="116" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.5s" repeatCount="indefinite"/></circle><circle cx="300" cy="90" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="1.0s" repeatCount="indefinite"/></circle><circle r="5" fill="#22c1ff"><animateMotion dur="2.4s" begin="0.0s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#esl0"/></animateMotion></circle><circle r="5" fill="#22c1ff"><animateMotion dur="2.4s" begin="0.4s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#esl1"/></animateMotion></circle><circle r="5" fill="#22c1ff"><animateMotion dur="2.4s" begin="0.8s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#esl2"/></animateMotion></circle></svg></div><div class="diag-cap">diffusive: pulled toward neighbours, amplitude self-limited</div></div>
+        </div>
+        <div class="diag-eq">żᵢ = (α+iω)zᵢ − (γ+iβ)|zᵢ|²zᵢ + G Σⱼ <span class="hl">Cᵢⱼ(zⱼ − zᵢ)</span> <span class="ref">diffusive coupling · §3, Eq. 3.9</span></div>
+      </div>
+      <div class="diag-card">
+        <div class="d-name">WILCO — two populations</div>
+        <div class="diag-row">
+          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+      <path d="M158,64 Q200,30 242,64" fill="none" stroke="#22c1ff" stroke-width="3" marker-end="url(#arrowBlue)"/>
+      <path d="M242,98 Q200,138 158,98" fill="none" stroke="#FF6657" stroke-width="3" marker-end="url(#barCoral)"/>
+      <path d="M112,55 Q88,14 132,24 Q152,30 132,55" fill="none" stroke="#22c1ff" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+      <path d="M288,55 Q312,14 268,24 Q248,30 268,55" fill="none" stroke="#FF6657" stroke-width="2.5" marker-end="url(#barCoral)"/>
+      <circle cx="130" cy="80" r="30" fill="url(#somaBlue)" stroke="white" stroke-width="2"/>
+      <text x="130" y="90" font-size="28" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">E</text>
+      <circle cx="270" cy="80" r="30" fill="url(#somaCoral)" stroke="white" stroke-width="2"/>
+      <text x="270" y="90" font-size="28" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">I</text>
+    </svg></div><div class="diag-cap">one node = excitatory + inhibitory populations</div></div>
+          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="ewilco0" d="M118,42 L300,90" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><path id="ewilco1" d="M94,116 L300,90" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><path id="ewilco2" d="M118,42 L94,116" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><text x="196" y="58" font-size="12" fill="#8a93b0" font-style="italic">Cᵢⱼ</text><circle cx="118" cy="42" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.0s" repeatCount="indefinite"/></circle><circle cx="94" cy="116" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.5s" repeatCount="indefinite"/></circle><circle cx="300" cy="90" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="1.0s" repeatCount="indefinite"/></circle><circle r="5" fill="#f5a623"><animateMotion dur="2.4s" begin="0.0s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#ewilco0"/></animateMotion></circle><circle r="5" fill="#f5a623"><animateMotion dur="2.4s" begin="0.5s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#ewilco1"/></animateMotion></circle><circle r="5" fill="#f5a623"><animateMotion dur="2.4s" begin="1.0s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#ewilco2"/></animateMotion></circle></svg></div><div class="diag-cap">additive, E→E: node j’s rate feeds node i’s input</div></div>
+        </div>
+        <div class="diag-eq">τₓẋᵢ + xᵢ = σ(wₓₓxᵢ − wₓᵧyᵢ + Pₓ + <span class="hl">Σⱼ Cᵢⱼ xⱼ</span>) <span class="ref">additive coupling, inside σ · §5, Eq. 5.5</span></div>
+      </div>
+      <div class="diag-card">
+        <div class="d-name">NMM1 — realistic synapses</div>
+        <div class="diag-row">
+          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+      <g stroke="#22c1ff" stroke-width="2.5" stroke-linecap="round" opacity="0.85">
+        <line x1="63" y1="60" x2="38" y2="38"/>
+        <line x1="58" y1="75" x2="28" y2="75"/>
+        <line x1="63" y1="90" x2="38" y2="112"/>
+      </g>
+      <g stroke="#FF6657" stroke-width="2.5" stroke-linecap="round" opacity="0.85">
+        <line x1="337" y1="60" x2="362" y2="38"/>
+        <line x1="342" y1="75" x2="372" y2="75"/>
+        <line x1="337" y1="90" x2="362" y2="112"/>
+      </g>
+      <path id="nmm1axon" d="M109,75 Q212,42 291,75" fill="none" stroke="#e8edf7" stroke-width="3" opacity="0.85"/>
+      <polyline points="248,38 253,37 258,26 263,39 268,37 273,38" fill="none" stroke="#f5a623" stroke-width="2" opacity="0.95"/>
+      <circle cx="85" cy="75" r="24" fill="url(#somaBlue)" stroke="white" stroke-width="2"/>
+      <circle cx="315" cy="75" r="24" fill="url(#somaCoral)" stroke="white" stroke-width="2"/>
+      <circle r="8" fill="#f5a623" stroke="white" stroke-width="1.5">
+        <animateMotion dur="3s" repeatCount="indefinite" keyPoints="0;0.82;0.82;1" keyTimes="0;0.5;0.78;1" calcMode="linear">
+          <mpath href="#nmm1axon"/>
+        </animateMotion>
+      </circle>
+    </svg></div><div class="diag-cap">one node: E–I with rise/decay synapses</div></div>
+          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="enmm10" d="M118,42 L300,90" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><path id="enmm11" d="M94,116 L300,90" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><path id="enmm12" d="M118,42 L94,116" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><text x="196" y="58" font-size="12" fill="#8a93b0" font-style="italic">Cᵢⱼ</text><circle cx="118" cy="42" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.0s" repeatCount="indefinite"/></circle><circle cx="94" cy="116" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.5s" repeatCount="indefinite"/></circle><circle cx="300" cy="90" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="1.0s" repeatCount="indefinite"/></circle><circle r="5" fill="#f5a623"><animateMotion dur="3.4s" begin="0.0s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#enmm10"/></animateMotion></circle><circle r="5" fill="#f5a623"><animateMotion dur="3.4s" begin="0.5s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#enmm11"/></animateMotion></circle><circle r="5" fill="#f5a623"><animateMotion dur="3.4s" begin="1.0s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#enmm12"/></animateMotion></circle></svg></div><div class="diag-cap">the same, E→E, but arriving with a conduction delay τᵢⱼ</div></div>
+        </div>
+        <div class="diag-eq">Lₓ[xᵢ] = σ(−wₓᵧyᵢ + F̂ₑ + <span class="hl">Σⱼ Cᵢⱼ xⱼ(t−τᵢⱼ)</span>) <span class="ref">additive, delayed, E→E · §6, Eq. 6.6</span></div>
+      </div>
+      <div class="diag-card pending">
+        <div class="d-name">NMM2 — spiking populations</div>
+        <div class="diag-row">
+          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+      <ellipse cx="115" cy="75" rx="72" ry="55" fill="none" stroke="#e8edf7" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.5"/>
+      <circle cx="80" cy="50" r="4.5" fill="#22c1ff"/>
+      <circle cx="115" cy="42" r="4.5" fill="#FF6657"/>
+      <circle cx="145" cy="55" r="4.5" fill="#22c1ff"/>
+      <circle cx="70" cy="80" r="4.5" fill="#FF6657"/>
+      <circle cx="105" cy="78" r="4.5" fill="#22c1ff"/>
+      <circle cx="140" cy="85" r="4.5" fill="#FF6657"/>
+      <circle cx="85" cy="108" r="4.5" fill="#22c1ff"/>
+      <circle cx="120" cy="112" r="4.5" fill="#FF6657"/>
+      <circle cx="155" cy="100" r="4.5" fill="#22c1ff"/>
+      <circle cx="60" cy="65" r="4.5" fill="#FF6657"/>
+      <line x1="80" y1="50" x2="80" y2="39" stroke="#22c1ff" stroke-width="1.5" opacity="0.8"/>
+      <line x1="115" y1="42" x2="115" y2="31" stroke="#FF6657" stroke-width="1.5" opacity="0.8"/>
+      <line x1="120" y1="112" x2="120" y2="123" stroke="#FF6657" stroke-width="1.5" opacity="0.8"/>
+      <path d="M198,75 Q225,75 248,75" fill="none" stroke="#e8edf7" stroke-width="3" marker-end="url(#arrowLight)"/>
+      <circle cx="315" cy="50" r="27" fill="url(#somaPurple)" stroke="white" stroke-width="2"/>
+      <text x="315" y="59" font-size="24" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">r</text>
+      <circle cx="315" cy="106" r="27" fill="url(#somaPurple)" stroke="white" stroke-width="2"/>
+      <text x="315" y="115" font-size="24" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">v</text>
+      <path d="M300,68 Q290,78 300,88" fill="none" stroke="#e8edf7" stroke-width="1.5" marker-end="url(#arrowLight)" opacity="0.8"/>
+      <path d="M330,88 Q340,78 330,68" fill="none" stroke="#e8edf7" stroke-width="1.5" marker-end="url(#arrowLight)" opacity="0.8"/>
+    </svg></div><div class="diag-cap">one node = a population of spiking neurons → (r, v)</div></div>
+          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="enmm20" d="M118,42 L300,90" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><path id="enmm21" d="M94,116 L300,90" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><path id="enmm22" d="M118,42 L94,116" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><text x="196" y="58" font-size="12" fill="#8a93b0" font-style="italic">Cᵢⱼ</text><circle cx="118" cy="42" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.0s" repeatCount="indefinite"/></circle><circle cx="94" cy="116" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.5s" repeatCount="indefinite"/></circle><circle cx="300" cy="90" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="1.0s" repeatCount="indefinite"/></circle><circle r="5" fill="#f5a623"><animateMotion dur="2.4s" begin="0.0s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#enmm20"/></animateMotion></circle><circle r="5" fill="#f5a623"><animateMotion dur="2.4s" begin="0.5s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#enmm21"/></animateMotion></circle><circle r="5" fill="#f5a623"><animateMotion dur="2.4s" begin="1.0s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#enmm22"/></animateMotion></circle></svg></div><div class="diag-cap">node j’s synaptic activation sᵢⱼ drives node i’s voltage</div></div>
+        </div>
+        <div class="diag-eq">v̇ᵢ = vᵢ² − π²rᵢ² + η̄ + <span class="hl">Σⱼ Cᵢⱼ sᵢⱼ</span>,  sᵢⱼ = K̂[rⱼ] <span class="ref">synaptic-current coupling · §7, Eq. 7.11</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 3 · LADDER ═══════════ -->
+  <section class="block" id="ladder">
+    <h2><span class="num">3</span>The ladder, top to bottom</h2>
+    <p class="tagline">The same five models from the Explore page, in the order they were built.</p>
+
+    <div class="ladder-box">
+      <div class="ladder">
+
+        <div class="ladder-node">
+          <div class="ladder-icon">
+            <svg viewBox="0 0 100 104" aria-hidden="true">
+              <circle cx="50" cy="54" r="40" fill="none" stroke="#22c1ff" stroke-width="1.3" stroke-dasharray="3 4" opacity="0.55"/>
+              <circle cx="76" cy="32" r="3" fill="#FF6657"/>
+              <g transform="translate(50,54) scale(1.05)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+                <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+                <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+                <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+                <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+                <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+                <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+                <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+                <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+                <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+                <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+                <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+                <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+                <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+                <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+              </g>
+            </svg>
+          </div>
+          <div class="ladder-text">
+            <h3>HO <span>the common ancestor</span></h3>
+            <p>ż = (α + iω)z — a linear oscillator, closed-form solution. A mass on a spring.</p>
+          </div>
+        </div>
+
+        <div class="ladder-edge">
+          <div class="spacer"><span class="chevron">▾</span></div>
+          <div class="edge-label">+ cubic nonlinearity</div>
+        </div>
+
+        <div class="ladder-node">
+          <div class="ladder-icon">
+            <svg viewBox="0 0 100 104" aria-hidden="true">
+              <circle cx="50" cy="54" r="40" fill="none" stroke="#ec4899" stroke-width="2.4"/>
+              <g transform="translate(50,54) scale(1.05)" stroke="#c084fc" fill="none" stroke-linecap="round">
+                <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+                <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+                <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+                <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+                <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+                <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+                <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+                <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+                <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaPurple)" stroke-width="1"/>
+                <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+                <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+                <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+                <circle cx="-5" cy="41" r="1.3" fill="#c084fc" stroke="none"/>
+                <circle cx="5" cy="41" r="1.3" fill="#c084fc" stroke="none"/>
+              </g>
+            </svg>
+          </div>
+          <div class="ladder-text">
+            <h3>Stuart–Landau <span>rung 2</span></h3>
+            <p>A cubic term caps the HO's neutral circle into a genuine limit cycle — the first real, self-sustaining rhythm.</p>
+          </div>
+        </div>
+
+        <div class="ladder-edge">
+          <div class="spacer"><span class="chevron">▾</span></div>
+          <div class="edge-label">+ E/I populations, sigmoid</div>
+        </div>
+
+        <div class="ladder-node">
+          <div class="ladder-icon">
+            <svg viewBox="0 0 200 104" aria-hidden="true">
+              <g transform="translate(64,56) scale(0.82)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+                <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+                <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+                <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+                <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+                <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+                <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+                <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+                <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+                <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+                <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+                <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+                <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+                <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+                <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+              </g>
+              <g transform="translate(136,56) scale(0.82)" stroke="#FF6657" fill="none" stroke-linecap="round">
+                <path d="M-2,-7 C-4,-12 -5,-16 -7,-20" stroke-width="1"/>
+                <path d="M2,-7 C4,-12 5,-16 7,-20" stroke-width="1"/>
+                <path d="M-6,-4 C-11,-6 -14,-8 -18,-11" stroke-width="1"/>
+                <path d="M6,-4 C11,-6 14,-8 18,-11" stroke-width="1"/>
+                <path d="M-7,3 C-12,4 -16,5 -20,6" stroke-width="1"/>
+                <path d="M7,3 C12,4 16,5 20,6" stroke-width="1"/>
+                <circle cx="0" cy="0" r="8" fill="url(#somaCoral)" stroke-width="1"/>
+                <path d="M0,8 C1,14 -1,17 0,22" stroke-width="1.1"/>
+                <path d="M0,22 C-2,24 -3,25 -5,27" stroke-width="0.9"/>
+                <path d="M0,22 C2,24 3,25 5,27" stroke-width="0.9"/>
+                <circle cx="-5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+                <circle cx="5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+              </g>
+              <path d="M80,44 Q100,32 120,44" fill="none" stroke="#22c1ff" stroke-width="1.8" marker-end="url(#arrowBlue)"/>
+              <path d="M120,70 Q100,82 80,70" fill="none" stroke="#FF6657" stroke-width="1.8" marker-end="url(#barCoral)"/>
+            </svg>
+          </div>
+          <div class="ladder-text">
+            <h3>WILCO <span>rung 3 · Wilson–Cowan</span></h3>
+            <p>Two neural populations replace the abstract oscillator. Turn up the drive and the E–I loop starts oscillating on its own.</p>
+          </div>
+        </div>
+
+        <div class="ladder-edge">
+          <div class="spacer"><span class="chevron">▾</span></div>
+          <div class="edge-label">+ synaptic time constants</div>
+        </div>
+
+        <div class="ladder-node">
+          <div class="ladder-icon">
+            <svg viewBox="0 0 200 104" aria-hidden="true">
+              <g transform="translate(66,60) scale(0.72)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+                <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+                <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+                <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+                <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+                <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+                <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+                <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+                <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+                <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+                <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+                <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+                <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+                <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+                <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+              </g>
+              <g transform="translate(134,60) scale(0.72)" stroke="#FF6657" fill="none" stroke-linecap="round">
+                <path d="M-2,-7 C-4,-12 -5,-16 -7,-20" stroke-width="1"/>
+                <path d="M2,-7 C4,-12 5,-16 7,-20" stroke-width="1"/>
+                <path d="M-6,-4 C-11,-6 -14,-8 -18,-11" stroke-width="1"/>
+                <path d="M6,-4 C11,-6 14,-8 18,-11" stroke-width="1"/>
+                <path d="M-7,3 C-12,4 -16,5 -20,6" stroke-width="1"/>
+                <path d="M7,3 C12,4 16,5 20,6" stroke-width="1"/>
+                <circle cx="0" cy="0" r="8" fill="url(#somaCoral)" stroke-width="1"/>
+                <path d="M0,8 C1,14 -1,17 0,22" stroke-width="1.1"/>
+                <path d="M0,22 C-2,24 -3,25 -5,27" stroke-width="0.9"/>
+                <path d="M0,22 C2,24 3,25 5,27" stroke-width="0.9"/>
+                <circle cx="-5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+                <circle cx="5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+              </g>
+              <path d="M82,48 Q100,37 118,48" fill="none" stroke="#22c1ff" stroke-width="1.6" marker-end="url(#arrowBlue)"/>
+              <path d="M118,72 Q100,82 82,72" fill="none" stroke="#FF6657" stroke-width="1.6" marker-end="url(#barCoral)"/>
+              <polyline points="88,18 93,17 98,10 103,19 108,17 113,18" fill="none" stroke="#f5a623" stroke-width="1.7" opacity="0.95"/>
+            </svg>
+          </div>
+          <div class="ladder-text">
+            <h3>NMM1 <span>rung 4</span></h3>
+            <p>Synaptic rise/decay time constants refine the frequency and shape of the rhythm that emerges from the E–I loop.</p>
+          </div>
+        </div>
+
+        <div class="ladder-edge pending">
+          <div class="spacer"><span class="chevron">▾</span></div>
+          <div class="edge-label">+ exact QIF mean-field derivation</div>
+        </div>
+
+        <div class="ladder-node pending">
+          <div class="ladder-icon">
+            <svg viewBox="0 0 200 104" aria-hidden="true">
+              <g fill="#22c1ff" opacity="0.5">
+                <circle cx="30" cy="34" r="1.4"/><circle cx="24" cy="50" r="1.3"/><circle cx="32" cy="68" r="1.3"/>
+              </g>
+              <g fill="#FF6657" opacity="0.5">
+                <circle cx="170" cy="34" r="1.4"/><circle cx="176" cy="50" r="1.3"/><circle cx="168" cy="68" r="1.3"/>
+              </g>
+              <g transform="translate(64,56) scale(0.82)" stroke="#22c1ff" fill="none" stroke-linecap="round">
+                <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
+                <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+                <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
+                <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+                <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
+                <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+                <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
+                <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+                <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
+                <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+                <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
+                <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+                <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+                <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
+              </g>
+              <g transform="translate(136,56) scale(0.82)" stroke="#FF6657" fill="none" stroke-linecap="round">
+                <path d="M-2,-7 C-4,-12 -5,-16 -7,-20" stroke-width="1"/>
+                <path d="M2,-7 C4,-12 5,-16 7,-20" stroke-width="1"/>
+                <path d="M-6,-4 C-11,-6 -14,-8 -18,-11" stroke-width="1"/>
+                <path d="M6,-4 C11,-6 14,-8 18,-11" stroke-width="1"/>
+                <path d="M-7,3 C-12,4 -16,5 -20,6" stroke-width="1"/>
+                <path d="M7,3 C12,4 16,5 20,6" stroke-width="1"/>
+                <circle cx="0" cy="0" r="8" fill="url(#somaCoral)" stroke-width="1"/>
+                <path d="M0,8 C1,14 -1,17 0,22" stroke-width="1.1"/>
+                <path d="M0,22 C-2,24 -3,25 -5,27" stroke-width="0.9"/>
+                <path d="M0,22 C2,24 3,25 5,27" stroke-width="0.9"/>
+                <circle cx="-5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+                <circle cx="5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
+              </g>
+              <path d="M80,44 Q100,32 120,44" fill="none" stroke="#22c1ff" stroke-width="1.8" marker-end="url(#arrowBlue)"/>
+              <path d="M120,70 Q100,82 80,70" fill="none" stroke="#FF6657" stroke-width="1.8" marker-end="url(#barCoral)"/>
+            </svg>
+          </div>
+          <div class="ladder-text">
+            <h3>NMM2 <span>rung 5 · next-gen mean field · demo coming soon</span></h3>
+            <p>Replaces the static sigmoid with an exact mean-field reduction of spiking QIF neurons — same E/I skeleton, but the transfer function itself now has its own dynamics.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>Prototype · Rosetta Stone of Neural Mass Models · Castaldo et al.</footer>
+
+<script>
+/* ── small head icons (kept as neuron sketches) ───────────────────────────── */
+const NEURON_E = `<g stroke="#2f6df6" fill="none" stroke-linecap="round">
+  <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/><path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
+  <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/><path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
+  <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/><path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
+  <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/><path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
+  <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#sBlue)" stroke-width="1"/>
+  <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
+  <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/><path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
+</g>`;
+const ICONS = {
+  ho:   `<svg viewBox="0 0 100 104"><circle cx="50" cy="54" r="40" fill="none" stroke="#2f6df6" stroke-width="1.3" stroke-dasharray="3 4" opacity="0.6"/><g transform="translate(50,54)">${NEURON_E}</g></svg>`,
+  sl:   `<svg viewBox="0 0 100 104"><circle cx="50" cy="54" r="40" fill="none" stroke="#e34a34" stroke-width="2.4"/><g transform="translate(50,54)"><path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#sPurple)" stroke="#7c3aed"/><path d="M0,-11 C-1,-17 1,-22 0,-29" stroke="#7c3aed" fill="none"/><path d="M0,9 C1,15 -1,19 0,30" stroke="#7c3aed" fill="none"/><path d="M-5,9 C-9,12 -13,14 -18,16" stroke="#7c3aed" fill="none"/><path d="M5,9 C9,12 13,14 18,16" stroke="#7c3aed" fill="none"/></g></svg>`,
+};
+/* neural head icons: simple two-dot E/I glyph */
+const HEAD_EI = `<svg viewBox="0 0 100 100"><circle cx="34" cy="50" r="15" fill="#dce9fb" stroke="#2f6df6" stroke-width="2"/><circle cx="70" cy="50" r="15" fill="#ffe1db" stroke="#FF6657" stroke-width="2"/><path d="M46,42 Q52,34 58,42" fill="none" stroke="#2f6df6" stroke-width="1.6" marker-end="url(#aBlue)"/><path d="M58,60 Q52,68 46,60" fill="none" stroke="#FF6657" stroke-width="1.6" marker-end="url(#barI)"/></svg>`;
+ICONS.wilco = ICONS.nmm1 = ICONS.nmm2 = HEAD_EI;
+
+/* ── circuit / flow schematics ────────────────────────────────────────────── */
+function eiLoop({self=false, synapse=false, clusters=false} = {}){
+  const eNode = clusters
+    ? `<ellipse cx="60" cy="62" rx="26" ry="24" fill="none" stroke="#2f6df6" stroke-width="2" stroke-dasharray="4 3"/>
+       <g fill="#2f6df6"><circle cx="50" cy="52" r="2.6"/><circle cx="66" cy="50" r="2.2"/><circle cx="54" cy="66" r="2.8"/><circle cx="68" cy="68" r="2.2"/><circle cx="60" cy="60" r="2"/></g>`
+    : `<circle cx="60" cy="62" r="24" fill="#dce9fb" stroke="#2f6df6" stroke-width="2"/>`;
+  const iNode = clusters
+    ? `<ellipse cx="164" cy="62" rx="26" ry="24" fill="none" stroke="#FF6657" stroke-width="2" stroke-dasharray="4 3"/>
+       <g fill="#FF6657"><circle cx="154" cy="52" r="2.6"/><circle cx="170" cy="50" r="2.2"/><circle cx="158" cy="66" r="2.8"/><circle cx="172" cy="68" r="2.2"/><circle cx="164" cy="60" r="2"/></g>`
+    : `<circle cx="164" cy="62" r="24" fill="#ffe1db" stroke="#FF6657" stroke-width="2"/>`;
+  const synBoxes = synapse
+    ? `<rect x="104" y="26" width="18" height="12" rx="3" fill="white" stroke="#c67608" stroke-width="1.4"/>
+       <path d="M107,35 C110,35 111,29 113,29 C116,29 118,36 120,36" fill="none" stroke="#c67608" stroke-width="1.1"/>
+       <rect x="104" y="86" width="18" height="12" rx="3" fill="white" stroke="#c67608" stroke-width="1.4"/>
+       <path d="M107,95 C110,95 111,89 113,89 C116,89 118,96 120,96" fill="none" stroke="#c67608" stroke-width="1.1"/>`
+    : ``;
+  const selfLoop = self
+    ? `<path d="M49,44 A11,11 0 1 1 71,44" fill="none" stroke="#2f6df6" stroke-width="1.5" marker-end="url(#aBlue)"/>
+       <text x="60" y="22" font-size="8" fill="#2f6df6" text-anchor="middle">self-excite</text>`
+    : ``;
+  return `<svg viewBox="0 0 224 126">
+    <line x1="10" y1="62" x2="30" y2="62" stroke="#9aa0b4" stroke-width="2" marker-end="url(#aGrey)"/>
+    <text x="8" y="54" font-size="8.5" fill="#8a8fa3">drive</text>
+    ${eNode}<text x="60" y="67" font-size="15" fill="#2f6df6" text-anchor="middle" font-weight="700">E</text>
+    ${iNode}<text x="164" y="67" font-size="15" fill="#FF6657" text-anchor="middle" font-weight="700">I</text>
+    <path d="M84,50 Q112,30 140,50" fill="none" stroke="#2f6df6" stroke-width="2.2" marker-end="url(#aBlue)"/>
+    <text x="112" y="24" font-size="9" fill="#2f6df6" text-anchor="middle">excites</text>
+    <path d="M140,74 Q112,96 84,74" fill="none" stroke="#FF6657" stroke-width="2.2" marker-end="url(#barI)"/>
+    <text x="112" y="112" font-size="9" fill="#FF6657" text-anchor="middle">inhibits</text>
+    ${synBoxes}${selfLoop}
+  </svg>`;
+}
+
+const VIZ = {
+  phasor: `<svg viewBox="0 0 140 130">
+    <line x1="14" y1="66" x2="126" y2="66" stroke="#dfe3ee" stroke-width="1"/><line x1="70" y1="14" x2="70" y2="118" stroke="#dfe3ee" stroke-width="1"/>
+    <circle cx="70" cy="66" r="42" fill="none" stroke="#c7cfe4" stroke-width="1.2" stroke-dasharray="3 4"/>
+    <path d="M70,24 A42,42 0 0 1 112,66 A35,35 0 0 1 77,101 A29,29 0 0 1 48,72" fill="none" stroke="#2f6df6" stroke-width="1.5" opacity="0.45"/>
+    <line x1="70" y1="66" x2="100" y2="37" stroke="#2f6df6" stroke-width="2.6"/><circle cx="100" cy="37" r="3.6" fill="#2f6df6"/>
+    <text x="86" y="47" font-size="10" fill="#2f6df6" font-style="italic">r</text>
+    <path d="M90,66 A20,20 0 0 0 84,52" fill="none" stroke="#0f9488" stroke-width="1.6"/><text x="93" y="60" font-size="10" fill="#0f9488" font-style="italic">θ</text>
+    <path d="M118,54 A50,50 0 0 1 120,78" fill="none" stroke="#9aa0b4" stroke-width="1.4" marker-end="url(#aGrey)"/><text x="120" y="48" font-size="10" fill="#8a8fa3" font-style="italic">ω</text></svg>`,
+  limit: `<svg viewBox="0 0 140 130">
+    <line x1="14" y1="66" x2="126" y2="66" stroke="#dfe3ee" stroke-width="1"/><line x1="70" y1="14" x2="70" y2="118" stroke="#dfe3ee" stroke-width="1"/>
+    <circle cx="70" cy="66" r="36" fill="none" stroke="#e34a34" stroke-width="2.6"/>
+    <path d="M70,66 C82,60 86,74 78,82 C66,92 50,80 52,64 C55,42 82,36 104,50" fill="none" stroke="#2f6df6" stroke-width="1.6" marker-end="url(#aBlue)"/>
+    <circle cx="70" cy="66" r="2.4" fill="#9aa0b4"/>
+    <text x="70" y="24" font-size="9.5" fill="#e34a34" font-style="italic" text-anchor="middle">r* = √(α/γ)</text></svg>`,
+  pop1: `<svg viewBox="0 0 190 110">
+    <line x1="8" y1="55" x2="34" y2="55" stroke="#9aa0b4" stroke-width="2" marker-end="url(#aGrey)"/><text x="20" y="47" font-size="9" fill="#8a8fa3" text-anchor="middle">input</text>
+    <circle cx="86" cy="55" r="30" fill="#dce9fb" stroke="#2f6df6" stroke-width="2"/><text x="86" y="49" font-size="14" fill="#2f6df6" text-anchor="middle" font-weight="700">E</text>
+    <path d="M74,68 C80,68 80,60 86,60 C92,60 92,52 98,52" fill="none" stroke="#e34a34" stroke-width="1.6"/>
+    <line x1="118" y1="55" x2="150" y2="55" stroke="#2f6df6" stroke-width="2" marker-end="url(#aBlue)"/><text x="134" y="47" font-size="9" fill="#2f6df6" text-anchor="middle">rate x</text></svg>`,
+  loop: eiLoop({self: true}),
+  loopf: eiLoop({synapse: true}),
+  loopc: eiLoop({clusters: true}),
+  synresp: `<svg viewBox="0 0 150 104">
+    <line x1="16" y1="78" x2="140" y2="78" stroke="#dfe3ee" stroke-width="1"/><line x1="16" y1="16" x2="16" y2="78" stroke="#dfe3ee" stroke-width="1"/>
+    <line x1="34" y1="78" x2="34" y2="34" stroke="#7c3aed" stroke-width="2.2" marker-end="url(#aGrey)"/><text x="34" y="96" font-size="9" fill="#7c3aed" text-anchor="middle">spike in</text>
+    <path d="M34,78 C46,78 50,30 66,30 C86,30 104,74 138,76" fill="none" stroke="#c67608" stroke-width="2.4"/><text x="104" y="96" font-size="9" fill="#c67608" text-anchor="middle">smoothed out</text></svg>`,
+};
+
+document.querySelectorAll('[data-ico]').forEach(el => { el.innerHTML = ICONS[el.dataset.ico] || ''; });
+document.querySelectorAll('[data-viz]').forEach(el => { el.innerHTML = VIZ[el.dataset.viz] || ''; });
+</script>
+
+</body>
+</html>
