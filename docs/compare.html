@@ -185,6 +185,39 @@ function seededNetworkMatrix(N, seed){
 // VARIANT REGISTRY — each entry: sliders, simulate(p), twoPlots(sim,p)
 // ============================================================
 const VARIANTS = {
+  'Kuramoto — Network': {
+    eq:'dθᵢ/dt = ωᵢ + (G/N)Σⱼ sin(θⱼ−θᵢ)',
+    params:[
+      {id:'N',      label:'N (oscillators)', min:2, max:20, step:1, def:10},
+      {id:'G',      label:'G (coupling)',    min:0, max:5, step:0.1, def:2.0},
+      {id:'spread', label:'frequency spread',min:0, max:2, step:0.05, def:0.5},
+    ],
+    simulate(p){
+      const {N,G,spread}=p; const rng=makeRng(42);
+      const theta0=Array.from({length:N},()=>rng()*TWO_PI);
+      const omegas=Array.from({length:N},()=>TWO_PI*(1+spread*(2*rng()-1)));
+      const f=(t,theta)=>theta.map((th_i,i)=>{ let s=0; for(let j=0;j<N;j++) s+=Math.sin(theta[j]-th_i); return omegas[i]+(G/N)*s; });
+      const sim=integrate(f,theta0,1000,0.01,4); sim.N=N; return sim;
+    },
+    twoPlots(sim,p){
+      const N=sim.N, {ys,ts}=sim, G=p.G;
+      const tD=downsample(ts,1200);
+      const orderR=ys.map(theta=>{let re=0,im=0; for(let i=0;i<N;i++){re+=Math.cos(theta[i]);im+=Math.sin(theta[i]);} return Math.sqrt(re*re+im*im)/N;});
+      const finalR=orderR[orderR.length-1];
+      const traceColor = G>1 ? 'rgba(255,102,87,0.25)' : 'rgba(0,40,120,0.2)';
+      const cosTraces=Array.from({length:N},(_,i)=>({x:tD,y:downsample(ys.map(th=>Math.cos(th[i])),1200),mode:'lines',line:{color:traceColor,width:0.8},showlegend:false,hoverinfo:'skip'}));
+      cosTraces.push({x:tD,y:downsample(orderR,1200),mode:'lines',line:{color:'black',width:2},name:'R(t)'});
+      return [
+        {data:cosTraces, layout:{...lay(`cos θᵢ(t) and R(t)`,'t (s)','cos θᵢ / R(t)'), yaxis:{range:[-1.05,1.05],gridcolor:'#e0e4ef',title:'cos θᵢ / R(t)'}},
+          capS:'Thin lines: cos(θᵢ) per oscillator. Bold line: order parameter R(t).',
+          capD: finalR>0.9 ? 'Locked into a shared rhythm — fully synchronised.' : finalR>0.3 ? 'Drifting into rough alignment — partial synchrony.' : 'No shared rhythm — incoherent.'},
+        {data:[{x:tD,y:downsample(orderR,1200),mode:'lines',line:{color:CORAL,width:2},showlegend:false}],
+          layout:{...lay('Order parameter r(t)','t (s)','r'), yaxis:{range:[0,1.05],gridcolor:'#e0e4ef',title:'r'}},
+          capS:'r measures synchrony. r=1 fully in sync, r=0 incoherent.',
+          capD: `r ≈ ${finalR.toFixed(2)} — ${finalR>0.9?'fully synchronised.':finalR>0.3?'partially synchronised.':'incoherent, oscillators running independently.'}`},
+      ];
+    }
+  },
   'HO — Oscillator': {
     eq:'dz/dt = (α + iω)·z + F₀e^(iΩt)   [α=0 undamped, F₀=0 unforced]',
     params:[
@@ -260,39 +293,6 @@ const VARIANTS = {
         {data:reAll.map((r,k)=>ppTrace(r,imAll[k],PALETTE[k%PALETTE.length],{name:`z${k+1}`})),
           layout:layPP('Phase portraits (overlaid)','Re(z)','Im(z)'), capS:'Phase portraits of all oscillators overlaid.',
           capD: p.G>1 ? 'Orbits overlap — synchronising.' : 'Orbits distinct — not yet synchronised.'},
-      ];
-    }
-  },
-  'HO — Kuramoto': {
-    eq:'dθᵢ/dt = ωᵢ + (G/N)Σⱼ sin(θⱼ−θᵢ)',
-    params:[
-      {id:'N',      label:'N (oscillators)', min:2, max:20, step:1, def:10},
-      {id:'G',      label:'G (coupling)',    min:0, max:5, step:0.1, def:2.0},
-      {id:'spread', label:'frequency spread',min:0, max:2, step:0.05, def:0.5},
-    ],
-    simulate(p){
-      const {N,G,spread}=p; const rng=makeRng(42);
-      const theta0=Array.from({length:N},()=>rng()*TWO_PI);
-      const omegas=Array.from({length:N},()=>TWO_PI*(1+spread*(2*rng()-1)));
-      const f=(t,theta)=>theta.map((th_i,i)=>{ let s=0; for(let j=0;j<N;j++) s+=Math.sin(theta[j]-th_i); return omegas[i]+(G/N)*s; });
-      const sim=integrate(f,theta0,1000,0.01,4); sim.N=N; return sim;
-    },
-    twoPlots(sim,p){
-      const N=sim.N, {ys,ts}=sim, G=p.G;
-      const tD=downsample(ts,1200);
-      const orderR=ys.map(theta=>{let re=0,im=0; for(let i=0;i<N;i++){re+=Math.cos(theta[i]);im+=Math.sin(theta[i]);} return Math.sqrt(re*re+im*im)/N;});
-      const finalR=orderR[orderR.length-1];
-      const traceColor = G>1 ? 'rgba(255,102,87,0.25)' : 'rgba(0,40,120,0.2)';
-      const cosTraces=Array.from({length:N},(_,i)=>({x:tD,y:downsample(ys.map(th=>Math.cos(th[i])),1200),mode:'lines',line:{color:traceColor,width:0.8},showlegend:false,hoverinfo:'skip'}));
-      cosTraces.push({x:tD,y:downsample(orderR,1200),mode:'lines',line:{color:'black',width:2},name:'R(t)'});
-      return [
-        {data:cosTraces, layout:{...lay(`cos θᵢ(t) and R(t)`,'t (s)','cos θᵢ / R(t)'), yaxis:{range:[-1.05,1.05],gridcolor:'#e0e4ef',title:'cos θᵢ / R(t)'}},
-          capS:'Thin lines: cos(θᵢ) per oscillator. Bold line: order parameter R(t).',
-          capD: finalR>0.9 ? 'Locked into a shared rhythm — fully synchronised.' : finalR>0.3 ? 'Drifting into rough alignment — partial synchrony.' : 'No shared rhythm — incoherent.'},
-        {data:[{x:tD,y:downsample(orderR,1200),mode:'lines',line:{color:CORAL,width:2},showlegend:false}],
-          layout:{...lay('Order parameter r(t)','t (s)','r'), yaxis:{range:[0,1.05],gridcolor:'#e0e4ef',title:'r'}},
-          capS:'r measures synchrony. r=1 fully in sync, r=0 incoherent.',
-          capD: `r ≈ ${finalR.toFixed(2)} — ${finalR>0.9?'fully synchronised.':finalR>0.3?'partially synchronised.':'incoherent, oscillators running independently.'}`},
       ];
     }
   },

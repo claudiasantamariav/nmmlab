@@ -170,9 +170,9 @@
 
 
 <header>
-  <div class="label">How the five models connect</div>
+  <div class="label">How the models connect</div>
   <h1>The model <span>map</span></h1>
-  <p>The same five models, three ways: what their equations are made of, what a single node and a coupled brain network physically look like, and the ladder they build up along.</p>
+  <p>Six models, three ways: what their equations are made of, what a single node and a coupled brain network physically look like, and the ladder they build up along — starting from Kuramoto's bare phase oscillators, the leanest possible skeleton every later model adds detail to.</p>
 </header>
 
 <main>
@@ -192,6 +192,14 @@
     </div>
 
     <div class="eqlist">
+      <div class="eqrow">
+        <span class="er-ico" data-ico="kuramoto"></span>
+        <div class="er-body">
+          <div class="er-name">Kuramoto · phase oscillators (the starting point)</div>
+          <div class="er-eq">θ̇ᵢ = <b style="color:var(--freq)">ωᵢ</b></div>
+          <div class="er-note">phase only — no amplitude, so no damping or amplitude-brake term is even possible, unlike every row below. Coupling (a nonlinear sin(θⱼ−θᵢ) term, unlike any other model here) only enters once nodes are networked — see the diagrams below.</div>
+        </div>
+      </div>
       <div class="eqrow">
         <span class="er-ico" data-ico="ho"></span>
         <div class="er-body">
@@ -239,6 +247,38 @@
     <h2><span class="num">2</span>The diagrams — one node, then a network</h2>
     <p class="tagline">For each model: what a <b>single node</b> is, and how nodes are <b>coupled into a whole-brain network</b> — with the paper’s exact coupling term (highlighted). HO &amp; SL couple <b>diffusively</b>; the neural models add coupling <b>inside the excitatory nonlinearity</b> (E→E).</p>
     <div class="diag-grid">
+      <div class="diag-card">
+        <div class="d-name">Kuramoto — one phase, then many</div>
+        <div class="diag-row">
+          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+      <circle cx="200" cy="75" r="52" fill="none" stroke="#e8edf7" stroke-width="2" stroke-dasharray="3 4" opacity="0.6"/>
+      <g>
+        <line x1="200" y1="75" x2="200" y2="23" stroke="#22c1ff" stroke-width="2.6">
+          <animateTransform attributeName="transform" type="rotate" from="0 200 75" to="360 200 75" dur="2.4s" repeatCount="indefinite"/>
+        </line>
+        <circle cx="200" cy="23" r="7" fill="url(#somaBlue)" stroke="white" stroke-width="1.5">
+          <animateTransform attributeName="transform" type="rotate" from="0 200 75" to="360 200 75" dur="2.4s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+      <circle cx="200" cy="75" r="4" fill="#22c1ff"/>
+    </svg></div><div class="diag-cap">one node = a bare phase θᵢ rotating at ωᵢ — no amplitude at all</div></div>
+          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+      <circle cx="200" cy="75" r="55" fill="none" stroke="#e8edf7" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.5"/>
+      <g fill="#22c1ff">
+        <circle cx="200" cy="21" r="6"/>
+        <circle cx="238" cy="38" r="6"/>
+        <circle cx="248" cy="76" r="6"/>
+        <circle cx="222" cy="116" r="6"/>
+        <circle cx="176" cy="118" r="6"/>
+        <circle cx="153" cy="82" r="6"/>
+        <circle cx="163" cy="42" r="6"/>
+      </g>
+      <line x1="200" y1="75" x2="200" y2="35" stroke="#FF6657" stroke-width="3.2" marker-end="url(#arrowBlue)"/>
+      <text x="200" y="140" text-anchor="middle" font-size="11" fill="#8a8fa3" font-family="sans-serif">phases pulled toward each other by sin(θⱼ−θᵢ)</text>
+    </svg></div><div class="diag-cap">not yet synchronised: dots scattered, order-parameter arrow (coral) short</div></div>
+        </div>
+        <div class="diag-eq">θ̇ᵢ = ωᵢ + G <span class="hl">(1/N) Σⱼ sin(θⱼ − θᵢ)</span> <span class="ref">phase coupling · §2.1.4, Eq. 2.19, App. D</span></div>
+      </div>
       <div class="diag-card">
         <div class="d-name">HO — one oscillator</div>
         <div class="diag-row">
@@ -363,10 +403,30 @@
   <!-- ═══════════ 3 · LADDER ═══════════ -->
   <section class="block" id="ladder">
     <h2><span class="num">3</span>The ladder, top to bottom</h2>
-    <p class="tagline">The same five models from the Explore page, in the order they were built.</p>
+    <p class="tagline">The same six models from the Explore page, in the order they were built.</p>
 
     <div class="ladder-box">
       <div class="ladder">
+
+        <div class="ladder-node">
+          <div class="ladder-icon">
+            <svg viewBox="0 0 100 104" aria-hidden="true">
+              <circle cx="50" cy="52" r="38" fill="none" stroke="#22c1ff" stroke-width="1.6" stroke-dasharray="3 4" opacity="0.6"/>
+              <circle cx="50" cy="52" r="4" fill="#22c1ff"/>
+              <line x1="50" y1="52" x2="50" y2="16" stroke="#22c1ff" stroke-width="2.5"/>
+              <circle cx="50" cy="16" r="6" fill="url(#somaBlue)" stroke="white" stroke-width="1.2"/>
+            </svg>
+          </div>
+          <div class="ladder-text">
+            <h3>Kuramoto <span>the starting point</span></h3>
+            <p>θ̇ᵢ = ωᵢ + (G/N)Σⱼ sin(θⱼ−θᵢ) — phase only, no amplitude. The barest possible skeleton for synchronization.</p>
+          </div>
+        </div>
+
+        <div class="ladder-edge">
+          <div class="spacer"><span class="chevron">▾</span></div>
+          <div class="edge-label">+ amplitude (a mass on a spring)</div>
+        </div>
 
         <div class="ladder-node">
           <div class="ladder-icon">
@@ -392,7 +452,7 @@
             </svg>
           </div>
           <div class="ladder-text">
-            <h3>HO <span>the common ancestor</span></h3>
+            <h3>HO <span>rung 2</span></h3>
             <p>ż = (α + iω)z — a linear oscillator, closed-form solution. A mass on a spring.</p>
           </div>
         </div>
@@ -425,7 +485,7 @@
             </svg>
           </div>
           <div class="ladder-text">
-            <h3>Stuart–Landau <span>rung 2</span></h3>
+            <h3>Stuart–Landau <span>rung 3</span></h3>
             <p>A cubic term caps the HO's neutral circle into a genuine limit cycle — the first real, self-sustaining rhythm.</p>
           </div>
         </div>
@@ -473,7 +533,7 @@
             </svg>
           </div>
           <div class="ladder-text">
-            <h3>WILCO <span>rung 3 · Wilson–Cowan</span></h3>
+            <h3>WILCO <span>rung 4 · Wilson–Cowan</span></h3>
             <p>Two neural populations replace the abstract oscillator. Turn up the drive and the E–I loop starts oscillating on its own.</p>
           </div>
         </div>
@@ -522,7 +582,7 @@
             </svg>
           </div>
           <div class="ladder-text">
-            <h3>NMM1 <span>rung 4</span></h3>
+            <h3>NMM1 <span>rung 5</span></h3>
             <p>Synaptic rise/decay time constants refine the frequency and shape of the rhythm that emerges from the E–I loop.</p>
           </div>
         </div>
@@ -576,7 +636,7 @@
             </svg>
           </div>
           <div class="ladder-text">
-            <h3>NMM2 <span>rung 5 · next-gen mean field</span></h3>
+            <h3>NMM2 <span>rung 6 · next-gen mean field</span></h3>
             <p>Replaces the static sigmoid with an exact mean-field reduction of spiking QIF neurons — same E/I skeleton, but the transfer function itself now has its own dynamics.</p>
           </div>
         </div>
@@ -601,6 +661,7 @@ const NEURON_E = `<g stroke="#2f6df6" fill="none" stroke-linecap="round">
   <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/><path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
 </g>`;
 const ICONS = {
+  kuramoto: `<svg viewBox="0 0 100 104"><circle cx="50" cy="52" r="38" fill="none" stroke="#2f6df6" stroke-width="1.6" stroke-dasharray="3 4" opacity="0.6"/><circle cx="50" cy="52" r="4" fill="#2f6df6"/><line x1="50" y1="52" x2="50" y2="16" stroke="#2f6df6" stroke-width="2.5"/><circle cx="50" cy="16" r="6" fill="url(#sBlue)" stroke="white" stroke-width="1.2"/></svg>`,
   ho:   `<svg viewBox="0 0 100 104"><circle cx="50" cy="54" r="40" fill="none" stroke="#2f6df6" stroke-width="1.3" stroke-dasharray="3 4" opacity="0.6"/><g transform="translate(50,54)">${NEURON_E}</g></svg>`,
   sl:   `<svg viewBox="0 0 100 104"><circle cx="50" cy="54" r="40" fill="none" stroke="#e34a34" stroke-width="2.4"/><g transform="translate(50,54)"><path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#sPurple)" stroke="#7c3aed"/><path d="M0,-11 C-1,-17 1,-22 0,-29" stroke="#7c3aed" fill="none"/><path d="M0,9 C1,15 -1,19 0,30" stroke="#7c3aed" fill="none"/><path d="M-5,9 C-9,12 -13,14 -18,16" stroke="#7c3aed" fill="none"/><path d="M5,9 C9,12 13,14 18,16" stroke="#7c3aed" fill="none"/></g></svg>`,
 };
