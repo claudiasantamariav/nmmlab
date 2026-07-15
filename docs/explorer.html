@@ -1376,6 +1376,197 @@ const NMM1 = {
 };
 
 // ============================================================
+// NMM2 — next-generation mean field (Montbrió–Pazó–Roxin), §7 Eq. 7.4–7.13
+// Exact QIF reduction: state = [rₓ, vₓ, rᵧ, vᵧ]; r = firing rate, v = mean
+// membrane potential; instantaneous synapses (s = r); dimensionless (τ = 1).
+// ============================================================
+const PISQ = Math.PI * Math.PI;
+
+// Scalar (no array allocation) RK4 for one I-sweep point — returns the long-run
+// amplitude of the excitatory firing rate rₓ. Same technique as NMM1's sweep.
+function nmm2AmplitudeAt(eta, delta, Jx, Cxy, Cyx, I, T, dt){
+  let rx=0.3, vx=-2, ry=0.1, vy=-2;
+  const steps=Math.round(T/dt), tailStart=Math.floor(steps*0.6), dpi=delta/Math.PI;
+  const deriv=(RX,VX,RY,VY)=>[
+    dpi + 2*RX*VX,
+    VX*VX - PISQ*RX*RX + eta + Jx*RX - Cxy*RY + I,
+    dpi + 2*RY*VY,
+    VY*VY - PISQ*RY*RY + eta + Cyx*RX,
+  ];
+  let tailMax=-Infinity, tailMin=Infinity;
+  for(let i=0;i<=steps;i++){
+    if(i>=tailStart){ if(rx>tailMax) tailMax=rx; if(rx<tailMin) tailMin=rx; }
+    const k1=deriv(rx,vx,ry,vy);
+    const k2=deriv(rx+0.5*dt*k1[0], vx+0.5*dt*k1[1], ry+0.5*dt*k1[2], vy+0.5*dt*k1[3]);
+    const k3=deriv(rx+0.5*dt*k2[0], vx+0.5*dt*k2[1], ry+0.5*dt*k2[2], vy+0.5*dt*k2[3]);
+    const k4=deriv(rx+dt*k3[0], vx+dt*k3[1], ry+dt*k3[2], vy+dt*k3[3]);
+    rx=rx+dt/6*(k1[0]+2*k2[0]+2*k3[0]+k4[0]);
+    vx=vx+dt/6*(k1[1]+2*k2[1]+2*k3[1]+k4[1]);
+    ry=ry+dt/6*(k1[2]+2*k2[2]+2*k3[2]+k4[2]);
+    vy=vy+dt/6*(k1[3]+2*k2[3]+2*k3[3]+k4[3]);
+    if(!isFinite(rx) || Math.abs(rx)>1e4) return NaN;
+  }
+  return (tailMax-tailMin)/2;
+}
+let _nmm2BifCache={key:null,Is:null,amps:null};
+function computeNMM2Bifurcation(eta,delta,Jx,Cxy,Cyx){
+  const key=[eta,delta,Jx,Cxy,Cyx].map(v=>v.toFixed(3)).join('_');
+  if(_nmm2BifCache.key===key) return _nmm2BifCache;
+  const Is=[]; for(let I=-8;I<=12.0001;I+=(12+8)/28) Is.push(I);
+  const amps=Is.map(I=>nmm2AmplitudeAt(eta,delta,Jx,Cxy,Cyx,I,50,0.02));
+  _nmm2BifCache={key,Is,amps};
+  return _nmm2BifCache;
+}
+
+const NMM2 = {
+  variants:['Single Node','Network'],
+  cfg:{
+    'Single Node':{
+      eqHtml:`<div class="eq-main">ṙₓ = Δ/π + 2rₓvₓ &nbsp;·&nbsp; v̇ₓ = vₓ² − π²rₓ² + η̄ + Jₓrₓ − Cₓᵧrᵧ + I</div>
+        <div class="eq-main">ṙᵧ = Δ/π + 2rᵧvᵧ &nbsp;·&nbsp; v̇ᵧ = vᵧ² − π²rᵧ² + η̄ + Cᵧₓrₓ</div>
+        <hr class="eq-hr">
+        <div class="eq-sub">r = firing rate, v = mean membrane potential &nbsp;·&nbsp; instantaneous synapses (s = r) &nbsp;·&nbsp; dimensionless (τ = 1)</div>`,
+      explain:'The exact mean field of a population of spiking quadratic integrate-and-fire (QIF) neurons: instead of a static sigmoid, the firing rate r and mean membrane potential v obey two coupled ODEs per population (Montbrió–Pazó–Roxin). Δ is the spread of neuron excitabilities, η̄ their average, Jₓ the excitatory self-coupling, and Cₓᵧ/Cᵧₓ the I→E / E→I cross-couplings. Raise the input I and the E–I loop crosses a Hopf bifurcation into a self-sustained (PING) rhythm — no assumed sigmoid anywhere.',
+      fixed:{N:1, G:0},
+      params:[
+        {id:'eta',   label:'η̄  (mean excitability)', min:-10, max:10, step:0.5, def:0},
+        {id:'delta', label:'Δ  (excitability spread)', min:0.1, max:3, step:0.05, def:1},
+        {id:'Jx',    label:'Jₓ  (E self-coupling)', min:0, max:25, step:0.5, def:15},
+        {id:'Cxy',   label:'Cₓᵧ  (I→E)', min:0, max:20, step:0.5, def:8},
+        {id:'Cyx',   label:'Cᵧₓ  (E→I)', min:0, max:20, step:0.5, def:8},
+        {id:'I',     label:'I  (external input)', min:-8, max:12, step:0.25, def:4},
+      ],
+    },
+    Network:{
+      eqHtml:`<div class="eq-main">v̇ₓ<sup>(i)</sup> = (vₓ<sup>(i)</sup>)² − π²(rₓ<sup>(i)</sup>)² + η̄<sub>i</sub> + Jₓrₓ<sup>(i)</sup> − Cₓᵧrᵧ<sup>(i)</sup> + G·r̄ₓ + I</div>
+        <div class="eq-main">(the r-equations and the inhibitory population are as in the single node)</div>
+        <hr class="eq-hr">
+        <div class="eq-sub">r̄ₓ = mean excitatory rate &nbsp;·&nbsp; long-range coupling is excitatory→excitatory &nbsp;·&nbsp; G = 0 → independent nodes</div>`,
+      explain:'N copies of the node above with a small spread of excitability η̄, coupled excitatory→excitatory: each node\'s mean-voltage equation gains G·r̄ₓ, the paper\'s additive E→E connectome term (Eq. 7.13) specialised to uniform all-to-all connectivity. A node held below its own Hopf point can be dragged into rhythm by its oscillating neighbours. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>',
+      params:[
+        {id:'eta',   label:'η̄  (mean excitability)', min:-10, max:10, step:0.5, def:0},
+        {id:'delta', label:'Δ  (excitability spread)', min:0.1, max:3, step:0.05, def:1},
+        {id:'Jx',    label:'Jₓ  (E self-coupling)', min:0, max:25, step:0.5, def:15},
+        {id:'Cxy',   label:'Cₓᵧ  (I→E)', min:0, max:20, step:0.5, def:8},
+        {id:'Cyx',   label:'Cᵧₓ  (E→I)', min:0, max:20, step:0.5, def:8},
+        {id:'I',     label:'I  (external input)', min:-8, max:12, step:0.25, def:4},
+        {id:'N', label:'N  (network size)', min:2, max:5, step:1, def:3},
+        {id:'G', label:'G  (E→E coupling strength)', min:0, max:3, step:0.05, def:0.5},
+      ],
+    },
+  },
+
+  simulate(variant, p){
+    const {eta,delta,Jx,Cxy,Cyx,I,N,G}=p;
+    const dpi=delta/Math.PI;
+    if(N<=1){
+      const f=(t,[rx,vx,ry,vy])=>[
+        dpi + 2*rx*vx,
+        vx*vx - PISQ*rx*rx + eta + Jx*rx - Cxy*ry + I,
+        dpi + 2*ry*vy,
+        vy*vy - PISQ*ry*ry + eta + Cyx*rx,
+      ];
+      return integrate(f,[0.3,-2,0.1,-2],4000,0.01,4);
+    }
+    // Networked: N copies with a small η̄ spread (so coupling has something to
+    // synchronize), coupled E→E by the additive term G·r̄ₓ (Eq. 7.13, uniform C).
+    const etas=Array.from({length:N},(_,i)=>eta+2.5*(i-(N-1)/2));
+    const r0=Array.from({length:N},(_,i)=>0.3-0.03*i);
+    const state0=[...r0, ...Array(N).fill(-2), ...Array(N).fill(0.1), ...Array(N).fill(-2)];
+    const f=(t,y)=>{
+      const rx=y.slice(0,N), vx=y.slice(N,2*N), ry=y.slice(2*N,3*N), vy=y.slice(3*N,4*N);
+      let s=0; for(let i=0;i<N;i++) s+=rx[i]; const rbar=s/N;
+      const drx=new Array(N), dvx=new Array(N), dry=new Array(N), dvy=new Array(N);
+      for(let i=0;i<N;i++){
+        const coup=G*rbar;
+        drx[i]=dpi + 2*rx[i]*vx[i];
+        dvx[i]=vx[i]*vx[i] - PISQ*rx[i]*rx[i] + etas[i] + Jx*rx[i] - Cxy*ry[i] + coup + I;
+        dry[i]=dpi + 2*ry[i]*vy[i];
+        dvy[i]=vy[i]*vy[i] - PISQ*ry[i]*ry[i] + etas[i] + Cyx*rx[i];
+      }
+      return [...drx, ...dvx, ...dry, ...dvy];
+    };
+    const sim=integrate(f,state0,4000,0.01,4);
+    sim.N=N; sim.etas=etas;
+    return sim;
+  },
+
+  plots(variant, p, sim){
+    const {ts,ys}=sim;
+    const {eta,delta,Jx,Cxy,Cyx,I,N,G}=p;
+
+    if(N<=1){
+      const rx=ys.map(y=>y[0]), vx=ys.map(y=>y[1]), ry=ys.map(y=>y[2]);
+      const tD=downsample(ts,2000), rxD=downsample(rx,2000), ryD=downsample(ry,2000);
+      const tailR=rx.slice(Math.floor(rx.length*0.6)), tailV=vx.slice(Math.floor(vx.length*0.6));
+      const amp=(Math.max(...tailR)-Math.min(...tailR))/2;
+      const isOsc=amp>0.05;
+      const rppD=downsample(tailR,1200), vppD=downsample(tailV,1200);
+
+      const bif=computeNMM2Bifurcation(eta,delta,Jx,Cxy,Cyx);
+      const maxAmp=Math.max(0.05,...bif.amps.filter(a=>isFinite(a)));
+      let Ihopf=null;
+      for(let i=0;i<bif.Is.length;i++){ if(isFinite(bif.amps[i])&&bif.amps[i]>0.05){ Ihopf=bif.Is[i]; break; } }
+      const onsetTxt = Ihopf!==null ? ` (≈ ${Ihopf.toFixed(1)})` : '';
+
+      const bifData=[
+        {x:bif.Is,y:bif.amps,mode:'lines',line:{color:BLUE,width:2.2},showlegend:false},
+        {x:[I],y:[amp],mode:'markers',marker:{color:'#FF6F00',size:10},name:`current I = ${I.toFixed(2)}`},
+      ];
+      if(Ihopf!==null) bifData.splice(1,0,{x:[Ihopf,Ihopf],y:[0,maxAmp*1.15],mode:'lines',line:{color:CORAL,width:1.5,dash:'dot'},name:`Hopf onset ≈ ${Ihopf.toFixed(1)}`});
+
+      return [
+        {data:[
+          {x:tD,y:rxD,name:'rₓ (excitatory rate)',line:{color:BLUE,width:1.4}},
+          {x:tD,y:ryD,name:'rᵧ (inhibitory rate)',line:{color:CORAL,width:1.4}},
+        ], layout:lay('Time series','t (τ, dimensionless)','firing rate r'),
+          capS:'Excitatory (blue) and inhibitory (red) population firing rates from the exact QIF mean field.',
+          capD: isOsc
+            ? `Self-sustained PING rhythm — input I = ${I.toFixed(2)} is past the Hopf onset${onsetTxt}.`
+            : `At rest — input I = ${I.toFixed(2)} is below the Hopf onset${onsetTxt}, so r and v settle to a fixed point.`},
+        {data:[ppTrace(rppD,vppD,BLUE,{showlegend:false})],
+          layout:layPP('Phase portrait (r, v)','rₓ (firing rate)','vₓ (mean membrane potential)'),
+          capS:'Trajectory of excitatory firing rate rₓ against mean membrane potential vₓ.',
+          capD: isOsc
+            ? 'Closed loop in the (r, v) plane — a genuine limit cycle out of the exact mean field, with no static sigmoid involved.'
+            : 'Single point — the exact (r, v) dynamics have settled to a fixed point.'},
+        {data:bifData,
+          layout:lay('Bifurcation diagram','external input I','long-run amplitude of rₓ',{yaxis:{range:[0,maxAmp*1.2],gridcolor:'#e0e4ef',title:'amplitude'}}),
+          capS:'Long-run amplitude of the excitatory firing rate as the external input I is swept (η̄, Δ, Jₓ, Cₓᵧ, Cᵧₓ held at their slider values).',
+          capD:`Increasing I switches the E–I loop on through a Hopf bifurcation${Ihopf!==null?` at I ≈ ${Ihopf.toFixed(1)}`:''} — the next-generation analogue of the earlier models' oscillation onset.`},
+      ];
+    }
+
+    // Network view (N > 1)
+    const N_=sim.N, etas=sim.etas;
+    const Rall=Array.from({length:N_},(_,k)=>ys.map(y=>y[k]));
+    const tD=downsample(ts,2000);
+    const RallD=Rall.map(R=>downsample(R,2000));
+    const amps=Rall.map(R=>{const tl=R.slice(Math.floor(R.length*0.6)); return (Math.max(...tl)-Math.min(...tl))/2;});
+    const isOsc=amps.some(a=>a>0.05);
+    const tail0=Rall[0].slice(Math.floor(Rall[0].length*0.6));
+    const tailV0=ys.map(y=>y[N_]).slice(Math.floor(ys.length*0.6));
+
+    const tsFig=stackedTraces(
+      RallD.map((R,k)=>[{x:tD,y:R,line:{color:PALETTE[k%PALETTE.length],width:1.3}}]),
+      PALETTE, etas.map((v,k)=>`node ${k}<br>η̄=${v.toFixed(1)}`), 't (τ)'
+    );
+    return [
+      {data:tsFig.data, layout:{...tsFig.layout, title:{text:'Time series (one row per node)',font:{size:11,color:BLUE}}},
+        height:320, wide:true,
+        capS:'Excitatory firing rate of each NMM2 node — one row per node so overlapping rhythms don\'t blur together.',
+        capD: isOsc
+          ? `Node amplitudes: ${amps.map(a=>a.toFixed(2)).join(', ')}. E→E coupling G = ${G.toFixed(2)} pulls nodes of different excitability η̄ toward a shared rhythm.`
+          : 'All nodes have settled — no oscillation.'},
+      {data:[ppTrace(downsample(tail0,1000),downsample(tailV0,1000),BLUE,{showlegend:false})],
+        layout:layPP('Phase portrait — node 0','rₓ (firing rate)','vₓ (mean membrane potential)'),
+        capS:'Trajectory of node 0\'s excitatory firing rate vs mean membrane potential.',
+        capD: isOsc ? 'Closed loop = node 0 is oscillating.' : 'Single point = node 0 has settled.'},
+    ];
+  }
+};
+
+// ============================================================
 // INFO TAB CONTENT — grounded in Castaldo et al., "Rosetta Stone of
 // Neural Mass Models" (2025). Kept concise on purpose: this is meant to
 // orient a reader, not reproduce the paper.
@@ -1623,7 +1814,7 @@ const MODELS={
   sl:   {label:'Stuart–Landau', impl:SL, stub:false},
   wilco:{label:'WILCO', impl:WILCO, stub:false},
   nmm1: {label:'NMM1', impl:NMM1, stub:false},
-  nmm2: {label:'NMM2', stub:true},
+  nmm2: {label:'NMM2', impl:NMM2, stub:false},
 };
 
 // ============================================================
