@@ -1403,8 +1403,9 @@ ho: {
     </div>
     <div class="info-eq-box">
       <div class="eq-name">Coupled network (Eq. 2.28–2.29)</div>
-      <div class="eq-main">żᵢ = (α + iωᵢ)zᵢ + (G/N) Σⱼ Cᵢⱼ(zⱼ − zᵢ) + F̂ₑ,ᵢ(t)</div>
-      <div class="eq-note">Diffusive coupling pulls every oscillator toward the network mean.</div>
+      <div class="eq-main">Eq. 2.28 (all-to-all): żᵢ = (α + iωᵢ)zᵢ + (G/N) Σⱼ(zⱼ − zᵢ) + F̂ₑ,ᵢ(t)</div>
+      <div class="eq-main">Eq. 2.29 (general): żᵢ = (α + iωᵢ)zᵢ + G Σⱼ Cᵢⱼ(zⱼ(t−τᵢⱼ) − zᵢ(t)) + F̂ₑ,ᵢ(t)</div>
+      <div class="eq-note">Eq. 2.28 is the uniform, all-to-all special case (Cᵢⱼ = 1/N, no delays); Eq. 2.29 generalizes to a weighted connectome with optional delays τᵢⱼ, with no 1/N factor.</div>
     </div>
     <div class="info-eq-box">
       <div class="eq-name">Kuramoto phase limit (§2.1.4, Eq. 2.19, App. D)</div>
@@ -1463,7 +1464,9 @@ sl: {
     </div>
     <div class="info-eq-box">
       <div class="eq-name">Coupled network (Eq. 3.8–3.9)</div>
-      <div class="eq-main">żᵢ = (α + iωᵢ)zᵢ − (γ + iβ)|zᵢ|²zᵢ + (G/N) Σⱼ Cᵢⱼ(zⱼ − zᵢ) + F̂ₑ,ᵢ(t)</div>
+      <div class="eq-main">Eq. 3.8 (all-to-all): żᵢ = (α + iωᵢ)zᵢ − (γ + iβ)|zᵢ|²zᵢ + (G/N) Σⱼ(zⱼ − zᵢ) + F̂ₑ,ᵢ(t)</div>
+      <div class="eq-main">Eq. 3.9 (general): żᵢ = (α + iωᵢ)zᵢ − (γ + iβ)|zᵢ|²zᵢ + G Σⱼ Cᵢⱼ(zⱼ − zᵢ) + F̂ₑ,ᵢ(t)</div>
+      <div class="eq-note">Eq. 3.8 is the uniform, all-to-all special case (Cᵢⱼ = 1/N); Eq. 3.9 generalizes to a weighted connectome, with no 1/N factor.</div>
     </div>`,
   how: `<p>Purely linear oscillators like the HO can't describe real neural rhythms on their own: without some regulating nonlinearity, activity would either grow without bound or decay to nothing. The Stuart–Landau oscillator adds the simplest possible fix — a cubic term −γ|z|²z — that grows the same way as the HO for small amplitudes but pushes back once |z| gets large. The result is a genuine <em>limit cycle</em>: for α &gt; 0 the amplitude relaxes onto a fixed radius r* = √(α/γ) regardless of where it started, unlike the HO's neutral circle whose size is set entirely by the initial condition.</p>
     <p>This is the normal form of a Hopf bifurcation — the minimal, universal model for any system transitioning from a damped fixed point to a self-sustained oscillation. Forcing displaces the limit cycle to a new operating point; coupling many SL nodes diffusively (each pulled toward the network average) produces synchronization, clustering, and even "amplitude death," while the cubic term keeps every node's amplitude bounded.</p>`,
@@ -1556,7 +1559,7 @@ nmm1: {
     </div>
     <div class="info-eq-box" style="border-left-color:var(--coral);">
       <div class="eq-name" style="color:var(--coral);">In the Demo</div>
-      <div class="eq-note" style="font-size:0.85rem;">The L̂/C formalism above is deliberately general — it doesn't commit to a specific connectivity. The interactive demo instantiates it with the same diffusive coupling used by every other model on this site: a "Network" variant adds G(x̄ − xᵢ) inside the excitatory sigmoid, pulling each node toward the network's mean excitatory PSP x̄ rather than a full connectivity matrix.</div>
+      <div class="eq-note" style="font-size:0.85rem;">The L̂/C formalism above is deliberately general — it doesn't commit to a specific connectivity, and §5.3 (which NMM1's Eq. 6.5 mirrors) is explicit that the paper's own coupling is additive, not diffusive: each node sums weighted inputs from its neighbours, Σⱼ Cᵢⱼxⱼ, specifically because this avoids the homeostatic constraints of diffusive schemes. For consistency with every other model on this site, the interactive demo instead instantiates a diffusive simplification: a "Network" variant adds G(x̄ − xᵢ) inside the excitatory sigmoid, pulling each node toward the network's mean excitatory PSP x̄ rather than summing a full connectivity matrix — see the <a href="tutorial.html#coupling" target="_blank">Tutorial</a>.</div>
     </div>`,
   how: `<p>WILCO's single firing-rate equation implicitly assumes synaptic transmission is instantaneous. NMM1 makes it explicit: each post-synaptic potential is the output of a proper linear filter with its own rise and decay time constants, not just a first-order lag. Multiple PSPs are then summed into a membrane perturbation v, and a static sigmoid converts that perturbation into an output firing rate — cleanly separating "synapse" (the filter) from "soma" (the sigmoid).</p>
     <p>The payoff is that a second-order synaptic filter introduces its own frequency-dependent phase shift. By the Barkhausen stability criterion, a feedback loop oscillates once its total gain is 1 and its total phase shift is a multiple of 360°; in a push-pull E–I loop, the phase lag from realistic synaptic kinetics alone can satisfy that condition — so, unlike Wilson–Cowan, NMM1 can sustain oscillations without any explicit self-coupling term.</p>`,
