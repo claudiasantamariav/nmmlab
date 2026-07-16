@@ -2339,23 +2339,23 @@ function renderMicroMacro(){
   const sl=MM.sliders.map(s=>`<div class="mm-slider"><label>${s.label} <span id="mmval_${s.id}">${MM.params[s.id].toFixed(2)}</span></label><input type="range" min="${s.min}" max="${s.max}" step="${s.step}" value="${MM.params[s.id]}" oninput="mmOnSlider('${s.id}',this.value)"></div>`).join('');
   let nodes=''; for(let i=0;i<MM.N;i++) nodes+=`<button class="mm-node${i===MM.sel?' sel':''}" id="mmnode${i}" data-id="${i}" onclick="mmSelectNeuron(${i})" title="neuron ${i+1}"></button>`;
   panel.innerHTML=`
-    <div class="mm-intro">NMM2 is the only rung built from single neurons up. Below are <b>${MM.N} quadratic integrate-and-fire (QIF) neurons</b> (Eq. 7.1) — each with its own excitability ηⱼ drawn from a Lorentzian (centre η̄, spread Δ), coupled all-to-all through their mean firing rate. The <b style="color:${BLUE}">NMM2 mean field</b> (Eq. 7.4–7.6) predicts their population rate <em>before you run anything</em>; press play and watch the <b style="color:${CORAL}">measured average</b> track that prediction. Dimensionless (τ = 1); more neurons ⇒ tighter match.</div>
+    <div class="mm-intro">${MM.N} spiking <b>QIF neurons</b> (Eq. 7.1), coupled all-to-all. The <b style="color:${BLUE}">NMM2 mean field</b> (Eq. 7.4–7.6) predicts their average firing rate <em>before you run</em> — press play and watch the <b style="color:${CORAL}">measured average</b> track it. More neurons ⇒ tighter match.</div>
     <div class="mm-controls">
       <div class="mm-sliders">${sl}</div>
       <div class="mm-buttons"><button class="mm-btn primary" id="mmPlayBtn" onclick="mmToggle()">▶ Play</button><button class="mm-btn" onclick="mmReset()">Reset</button></div>
     </div>
     <div class="mm-stage">
       <div class="mm-col-left">
-        <div class="mm-label">${MM.N} QIF neurons — each lights up when it spikes</div>
+        <div class="mm-label">${MM.N} QIF neurons</div>
         <div class="mm-node-grid">${nodes}</div>
         <div class="mm-mini"><canvas id="mmNeuronTrace" width="240" height="82"></canvas></div>
-        <div class="mm-cap">one neuron = the QIF equation V̇ = V² + ηⱼ + J·s + I&nbsp;&nbsp;(V = tan(θ/2); spikes to ±∞). Click a node to pick which one.</div>
+        <div class="mm-cap">one neuron = QIF: V̇ = V² + ηⱼ + J·s + I — click a node.</div>
       </div>
       <div class="mm-col-right">
         <canvas id="mmRaster" width="600" height="152"></canvas>
-        <div class="mm-cap">Raster — one tick when neuron <i>i</i> fires (row = neuron ID).</div>
+        <div class="mm-cap">Raster: one tick per spike (row = neuron).</div>
         <canvas id="mmRate" width="600" height="118"></canvas>
-        <div class="mm-cap"><b style="color:${CORAL}">Measured average</b> firing rate of the 30 neurons vs the <b style="color:${BLUE}">NMM2 mean-field prediction</b> — they should track (up to finite-size wiggle).</div>
+        <div class="mm-cap"><b style="color:${CORAL}">Measured average</b> vs <b style="color:${BLUE}">NMM2 prediction</b>.</div>
       </div>
     </div>`;
   mmComputeAndDraw();
