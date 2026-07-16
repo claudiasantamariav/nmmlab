@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tutorial — Rosetta Stone of Neural Mass Models</title>
+<title>Intro — Rosetta Stone of Neural Mass Models</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -31,6 +31,9 @@
   }
   nav.topnav .links a:hover { color: white; }
   nav.topnav .links a.active { color: white; border-bottom-color: var(--coral); }
+  nav.topnav .links a.demos-link { color: var(--coral); }
+  nav.topnav .links a.demos-link:hover { color: var(--coral); }
+  nav.topnav .links a.demos-link.active { color: var(--coral); border-bottom-color: var(--coral); }
 
   header { text-align: center; padding: 3rem 1.5rem 2rem; max-width: 760px; margin: 0 auto; }
   header .label { font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--faint); margin-bottom: 1rem; }
@@ -115,9 +118,9 @@
   <div class="brand">Rosetta Stone of Neural Mass Models</div>
   <div class="links">
     <a href="index.html">Home</a>
-    <a href="tutorial.html" class="active">Tutorial</a>
-    <a href="map.html">Map</a>
-    <a href="explorer.html">Explore</a>
+    <a href="tutorial.html" class="active">Intro</a>
+    <a href="map.html">The Ladder</a>
+    <a href="explorer.html" class="demos-link">Demos</a>
     <a href="compare.html">Compare</a>
   </div>
 </nav>
@@ -126,7 +129,7 @@
   <div class="label">Before you explore</div>
   <h1>Reading the ladder: <span>from spikes to a slider</span></h1>
   <p>
-    Every model in the <em>Explore</em> tab looks different on the surface — a complex number, a pair of firing
+    Every model in the <em>Demos</em> tab looks different on the surface — a complex number, a pair of firing
     rates, a post-synaptic potential — but they all share two ideas underneath. This page explains both, once,
     so the per-model pages can stay short.
   </p>
@@ -288,7 +291,7 @@
 
   <section class="block" id="coupling">
     <h2><span class="num">4</span>Coupling, in one idea</h2>
-    <p class="tagline">This is the part every "Network" section on the Explore page is quietly built on.</p>
+    <p class="tagline">This is the part every "Network" section on the Demos page is quietly built on.</p>
 
     <p>The paper's own definition (§1.1.2f) is the cleanest one: <em class="term">"Coupling is forcing generated
     by other nodes"</em> — one neural mass acts as a time-dependent input to another, the same way an external
@@ -307,7 +310,7 @@
 
     <p>Set the global coupling gain <strong>G = 0</strong> (or, equivalently, run a network of <strong>N = 1</strong>
     node) and that extra term vanishes identically — you are left with exactly the isolated single-node equation,
-    no exceptions and no separate formula to learn. This is why every model's Demo page on this site keeps a single
+    no exceptions and no separate formula to learn. This is why every model's Simulator page on this site keeps a single
     set of "physics" sliders and adds only <strong>G</strong> (coupling strength) and <strong>N</strong> (network
     size) in a "Network" section underneath: turning the network on never changes the node's own dynamics, it only
     adds this one term.</p>
@@ -332,21 +335,21 @@
     switches off cleanly at G = 0 — it's the <em>shape</em> of the coupling that's different, not the general pattern it fits into.</p>
 
     <div class="callout">
-      <div class="callout-label">What this means on the Explore page</div>
-      <p>Every model's Demo page has a base variant (just the node's own physics, exactly as in section 2) and a
+      <div class="callout-label">What this means on the Demos page</div>
+      <p>Every model's Simulator page has a base variant (just the node's own physics, exactly as in section 2) and a
       separate <strong>Network</strong> variant you switch to with the pill selector at the top. The Network
       variant's sliders are the same node physics plus N and G on top, adding only the coupling term from the
       table above across N copies of that same node. Slide the Network variant's G to 0 (or N to 1) and you get
       exactly the base variant's dynamics back — not approximately, but by construction, since it's the identical
       single-node equation with one additive term switched off. Phase-only is the one exception: θ̇ = ω alone carries no
       information beyond a constant rotation rate, so there's nothing worth showing until at least two oscillators are
-      coupled — its Demo page skips the single-node variant entirely and goes straight to the network.</p>
+      coupled — its Simulator page skips the single-node variant entirely and goes straight to the network.</p>
     </div>
   </section>
 
   <div class="cta-row">
-    <a class="btn-outline" href="map.html">See the full model map →</a>
-    <a class="btn-outline" href="explorer.html">Try it in the Explorer →</a>
+    <a class="btn-outline" href="map.html">See the full ladder →</a>
+    <a class="btn-outline" href="explorer.html">Try it in the Demos →</a>
   </div>
 
 </main>
