@@ -86,6 +86,48 @@
 
   main { max-width: 1180px; margin: 0 auto; padding: 0 1.5rem 4rem; }
 
+  .start-here {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.6rem;
+    flex-wrap: wrap;
+    background: var(--light-blue);
+    border: 1px solid var(--card-border);
+    border-left: 4px solid var(--blue);
+    border-radius: 14px;
+    padding: 1.5rem 1.8rem;
+    margin-bottom: 2.4rem;
+  }
+  .start-here-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--faint);
+    margin-bottom: 0.35rem;
+  }
+  .start-here h2 { font-size: 1.25rem; font-weight: 700; color: var(--blue); }
+
+  .btn-primary {
+    display: inline-block;
+    flex-shrink: 0;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: white;
+    background: var(--blue);
+    border: 1px solid var(--blue);
+    border-radius: 30px;
+    padding: 0.8rem 1.8rem;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background .15s ease, box-shadow .15s ease, transform .15s ease;
+  }
+  .btn-primary:hover { background: #001c5c; box-shadow: 0 8px 20px rgba(0,40,120,0.22); transform: translateY(-2px); }
+
+  @media (max-width: 620px) {
+    .start-here { flex-direction: column; align-items: flex-start; }
+  }
+
   .grid-label {
     font-size: 0.78rem;
     text-transform: uppercase;
@@ -201,6 +243,14 @@
 </header>
 
 <main>
+  <div class="start-here">
+    <div>
+      <div class="start-here-label">New here?</div>
+      <h2>Start with the intro</h2>
+    </div>
+    <a class="btn-primary" href="tutorial.html">Read the intro →</a>
+  </div>
+
   <div class="grid-label">The model ladder — six rungs from physics to neuroscience</div>
 
   <div class="card-grid">
@@ -262,7 +312,7 @@
   </div>
 
   <div class="cta-row">
-    <a class="btn-outline" href="compare.html">Compare two models side by side →</a>
+    <a class="btn-outline" href="map.html">See how they all connect →</a>
   </div>
 
   <div class="paper-card">
