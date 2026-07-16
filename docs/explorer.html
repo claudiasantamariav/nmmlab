@@ -2204,7 +2204,7 @@ function selectModel(id){
 // V = tan(θ/2)) vs the MPR mean field. §7, Eq. 7.1 (micro) & 7.4–7.6 (macro).
 // ============================================================
 const MM = {
-  N:100, dt:0.005, T:10, tau_s:1.0, playDur:9, win:0.12,
+  N:100, dt:0.005, T:30, tau_s:1.0, playDur:22, win:0.12,
   params:{eta:-5, delta:1, J:10, I:5},
   sliders:[
     {id:'eta',   label:'η̄  (mean excitability)',   min:-10, max:5,  step:0.5},
@@ -2322,11 +2322,12 @@ function mmToggle(){
 }
 function mmReset(){ MM.playing=false; if(MM.raf) cancelAnimationFrame(MM.raf); MM.playT=0; mmUpdateBtn(); mmDrawFrame(); }
 function mmComputeAndDraw(){ mmCompute(); MM.playT=0; MM.playing=false; mmUpdateBtn(); mmDrawFrame(); }
+let _mmSliderT=null;
 function mmOnSlider(id,val){
   MM.params[id]=parseFloat(val);
   const el=document.getElementById('mmval_'+id); if(el) el.textContent=parseFloat(val).toFixed(2);
-  if(MM.raf) cancelAnimationFrame(MM.raf); MM.playing=false;
-  mmComputeAndDraw();
+  if(MM.raf) cancelAnimationFrame(MM.raf); MM.playing=false; mmUpdateBtn();
+  clearTimeout(_mmSliderT); _mmSliderT=setTimeout(mmComputeAndDraw,110);   // debounce the heavier recompute
 }
 function mmSelectNeuron(i){
   MM.sel=i;
