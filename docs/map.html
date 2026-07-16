@@ -140,6 +140,14 @@
 
   footer { text-align: center; font-size: 0.78rem; color: var(--faint); padding: 2rem; border-top: 1px solid var(--card-border); }
 
+  .cta-row { text-align: center; margin: 1rem 0 1rem; }
+  .btn-primary {
+    display: inline-block; font-size: 0.92rem; font-weight: 700; color: white;
+    background: var(--blue); border: 1px solid var(--blue); border-radius: 30px; padding: 0.8rem 1.8rem;
+    text-decoration: none; transition: background .15s ease, box-shadow .15s ease, transform .15s ease;
+  }
+  .btn-primary:hover { background: #001c5c; box-shadow: 0 8px 20px rgba(0,40,120,0.22); transform: translateY(-2px); }
+
   /* ===== combined 5-column ladder table ===== */
   .ct-wrap { margin-inline: calc(50% - 50vw); padding: 0 1.1rem; margin-top: 0.4rem; }
   .ctable { max-width: 1380px; margin: 0 auto; display: grid; grid-template-columns: 1.05fr 1.15fr 1.2fr 1.35fr 1.2fr; border-top: 1px solid var(--card-border); }
@@ -333,6 +341,10 @@
       <div class="ct-cell ct-diag"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="nmm2w" d="M92,75 L306,75" fill="none"/><line x1="92" y1="75" x2="306" y2="75" stroke="#7f8bb0" stroke-width="2" marker-end="url(#arrowNet)"/><rect x="166" y="52" width="58" height="46" rx="6" fill="#101b3d" stroke="#c026a8" stroke-width="1.7"/><path d="M174,90 C185,90 187,60 196,60 C210,60 216,92 218,92" fill="none" stroke="#e05fc4" stroke-width="1.7"/><text x="195" y="46" text-anchor="middle" font-size="9.5" fill="#e05fc4">synapse K̂</text><circle cx="68" cy="75" r="24" fill="url(#somaBlue)" stroke="white" stroke-width="2"/><text x="68" y="80" text-anchor="middle" font-size="15" font-weight="700" fill="white">j</text><circle cx="332" cy="75" r="24" fill="url(#somaBlue)" stroke="white" stroke-width="2"/><text x="332" y="80" text-anchor="middle" font-size="15" font-weight="700" fill="white">i</text><circle r="5" fill="#e05fc4"><animateMotion dur="2.6s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#nmm2w"/></animateMotion></circle><text x="200" y="134" text-anchor="middle" font-size="12.5" fill="#e05fc4" font-style="italic">rⱼ → sᵢⱼ → vᵢ</text></svg></div><div class="ct-cap">node j’s synaptic activation sᵢⱼ drives node i’s voltage</div></div>
     </div></div>
   </section>
+
+  <div class="cta-row">
+    <a class="btn-primary" href="explorer.html">Explore the models →</a>
+  </div>
 
 </main>
 
