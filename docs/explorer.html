@@ -2306,14 +2306,14 @@ function mmDrawNeuron(){
 }
 function mmDrawFrame(){ mmDrawRaster(); mmDrawRate(); mmDrawNodes(); mmDrawNeuron(); }
 
-function mmUpdateBtn(){ const b=document.getElementById('mmPlayBtn'); if(b) b.textContent=MM.playing?'❚❚ Pause':(MM.playT>=MM.T?'↻ Replay':'▶ Play'); }
+function mmUpdateBtn(){ const b=document.getElementById('mmPlayBtn'); if(b) b.textContent=MM.playing?'❚❚ Pause':'▶ Play'; }
 function mmFrame(now){
   if(!MM.playing) return;
   const dtr=Math.min(0.05,(now-MM.lastReal)/1000); MM.lastReal=now;
   MM.playT+=dtr*(MM.T/MM.playDur);
-  if(MM.playT>=MM.T){ MM.playT=MM.T; MM.playing=false; mmUpdateBtn(); }
+  if(MM.playT>=MM.T) MM.playT-=MM.T;   // loop indefinitely
   mmDrawFrame();
-  if(MM.playing) MM.raf=requestAnimationFrame(mmFrame);
+  MM.raf=requestAnimationFrame(mmFrame);
 }
 function mmToggle(){
   if(MM.playing){ MM.playing=false; if(MM.raf) cancelAnimationFrame(MM.raf); }
@@ -2353,7 +2353,7 @@ function renderMicroMacro(){
       </div>
       <div class="mm-col-right">
         <canvas id="mmRaster" width="600" height="152"></canvas>
-        <div class="mm-cap">Raster: one tick per spike (row = neuron).</div>
+        <div class="mm-cap">Raster: one tick per spike (row = neuron ID).</div>
         <canvas id="mmRate" width="600" height="118"></canvas>
         <div class="mm-cap"><b style="color:${CORAL}">Measured average</b> vs <b style="color:${BLUE}">NMM2 prediction</b>.</div>
       </div>
