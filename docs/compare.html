@@ -185,7 +185,7 @@ function seededNetworkMatrix(N, seed){
 // VARIANT REGISTRY — each entry: sliders, simulate(p), twoPlots(sim,p)
 // ============================================================
 const VARIANTS = {
-  'Kuramoto — Network': {
+  'Phase-only — Network': {
     eq:'dθᵢ/dt = ωᵢ + (G/N)Σⱼ sin(θⱼ−θᵢ)',
     params:[
       {id:'N',      label:'N (oscillators)', min:2, max:20, step:1, def:10},
