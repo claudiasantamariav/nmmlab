@@ -2406,6 +2406,9 @@ document.querySelectorAll('.model-tab').forEach(btn=>
     activeVariant=(MODELS[requested].impl?.variants[0])||'';
     document.querySelectorAll('.model-tab').forEach(t=>t.classList.toggle('active',t.dataset.model===requested));
   }
+  // the Micro → Macro tab exists only for NMM2 — reveal it on deep-link load too
+  const mmTab=document.getElementById('mmTab');
+  if(mmTab) mmTab.style.display=(activeModel==='nmm2')?'':'none';
 })();
 fullRender();
 </script>
