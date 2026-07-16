@@ -139,6 +139,36 @@
   .diag-eq .ref { display: block; font-family: sans-serif; font-size: 0.72rem; color: var(--faint); margin-top: 0.2rem; }
 
   footer { text-align: center; font-size: 0.78rem; color: var(--faint); padding: 2rem; border-top: 1px solid var(--card-border); }
+
+  /* ===== combined 5-column ladder table ===== */
+  .ct-wrap { margin-inline: calc(50% - 50vw); padding: 0 1.1rem; margin-top: 0.4rem; }
+  .ctable { max-width: 1380px; margin: 0 auto; display: grid; grid-template-columns: 1.05fr 1.15fr 1.2fr 1.35fr 1.2fr; border-top: 1px solid var(--card-border); }
+  .ct-head { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--faint); padding: 0.55rem 0.7rem; background: #f5f7fc; border-bottom: 2px solid var(--card-border); }
+  .ct-cell { padding: 0.85rem 0.7rem; border-bottom: 1px solid var(--card-border); }
+  .ctable > .ct-cell:nth-child(10n+1), .ctable > .ct-cell:nth-child(10n+2), .ctable > .ct-cell:nth-child(10n+3), .ctable > .ct-cell:nth-child(10n+4), .ctable > .ct-cell:nth-child(10n+5) { background: #fbfcfe; }
+  .ct-lad { display: flex; flex-direction: column; gap: 0.55rem; justify-content: center; }
+  .ct-trans { align-self: flex-start; font-size: 0.7rem; font-weight: 700; color: var(--coral); background: #fff4f2; border: 1px solid #ffd9d2; border-radius: 20px; padding: 0.2rem 0.6rem; line-height: 1.3; }
+  .ct-model { display: flex; align-items: center; gap: 0.55rem; }
+  .ct-ico { width: 40px; height: 40px; border-radius: 50%; background: #0d1330; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .ct-ico svg { width: 30px; height: 30px; }
+  .ct-name { font-size: 1rem; font-weight: 700; color: var(--blue); line-height: 1.1; }
+  .ct-rung { font-size: 0.68rem; color: var(--faint); margin-top: 1px; }
+  .ct-eq { font-family: Georgia, 'Times New Roman', serif; font-size: 0.9rem; line-height: 1.5; color: var(--text); align-self: center; }
+  .ct-eq .l2 { display: block; margin-top: 0.15rem; }
+  .ct-eq .hl { background: #ffe98a; border-radius: 2px; padding: 0 2px; font-weight: 700; }
+  .ct-eq .ref { display: block; font-family: sans-serif; font-size: 0.66rem; color: var(--faint); margin-top: 0.3rem; }
+  .ct-diag { display: flex; flex-direction: column; justify-content: center; }
+  .ct-diag .diag-viz { background: #0d1330; border-radius: 8px; padding: 0.3rem 0.25rem; }
+  .ct-diag .diag-viz svg { width: 100%; height: auto; display: block; }
+  .ct-cap { font-size: 0.64rem; color: var(--faint); margin-top: 0.3rem; line-height: 1.35; }
+  @media (max-width: 920px) {
+    .ct-wrap { margin-inline: 0; padding: 0; }
+    .ctable { grid-template-columns: 1fr; max-width: 520px; border-top: none; }
+    .ct-head { display: none; }
+    .ct-cell { border-bottom: none; padding: 0.5rem 0.2rem; }
+    .ct-lad { border-top: 2px solid var(--blue); padding-top: 0.9rem; margin-top: 0.6rem; }
+    .ctable > .ct-cell:nth-child(n) { background: transparent; }
+  }
 </style>
 </head>
 <body>
@@ -180,79 +210,18 @@
 
   <!-- ═══════════ 1 · EQUATIONS ═══════════ -->
   <section class="block">
-    <h2><span class="num">1</span>The equations, term by term</h2>
-    <p class="tagline">Every term coloured by the job it does — the same colour means the same role across all models.</p>
-    <div class="role-legend">
-      <span><span class="sw" style="background:var(--freq)"></span>rotation</span>
-      <span><span class="sw" style="background:var(--damp)"></span>damping / relaxation</span>
-      <span><span class="sw" style="background:var(--sat)"></span>amplitude brake</span>
-      <span><span class="sw" style="background:var(--coupl)"></span>E–I coupling</span>
-      <span><span class="sw" style="background:var(--filt)"></span>synaptic filter</span>
-      <span><span class="sw" style="background:var(--mf)"></span>mean field</span>
-      <span><span class="sw" style="background:var(--drive)"></span>external input</span>
-    </div>
-
-    <div class="eqlist">
-      <div class="eqrow">
-        <span class="er-ico" data-ico="kuramoto"></span>
-        <div class="er-body">
-          <div class="er-name">Phase-only · phase oscillators (the starting point)</div>
-          <div class="er-eq">θ̇ᵢ = <b style="color:var(--freq)">ωᵢ</b></div>
-          <div class="er-note">phase only — no amplitude, so no damping or amplitude-brake term is even possible, unlike every row below. Coupling (a nonlinear sin(θⱼ−θᵢ) term, unlike any other model here) only enters once nodes are networked — see the diagrams below.</div>
-        </div>
-      </div>
-      <div class="eqrow">
-        <span class="er-ico" data-ico="ho"></span>
-        <div class="er-body">
-          <div class="er-name">HO · harmonic oscillator (polar)</div>
-          <div class="er-eq">ṙ = <b style="color:var(--damp)">α r</b><span class="l2">θ̇ = <b style="color:var(--freq)">ω</b></span></div>
-          <div class="er-note"><b>new:</b> amplitude r is now a real variable — damping α lets it decay (stable focus), grow (unstable), or sit neutral at α = 0, the first bit of machinery Phase-only doesn't have.</div>
-        </div>
-      </div>
-      <div class="eqrow">
-        <span class="er-ico" data-ico="sl"></span>
-        <div class="er-body">
-          <div class="er-name">Stuart–Landau (polar)</div>
-          <div class="er-eq">ṙ = <b style="color:var(--damp)">α r</b> <b style="color:var(--sat)">− γr³</b><span class="l2">θ̇ = <b style="color:var(--freq)">ω</b> <b style="color:var(--sat)">− βr²</b></span></div>
-          <div class="er-note"><b>new:</b> the amplitude brake −γr³ locks r at r* = √(α/γ).</div>
-        </div>
-      </div>
-      <div class="eqrow">
-        <span class="er-ico" data-ico="wilco"></span>
-        <div class="er-body">
-          <div class="er-name">WILCO · Wilson–Cowan</div>
-          <div class="er-eq"><b style="color:var(--damp)">τₓẋ + x</b> = <b style="color:var(--sat)">σ</b>(<b style="color:var(--coupl)">wₓₓx − wₓᵧy</b> + <b style="color:var(--drive)">Pₓ</b>)<span class="l2"><b style="color:var(--damp)">τᵧẏ + y</b> = <b style="color:var(--sat)">σ</b>(<b style="color:var(--coupl)">wᵧₓx − wᵧᵧy</b>)</span></div>
-          <div class="er-note"><b>new:</b> two populations linked by reciprocal E–I coupling.</div>
-        </div>
-      </div>
-      <div class="eqrow">
-        <span class="er-ico" data-ico="nmm1"></span>
-        <div class="er-body">
-          <div class="er-name">NMM1 · second-order synapses</div>
-          <div class="er-eq"><b style="color:var(--filt)">τ²ẍ + 2τẋ</b> + x = γ <b style="color:var(--sat)">σ</b>(<b style="color:var(--coupl)">−wₓᵧy</b> + <b style="color:var(--drive)">F̂ₑ</b>)</div>
-          <div class="er-note"><b>new:</b> a second-order synaptic filter with its own rise and decay.</div>
-        </div>
-      </div>
-      <div class="eqrow">
-        <span class="er-ico" data-ico="nmm2"></span>
-        <div class="er-body">
-          <div class="er-name">NMM2 · next-gen mean field</div>
-          <div class="er-eq"><b style="color:var(--mf)">ṙ = Δ/π + 2rv</b><span class="l2"><b style="color:var(--mf)">v̇ = v² − π²r²</b> + <b style="color:var(--coupl)">Js</b> + <b style="color:var(--drive)">η̄ + I(t)</b></span></div>
-          <div class="er-note"><b>new:</b> an exact mean field from spiking QIF neurons (rate r, voltage v).</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ 2 · DIAGRAMS ═══ -->
-  <section class="block">
-    <h2><span class="num">2</span>The diagrams — one node, then a network</h2>
-    <p class="tagline">For each model: what a <b>single node</b> is, and how nodes are <b>coupled into a whole-brain network</b> — with the paper’s exact coupling term (highlighted). HO &amp; SL couple <b>diffusively</b>; the neural models add coupling <b>inside the excitatory nonlinearity</b> (E→E).</p>
-    <div class="diag-grid">
-      <div class="diag-card">
-        <div class="d-name">Phase-only — one phase, then many</div>
-        <div class="diag-row">
-          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+    <h2>The ladder, read across</h2>
+    <p class="tagline">Every rung on one table — read each row left to right: the model and the one idea it adds, its single-node equation (coloured by role), what a single unit looks like, how units couple, and the coupled network. Diagrams are animated.</p>
+    <div class="role-legend"><span><span class="sw" style="background:var(--freq)"></span>rotation</span><span><span class="sw" style="background:var(--damp)"></span>damping / relaxation</span><span><span class="sw" style="background:var(--sat)"></span>amplitude brake</span><span><span class="sw" style="background:var(--coupl)"></span>E–I coupling</span><span><span class="sw" style="background:var(--filt)"></span>synaptic filter</span><span><span class="sw" style="background:var(--mf)"></span>mean field</span><span><span class="sw" style="background:var(--drive)"></span>external input</span></div>
+    <div class="ct-wrap"><div class="ctable">
+      <div class="ct-head">Model &amp; what it adds</div>
+      <div class="ct-head">Single-node equation</div>
+      <div class="ct-head">One unit</div>
+      <div class="ct-head">Coupled equation</div>
+      <div class="ct-head">Coupled network</div>
+      <div class="ct-cell ct-lad"><div class="ct-model"><span class="ct-ico" data-ico="kuramoto"></span><div><div class="ct-name">Phase-only</div><div class="ct-rung">the starting point</div></div></div></div>
+      <div class="ct-cell ct-eq">θ̇ᵢ = <b style="color:var(--freq)">ωᵢ</b></div>
+      <div class="ct-cell ct-diag"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
       <circle cx="200" cy="75" r="52" fill="none" stroke="#e8edf7" stroke-width="2" stroke-dasharray="3 4" opacity="0.6"/>
       <g>
         <line x1="200" y1="75" x2="200" y2="23" stroke="#22c1ff" stroke-width="2.6">
@@ -263,8 +232,9 @@
         </circle>
       </g>
       <circle cx="200" cy="75" r="4" fill="#22c1ff"/>
-    </svg></div><div class="diag-cap">one node = a bare phase θᵢ rotating at ωᵢ — no amplitude at all</div></div>
-          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+    </svg></div><div class="ct-cap">one node = a bare phase θᵢ rotating at ωᵢ — no amplitude at all</div></div>
+      <div class="ct-cell ct-eq">θ̇ᵢ = ωᵢ + G <span class="hl">(1/N) Σⱼ sin(θⱼ − θᵢ)</span> <span class="ref">phase coupling · §2.1.4, Eq. 2.19, App. D</span></div>
+      <div class="ct-cell ct-diag"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
       <circle cx="200" cy="75" r="55" fill="none" stroke="#e8edf7" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.5"/>
       <g fill="#22c1ff">
         <circle cx="200" cy="21" r="6"/>
@@ -277,14 +247,10 @@
       </g>
       <line x1="200" y1="75" x2="200" y2="35" stroke="#FF6657" stroke-width="3.2" marker-end="url(#arrowBlue)"/>
       <text x="200" y="140" text-anchor="middle" font-size="11" fill="#8a8fa3" font-family="sans-serif">phases pulled toward each other by sin(θⱼ−θᵢ)</text>
-    </svg></div><div class="diag-cap">not yet synchronised: dots scattered, order-parameter arrow (coral) short</div></div>
-        </div>
-        <div class="diag-eq">θ̇ᵢ = ωᵢ + G <span class="hl">(1/N) Σⱼ sin(θⱼ − θᵢ)</span> <span class="ref">phase coupling · §2.1.4, Eq. 2.19, App. D</span></div>
-      </div>
-      <div class="diag-card">
-        <div class="d-name">HO — one oscillator</div>
-        <div class="diag-row">
-          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+    </svg></div><div class="ct-cap">not yet synchronised: dots scattered, order-parameter arrow (coral) short</div></div>
+      <div class="ct-cell ct-lad"><div class="ct-trans">▾ + amplitude (a mass on a spring)</div><div class="ct-model"><span class="ct-ico" data-ico="ho"></span><div><div class="ct-name">HO</div><div class="ct-rung">rung 2 · harmonic oscillator</div></div></div></div>
+      <div class="ct-cell ct-eq">ṙ = <b style="color:var(--damp)">α r</b><span class="l2">θ̇ = <b style="color:var(--freq)">ω</b></span></div>
+      <div class="ct-cell ct-diag"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
       <line x1="34" y1="42" x2="34" y2="108" stroke="#e8edf7" stroke-width="4" stroke-linecap="round" opacity="0.85"/>
       <line x1="34" y1="52" x2="20" y2="64" stroke="#e8edf7" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
       <line x1="34" y1="68" x2="20" y2="80" stroke="#e8edf7" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
@@ -304,30 +270,24 @@
         <animate attributeName="cx" values="199;228;174;199" keyTimes="0;0.33;0.66;1" dur="2.6s" repeatCount="indefinite"
           calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1"/>
       </circle>
-    </svg></div><div class="diag-cap">one node = one oscillator (a coarse-grained population)</div></div>
-          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="eho0" d="M118,42 L300,90" fill="none" stroke="#3a4568" stroke-width="2"/><path id="eho1" d="M94,116 L300,90" fill="none" stroke="#3a4568" stroke-width="2"/><path id="eho2" d="M118,42 L94,116" fill="none" stroke="#3a4568" stroke-width="2"/><text x="196" y="58" font-size="12" fill="#8a93b0" font-style="italic">Cᵢⱼ</text><circle cx="118" cy="42" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.0s" repeatCount="indefinite"/></circle><circle cx="94" cy="116" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.5s" repeatCount="indefinite"/></circle><circle cx="300" cy="90" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="1.0s" repeatCount="indefinite"/></circle><circle r="5" fill="#22c1ff"><animateMotion dur="2.4s" begin="0.0s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#eho0"/></animateMotion></circle><circle r="5" fill="#22c1ff"><animateMotion dur="2.4s" begin="0.4s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#eho1"/></animateMotion></circle><circle r="5" fill="#22c1ff"><animateMotion dur="2.4s" begin="0.8s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#eho2"/></animateMotion></circle></svg></div><div class="diag-cap">diffusive: each node is pulled toward its neighbours</div></div>
-        </div>
-        <div class="diag-eq">żᵢ = (α+iω)zᵢ + G Σⱼ <span class="hl">Cᵢⱼ(zⱼ − zᵢ)</span> <span class="ref">diffusive coupling · §2, Eq. 2.29</span></div>
-      </div>
-      <div class="diag-card">
-        <div class="d-name">Stuart–Landau — a locked rhythm</div>
-        <div class="diag-row">
-          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+    </svg></div><div class="ct-cap">one node = one oscillator (a coarse-grained population)</div></div>
+      <div class="ct-cell ct-eq">żᵢ = (α+iω)zᵢ + G Σⱼ <span class="hl">Cᵢⱼ(zⱼ − zᵢ)</span> <span class="ref">diffusive coupling · §2, Eq. 2.29</span></div>
+      <div class="ct-cell ct-diag"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="dho" d="M104,75 L296,75" fill="none"/><polyline points="104,75 124,60 144,90 164,60 184,90 204,60 224,90 244,60 264,90 284,60 296,75" fill="none" stroke="#7f8bb0" stroke-width="2"/><circle r="5" fill="#22c1ff"><animateMotion dur="2.2s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#dho"/></animateMotion></circle><circle r="5" fill="#22c1ff"><animateMotion dur="2.2s" begin="1.1s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#dho"/></animateMotion></circle><circle cx="80" cy="75" r="24" fill="url(#somaBlue)" stroke="white" stroke-width="2"/><text x="80" y="80" text-anchor="middle" font-size="15" font-weight="700" fill="white">j</text><circle cx="320" cy="75" r="24" fill="url(#somaBlue)" stroke="white" stroke-width="2"/><text x="320" y="80" text-anchor="middle" font-size="15" font-weight="700" fill="white">i</text><text x="200" y="24" text-anchor="middle" font-size="12" fill="#cdd6ee">mutual pull — vanishes when in sync</text><text x="200" y="134" text-anchor="middle" font-size="13" fill="#22c1ff" font-style="italic">Cᵢⱼ (zⱼ − zᵢ)</text></svg></div><div class="ct-cap">diffusive: each node is pulled toward its neighbours</div></div>
+      <div class="ct-cell ct-lad"><div class="ct-trans">▾ + cubic nonlinearity</div><div class="ct-model"><span class="ct-ico" data-ico="sl"></span><div><div class="ct-name">Stuart–Landau</div><div class="ct-rung">rung 3</div></div></div></div>
+      <div class="ct-cell ct-eq">ṙ = <b style="color:var(--damp)">α r</b> <b style="color:var(--sat)">− γr³</b><span class="l2">θ̇ = <b style="color:var(--freq)">ω</b> <b style="color:var(--sat)">− βr²</b></span></div>
+      <div class="ct-cell ct-diag"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
       <circle cx="200" cy="75" r="44" fill="none" stroke="#ec4899" stroke-width="3.5" opacity="0.95"/>
       <path d="M200,75 C214,71 219,53 202,47 C178,38 150,53 152,78 C154,106 189,120 218,106 C237,97 239,77 229,60"
             fill="none" stroke="#c084fc" stroke-width="2" stroke-dasharray="4 4" opacity="0.7" stroke-linecap="round"/>
       <circle r="7" fill="#c084fc" stroke="white" stroke-width="1.5">
         <animateMotion dur="3.2s" repeatCount="indefinite" path="M244,75 A44,44 0 1,1 156,75 A44,44 0 1,1 244,75"/>
       </circle>
-    </svg></div><div class="diag-cap">one node orbits a fixed ring (limit cycle)</div></div>
-          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="esl0" d="M118,42 L300,90" fill="none" stroke="#3a4568" stroke-width="2"/><path id="esl1" d="M94,116 L300,90" fill="none" stroke="#3a4568" stroke-width="2"/><path id="esl2" d="M118,42 L94,116" fill="none" stroke="#3a4568" stroke-width="2"/><text x="196" y="58" font-size="12" fill="#8a93b0" font-style="italic">Cᵢⱼ</text><circle cx="118" cy="42" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.0s" repeatCount="indefinite"/></circle><circle cx="94" cy="116" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.5s" repeatCount="indefinite"/></circle><circle cx="300" cy="90" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="1.0s" repeatCount="indefinite"/></circle><circle r="5" fill="#22c1ff"><animateMotion dur="2.4s" begin="0.0s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#esl0"/></animateMotion></circle><circle r="5" fill="#22c1ff"><animateMotion dur="2.4s" begin="0.4s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#esl1"/></animateMotion></circle><circle r="5" fill="#22c1ff"><animateMotion dur="2.4s" begin="0.8s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#esl2"/></animateMotion></circle></svg></div><div class="diag-cap">diffusive: pulled toward neighbours, amplitude self-limited</div></div>
-        </div>
-        <div class="diag-eq">żᵢ = (α+iω)zᵢ − (γ+iβ)|zᵢ|²zᵢ + G Σⱼ <span class="hl">Cᵢⱼ(zⱼ − zᵢ)</span> <span class="ref">diffusive coupling · §3, Eq. 3.9</span></div>
-      </div>
-      <div class="diag-card">
-        <div class="d-name">WILCO — two populations</div>
-        <div class="diag-row">
-          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+    </svg></div><div class="ct-cap">one node orbits a fixed ring (limit cycle)</div></div>
+      <div class="ct-cell ct-eq">żᵢ = (α+iω)zᵢ − (γ+iβ)|zᵢ|²zᵢ + G Σⱼ <span class="hl">Cᵢⱼ(zⱼ − zᵢ)</span> <span class="ref">diffusive coupling · §3, Eq. 3.9</span></div>
+      <div class="ct-cell ct-diag"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="dsl" d="M104,75 L296,75" fill="none"/><polyline points="104,75 124,60 144,90 164,60 184,90 204,60 224,90 244,60 264,90 284,60 296,75" fill="none" stroke="#7f8bb0" stroke-width="2"/><circle r="5" fill="#22c1ff"><animateMotion dur="2.2s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#dsl"/></animateMotion></circle><circle r="5" fill="#22c1ff"><animateMotion dur="2.2s" begin="1.1s" repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear"><mpath href="#dsl"/></animateMotion></circle><circle cx="80" cy="75" r="24" fill="url(#somaBlue)" stroke="white" stroke-width="2"/><text x="80" y="80" text-anchor="middle" font-size="15" font-weight="700" fill="white">j</text><circle cx="320" cy="75" r="24" fill="url(#somaBlue)" stroke="white" stroke-width="2"/><text x="320" y="80" text-anchor="middle" font-size="15" font-weight="700" fill="white">i</text><text x="200" y="24" text-anchor="middle" font-size="12" fill="#cdd6ee">mutual pull — vanishes when in sync</text><text x="200" y="134" text-anchor="middle" font-size="13" fill="#22c1ff" font-style="italic">Cᵢⱼ (zⱼ − zᵢ)</text></svg></div><div class="ct-cap">diffusive: pulled toward neighbours, amplitude self-limited</div></div>
+      <div class="ct-cell ct-lad"><div class="ct-trans">▾ + E/I populations, sigmoid</div><div class="ct-model"><span class="ct-ico" data-ico="wilco"></span><div><div class="ct-name">WILCO</div><div class="ct-rung">rung 4 · Wilson–Cowan</div></div></div></div>
+      <div class="ct-cell ct-eq"><b style="color:var(--damp)">τₓẋ + x</b> = <b style="color:var(--sat)">σ</b>(<b style="color:var(--coupl)">wₓₓx − wₓᵧy</b> + <b style="color:var(--drive)">Pₓ</b>)<span class="l2"><b style="color:var(--damp)">τᵧẏ + y</b> = <b style="color:var(--sat)">σ</b>(<b style="color:var(--coupl)">wᵧₓx − wᵧᵧy</b>)</span></div>
+      <div class="ct-cell ct-diag"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
       <path d="M158,64 Q200,30 242,64" fill="none" stroke="#22c1ff" stroke-width="3" marker-end="url(#arrowBlue)"/>
       <path d="M242,98 Q200,138 158,98" fill="none" stroke="#FF6657" stroke-width="3" marker-end="url(#barCoral)"/>
       <path d="M112,55 Q88,14 132,24 Q152,30 132,55" fill="none" stroke="#22c1ff" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
@@ -336,43 +296,17 @@
       <text x="130" y="90" font-size="28" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">E</text>
       <circle cx="270" cy="80" r="30" fill="url(#somaCoral)" stroke="white" stroke-width="2"/>
       <text x="270" y="90" font-size="28" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">I</text>
-    </svg></div><div class="diag-cap">one node = excitatory + inhibitory populations</div></div>
-          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="ewilco0" d="M118,42 L300,90" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><path id="ewilco1" d="M94,116 L300,90" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><path id="ewilco2" d="M118,42 L94,116" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><text x="196" y="58" font-size="12" fill="#8a93b0" font-style="italic">Cᵢⱼ</text><circle cx="118" cy="42" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.0s" repeatCount="indefinite"/></circle><circle cx="94" cy="116" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.5s" repeatCount="indefinite"/></circle><circle cx="300" cy="90" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="1.0s" repeatCount="indefinite"/></circle><circle r="5" fill="#f5a623"><animateMotion dur="2.4s" begin="0.0s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#ewilco0"/></animateMotion></circle><circle r="5" fill="#f5a623"><animateMotion dur="2.4s" begin="0.5s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#ewilco1"/></animateMotion></circle><circle r="5" fill="#f5a623"><animateMotion dur="2.4s" begin="1.0s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#ewilco2"/></animateMotion></circle></svg></div><div class="diag-cap">additive, E→E: node j’s rate feeds node i’s input</div></div>
-        </div>
-        <div class="diag-eq">τₓẋᵢ + xᵢ = σ(wₓₓxᵢ − wₓᵧyᵢ + Pₓ + <span class="hl">Σⱼ Cᵢⱼ xⱼ</span>) <span class="ref">additive coupling, inside σ · §5, Eq. 5.5</span></div>
-      </div>
-      <div class="diag-card">
-        <div class="d-name">NMM1 — realistic synapses</div>
-        <div class="diag-row">
-          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
-      <g stroke="#22c1ff" stroke-width="2.5" stroke-linecap="round" opacity="0.85">
-        <line x1="63" y1="60" x2="38" y2="38"/>
-        <line x1="58" y1="75" x2="28" y2="75"/>
-        <line x1="63" y1="90" x2="38" y2="112"/>
-      </g>
-      <g stroke="#FF6657" stroke-width="2.5" stroke-linecap="round" opacity="0.85">
-        <line x1="337" y1="60" x2="362" y2="38"/>
-        <line x1="342" y1="75" x2="372" y2="75"/>
-        <line x1="337" y1="90" x2="362" y2="112"/>
-      </g>
-      <path id="nmm1axon" d="M109,75 Q212,42 291,75" fill="none" stroke="#e8edf7" stroke-width="3" opacity="0.85"/>
-      <polyline points="248,38 253,37 258,26 263,39 268,37 273,38" fill="none" stroke="#f5a623" stroke-width="2" opacity="0.95"/>
-      <circle cx="85" cy="75" r="24" fill="url(#somaBlue)" stroke="white" stroke-width="2"/>
-      <circle cx="315" cy="75" r="24" fill="url(#somaCoral)" stroke="white" stroke-width="2"/>
-      <circle r="8" fill="#f5a623" stroke="white" stroke-width="1.5">
-        <animateMotion dur="3s" repeatCount="indefinite" keyPoints="0;0.82;0.82;1" keyTimes="0;0.5;0.78;1" calcMode="linear">
-          <mpath href="#nmm1axon"/>
-        </animateMotion>
-      </circle>
-    </svg></div><div class="diag-cap">one node: E–I with rise/decay synapses</div></div>
-          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="enmm10" d="M118,42 L300,90" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><path id="enmm11" d="M94,116 L300,90" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><path id="enmm12" d="M118,42 L94,116" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><text x="196" y="58" font-size="12" fill="#8a93b0" font-style="italic">Cᵢⱼ</text><circle cx="118" cy="42" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.0s" repeatCount="indefinite"/></circle><circle cx="94" cy="116" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.5s" repeatCount="indefinite"/></circle><circle cx="300" cy="90" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="1.0s" repeatCount="indefinite"/></circle><circle r="5" fill="#f5a623"><animateMotion dur="3.4s" begin="0.0s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#enmm10"/></animateMotion></circle><circle r="5" fill="#f5a623"><animateMotion dur="3.4s" begin="0.5s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#enmm11"/></animateMotion></circle><circle r="5" fill="#f5a623"><animateMotion dur="3.4s" begin="1.0s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#enmm12"/></animateMotion></circle></svg></div><div class="diag-cap">the same, E→E, but arriving with a conduction delay τᵢⱼ</div></div>
-        </div>
-        <div class="diag-eq">Lₓ[xᵢ] = σ(−wₓᵧyᵢ + F̂ₑ + <span class="hl">Σⱼ Cᵢⱼ xⱼ(t−τᵢⱼ)</span>) <span class="ref">additive, delayed, E→E · §6, Eq. 6.5</span></div>
-      </div>
-      <div class="diag-card">
-        <div class="d-name">NMM2 — spiking populations</div>
-        <div class="diag-row">
-          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
+    </svg></div><div class="ct-cap">one node = excitatory + inhibitory populations</div></div>
+      <div class="ct-cell ct-eq">τₓẋᵢ + xᵢ = σ(wₓₓxᵢ − wₓᵧyᵢ + Pₓ + <span class="hl">Σⱼ Cᵢⱼ xⱼ</span>) <span class="ref">additive coupling, inside σ · §5, Eq. 5.5</span></div>
+      <div class="ct-cell ct-diag"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="wilcow" d="M94,75 L306,75" fill="none"/><line x1="94" y1="75" x2="306" y2="75" stroke="#7f8bb0" stroke-width="2" marker-end="url(#arrowNet)"/><rect x="236" y="54" width="42" height="42" rx="7" fill="#101b3d" stroke="#f5a623" stroke-width="1.6"/><path d="M243,89 C251,89 253,61 261,61 C267,61 269,72 271,72" fill="none" stroke="#f5a623" stroke-width="1.7"/><text x="257" y="49" text-anchor="middle" font-size="11" fill="#f5a623" font-style="italic">σ</text><circle cx="70" cy="75" r="24" fill="url(#somaBlue)" stroke="white" stroke-width="2"/><text x="70" y="80" text-anchor="middle" font-size="15" font-weight="700" fill="white">j</text><circle cx="330" cy="75" r="24" fill="url(#somaBlue)" stroke="white" stroke-width="2"/><text x="330" y="80" text-anchor="middle" font-size="15" font-weight="700" fill="white">i</text><circle r="5" fill="#f5a623"><animateMotion dur="1.9s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#wilcow"/></animateMotion></circle><text x="150" y="62" text-anchor="middle" font-size="12" fill="#f5a623" font-style="italic">+ xⱼ</text><text x="200" y="134" text-anchor="middle" font-size="12" fill="#cdd6ee">one-way — added inside the sigmoid σ</text></svg></div><div class="ct-cap">additive, E→E: node j’s rate feeds node i’s input</div></div>
+      <div class="ct-cell ct-lad"><div class="ct-trans">▾ + synaptic time constants</div><div class="ct-model"><span class="ct-ico" data-ico="nmm1"></span><div><div class="ct-name">NMM1</div><div class="ct-rung">rung 5</div></div></div></div>
+      <div class="ct-cell ct-eq"><b style="color:var(--filt)">τ²ẍ + 2τẋ</b> + x = γ <b style="color:var(--sat)">σ</b>(<b style="color:var(--coupl)">−wₓᵧy</b> + <b style="color:var(--drive)">F̂ₑ</b>)</div>
+      <div class="ct-cell ct-diag"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="n1ei" d="M160,58 Q200,20 240,58" fill="none" stroke="#22c1ff" stroke-width="2.6" marker-end="url(#arrowBlue)"/><rect x="186" y="30" width="28" height="18" rx="4" fill="#101b3d" stroke="#22c1ff" stroke-width="1.3"/><path d="M190,44 C194,44 195,34 200,34 C205,34 207,46 210,46" fill="none" stroke="#22c1ff" stroke-width="1.2"/><path id="n1ie" d="M240,92 Q200,130 160,92" fill="none" stroke="#FF6657" stroke-width="2.6" marker-end="url(#barCoral)"/><rect x="186" y="102" width="28" height="18" rx="4" fill="#101b3d" stroke="#FF6657" stroke-width="1.3"/><path d="M190,116 C194,116 195,106 200,106 C205,106 207,118 210,118" fill="none" stroke="#FF6657" stroke-width="1.2"/><circle cx="130" cy="75" r="30" fill="url(#somaBlue)" stroke="white" stroke-width="2"/><text x="130" y="85" font-size="28" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">E</text><circle cx="270" cy="75" r="30" fill="url(#somaCoral)" stroke="white" stroke-width="2"/><text x="270" y="85" font-size="28" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">I</text><circle r="5" fill="#22c1ff"><animateMotion dur="3s" repeatCount="indefinite" keyPoints="0;0.5;0.5;1" keyTimes="0;0.34;0.62;1" calcMode="linear"><mpath href="#n1ei"/></animateMotion></circle><circle r="5" fill="#FF6657"><animateMotion dur="3s" begin="1.5s" repeatCount="indefinite" keyPoints="0;0.5;0.5;1" keyTimes="0;0.34;0.62;1" calcMode="linear"><mpath href="#n1ie"/></animateMotion></circle></svg></div><div class="ct-cap">E and I populations (like WILCO) — but each synapse adds a rise/decay + delay</div></div>
+      <div class="ct-cell ct-eq">Lₓ[xᵢ] = σ(−wₓᵧyᵢ + F̂ₑ + <span class="hl">Σⱼ Cᵢⱼ xⱼ(t−τᵢⱼ)</span>) <span class="ref">additive, delayed, E→E · §6, Eq. 6.5</span></div>
+      <div class="ct-cell ct-diag"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="nmm1w" d="M94,75 L306,75" fill="none"/><line x1="94" y1="75" x2="306" y2="75" stroke="#7f8bb0" stroke-width="2" marker-end="url(#arrowNet)"/><rect x="172" y="57" width="44" height="36" rx="5" fill="#101b3d" stroke="#d0a92e" stroke-width="1.6"/><text x="194" y="82" text-anchor="middle" font-size="15" fill="#f5d76e" font-style="italic">τ</text><text x="194" y="49" text-anchor="middle" font-size="9" fill="#d0a92e">delay</text><circle cx="70" cy="75" r="24" fill="url(#somaBlue)" stroke="white" stroke-width="2"/><text x="70" y="80" text-anchor="middle" font-size="15" font-weight="700" fill="white">j</text><circle cx="330" cy="75" r="24" fill="url(#somaBlue)" stroke="white" stroke-width="2"/><text x="330" y="80" text-anchor="middle" font-size="15" font-weight="700" fill="white">i</text><circle r="5" fill="#f5a623"><animateMotion dur="3.2s" repeatCount="indefinite" keyPoints="0;0.47;0.47;1" keyTimes="0;0.32;0.64;1" calcMode="linear"><mpath href="#nmm1w"/></animateMotion></circle><text x="200" y="134" text-anchor="middle" font-size="12.5" fill="#f5a623" font-style="italic">+ xⱼ(t − τ)</text></svg></div><div class="ct-cap">the same, E→E, but arriving with a conduction delay τᵢⱼ</div></div>
+      <div class="ct-cell ct-lad"><div class="ct-trans">▾ + exact QIF mean-field derivation</div><div class="ct-model"><span class="ct-ico" data-ico="nmm2"></span><div><div class="ct-name">NMM2</div><div class="ct-rung">rung 6 · next-gen mean field</div></div></div></div>
+      <div class="ct-cell ct-eq"><b style="color:var(--mf)">ṙ = Δ/π + 2rv</b><span class="l2"><b style="color:var(--mf)">v̇ = v² − π²r²</b> + <b style="color:var(--coupl)">Js</b> + <b style="color:var(--drive)">η̄ + I(t)</b></span></div>
+      <div class="ct-cell ct-diag"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">
       <ellipse cx="115" cy="75" rx="72" ry="55" fill="none" stroke="#e8edf7" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.5"/>
       <circle cx="80" cy="50" r="4.5" fill="#22c1ff"/>
       <circle cx="115" cy="42" r="4.5" fill="#FF6657"/>
@@ -394,257 +328,10 @@
       <text x="315" y="115" font-size="24" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">v</text>
       <path d="M300,68 Q290,78 300,88" fill="none" stroke="#e8edf7" stroke-width="1.5" marker-end="url(#arrowLight)" opacity="0.8"/>
       <path d="M330,88 Q340,78 330,68" fill="none" stroke="#e8edf7" stroke-width="1.5" marker-end="url(#arrowLight)" opacity="0.8"/>
-    </svg></div><div class="diag-cap">one node = a population of spiking neurons → (r, v)</div></div>
-          <div class="diag-cell"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="enmm20" d="M118,42 L300,90" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><path id="enmm21" d="M94,116 L300,90" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><path id="enmm22" d="M118,42 L94,116" fill="none" stroke="#3a4568" stroke-width="2" marker-end="url(#arrowNet)"/><text x="196" y="58" font-size="12" fill="#8a93b0" font-style="italic">Cᵢⱼ</text><circle cx="118" cy="42" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.0s" repeatCount="indefinite"/></circle><circle cx="94" cy="116" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="0.5s" repeatCount="indefinite"/></circle><circle cx="300" cy="90" r="17" fill="url(#somaBlue)" stroke="white" stroke-width="2"><animate attributeName="r" values="17;19.5;17" dur="2s" begin="1.0s" repeatCount="indefinite"/></circle><circle r="5" fill="#f5a623"><animateMotion dur="2.4s" begin="0.0s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#enmm20"/></animateMotion></circle><circle r="5" fill="#f5a623"><animateMotion dur="2.4s" begin="0.5s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#enmm21"/></animateMotion></circle><circle r="5" fill="#f5a623"><animateMotion dur="2.4s" begin="1.0s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#enmm22"/></animateMotion></circle></svg></div><div class="diag-cap">node j’s synaptic activation sᵢⱼ drives node i’s voltage</div></div>
-        </div>
-        <div class="diag-eq">v̇ᵢ = vᵢ² − π²rᵢ² + η̄ + <span class="hl">Σⱼ Cᵢⱼ sᵢⱼ</span>,  sᵢⱼ = K̂[rⱼ] <span class="ref">synaptic-current coupling · §7, Eq. 7.10</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════ 3 · LADDER ═══════════ -->
-  <section class="block" id="ladder">
-    <h2><span class="num">3</span>The ladder, top to bottom</h2>
-    <p class="tagline">The same six models from the Demos page, in the order they were built.</p>
-
-    <div class="ladder-box">
-      <div class="ladder">
-
-        <div class="ladder-node">
-          <div class="ladder-icon">
-            <svg viewBox="0 0 100 104" aria-hidden="true">
-              <circle cx="50" cy="52" r="38" fill="none" stroke="#22c1ff" stroke-width="1.6" stroke-dasharray="3 4" opacity="0.6"/>
-              <circle cx="50" cy="52" r="4" fill="#22c1ff"/>
-              <line x1="50" y1="52" x2="50" y2="16" stroke="#22c1ff" stroke-width="2.5"/>
-              <circle cx="50" cy="16" r="6" fill="url(#somaBlue)" stroke="white" stroke-width="1.2"/>
-            </svg>
-          </div>
-          <div class="ladder-text">
-            <h3>Phase-only <span>the starting point</span></h3>
-            <p>θ̇ᵢ = ωᵢ + (G/N)Σⱼ sin(θⱼ−θᵢ) — phase only, no amplitude. The barest possible skeleton for synchronization.</p>
-          </div>
-        </div>
-
-        <div class="ladder-edge">
-          <div class="spacer"><span class="chevron">▾</span></div>
-          <div class="edge-label">+ amplitude (a mass on a spring)</div>
-        </div>
-
-        <div class="ladder-node">
-          <div class="ladder-icon">
-            <svg viewBox="0 0 100 104" aria-hidden="true">
-              <circle cx="50" cy="54" r="40" fill="none" stroke="#22c1ff" stroke-width="1.3" stroke-dasharray="3 4" opacity="0.55"/>
-              <circle cx="76" cy="32" r="3" fill="#FF6657"/>
-              <g transform="translate(50,54) scale(1.05)" stroke="#22c1ff" fill="none" stroke-linecap="round">
-                <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
-                <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
-                <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
-                <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
-                <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
-                <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
-                <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
-                <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
-                <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
-                <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
-                <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
-                <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
-                <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
-                <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
-              </g>
-            </svg>
-          </div>
-          <div class="ladder-text">
-            <h3>HO <span>rung 2</span></h3>
-            <p>ż = (α + iω)z — a linear oscillator, closed-form solution. A mass on a spring.</p>
-          </div>
-        </div>
-
-        <div class="ladder-edge">
-          <div class="spacer"><span class="chevron">▾</span></div>
-          <div class="edge-label">+ cubic nonlinearity</div>
-        </div>
-
-        <div class="ladder-node">
-          <div class="ladder-icon">
-            <svg viewBox="0 0 100 104" aria-hidden="true">
-              <circle cx="50" cy="54" r="40" fill="none" stroke="#ec4899" stroke-width="2.4"/>
-              <g transform="translate(50,54) scale(1.05)" stroke="#c084fc" fill="none" stroke-linecap="round">
-                <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
-                <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
-                <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
-                <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
-                <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
-                <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
-                <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
-                <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
-                <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaPurple)" stroke-width="1"/>
-                <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
-                <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
-                <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
-                <circle cx="-5" cy="41" r="1.3" fill="#c084fc" stroke="none"/>
-                <circle cx="5" cy="41" r="1.3" fill="#c084fc" stroke="none"/>
-              </g>
-            </svg>
-          </div>
-          <div class="ladder-text">
-            <h3>Stuart–Landau <span>rung 3</span></h3>
-            <p>A cubic term caps the HO's neutral circle into a genuine limit cycle — the first real, self-sustaining rhythm.</p>
-          </div>
-        </div>
-
-        <div class="ladder-edge">
-          <div class="spacer"><span class="chevron">▾</span></div>
-          <div class="edge-label">+ E/I populations, sigmoid</div>
-        </div>
-
-        <div class="ladder-node">
-          <div class="ladder-icon">
-            <svg viewBox="0 0 200 104" aria-hidden="true">
-              <g transform="translate(64,56) scale(0.82)" stroke="#22c1ff" fill="none" stroke-linecap="round">
-                <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
-                <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
-                <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
-                <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
-                <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
-                <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
-                <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
-                <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
-                <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
-                <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
-                <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
-                <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
-                <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
-                <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
-              </g>
-              <g transform="translate(136,56) scale(0.82)" stroke="#FF6657" fill="none" stroke-linecap="round">
-                <path d="M-2,-7 C-4,-12 -5,-16 -7,-20" stroke-width="1"/>
-                <path d="M2,-7 C4,-12 5,-16 7,-20" stroke-width="1"/>
-                <path d="M-6,-4 C-11,-6 -14,-8 -18,-11" stroke-width="1"/>
-                <path d="M6,-4 C11,-6 14,-8 18,-11" stroke-width="1"/>
-                <path d="M-7,3 C-12,4 -16,5 -20,6" stroke-width="1"/>
-                <path d="M7,3 C12,4 16,5 20,6" stroke-width="1"/>
-                <circle cx="0" cy="0" r="8" fill="url(#somaCoral)" stroke-width="1"/>
-                <path d="M0,8 C1,14 -1,17 0,22" stroke-width="1.1"/>
-                <path d="M0,22 C-2,24 -3,25 -5,27" stroke-width="0.9"/>
-                <path d="M0,22 C2,24 3,25 5,27" stroke-width="0.9"/>
-                <circle cx="-5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
-                <circle cx="5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
-              </g>
-              <path d="M80,44 Q100,32 120,44" fill="none" stroke="#22c1ff" stroke-width="1.8" marker-end="url(#arrowBlue)"/>
-              <path d="M120,70 Q100,82 80,70" fill="none" stroke="#FF6657" stroke-width="1.8" marker-end="url(#barCoral)"/>
-            </svg>
-          </div>
-          <div class="ladder-text">
-            <h3>WILCO <span>rung 4 · Wilson–Cowan</span></h3>
-            <p>Two neural populations replace the abstract oscillator. Turn up the drive and the E–I loop starts oscillating on its own.</p>
-          </div>
-        </div>
-
-        <div class="ladder-edge">
-          <div class="spacer"><span class="chevron">▾</span></div>
-          <div class="edge-label">+ synaptic time constants</div>
-        </div>
-
-        <div class="ladder-node">
-          <div class="ladder-icon">
-            <svg viewBox="0 0 200 104" aria-hidden="true">
-              <g transform="translate(66,60) scale(0.72)" stroke="#22c1ff" fill="none" stroke-linecap="round">
-                <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
-                <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
-                <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
-                <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
-                <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
-                <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
-                <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
-                <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
-                <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
-                <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
-                <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
-                <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
-                <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
-                <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
-              </g>
-              <g transform="translate(134,60) scale(0.72)" stroke="#FF6657" fill="none" stroke-linecap="round">
-                <path d="M-2,-7 C-4,-12 -5,-16 -7,-20" stroke-width="1"/>
-                <path d="M2,-7 C4,-12 5,-16 7,-20" stroke-width="1"/>
-                <path d="M-6,-4 C-11,-6 -14,-8 -18,-11" stroke-width="1"/>
-                <path d="M6,-4 C11,-6 14,-8 18,-11" stroke-width="1"/>
-                <path d="M-7,3 C-12,4 -16,5 -20,6" stroke-width="1"/>
-                <path d="M7,3 C12,4 16,5 20,6" stroke-width="1"/>
-                <circle cx="0" cy="0" r="8" fill="url(#somaCoral)" stroke-width="1"/>
-                <path d="M0,8 C1,14 -1,17 0,22" stroke-width="1.1"/>
-                <path d="M0,22 C-2,24 -3,25 -5,27" stroke-width="0.9"/>
-                <path d="M0,22 C2,24 3,25 5,27" stroke-width="0.9"/>
-                <circle cx="-5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
-                <circle cx="5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
-              </g>
-              <path d="M82,48 Q100,37 118,48" fill="none" stroke="#22c1ff" stroke-width="1.6" marker-end="url(#arrowBlue)"/>
-              <path d="M118,72 Q100,82 82,72" fill="none" stroke="#FF6657" stroke-width="1.6" marker-end="url(#barCoral)"/>
-              <polyline points="88,18 93,17 98,10 103,19 108,17 113,18" fill="none" stroke="#f5a623" stroke-width="1.7" opacity="0.95"/>
-            </svg>
-          </div>
-          <div class="ladder-text">
-            <h3>NMM1 <span>rung 5</span></h3>
-            <p>Synaptic rise/decay time constants refine the frequency and shape of the rhythm that emerges from the E–I loop.</p>
-          </div>
-        </div>
-
-        <div class="ladder-edge">
-          <div class="spacer"><span class="chevron">▾</span></div>
-          <div class="edge-label">+ exact QIF mean-field derivation</div>
-        </div>
-
-        <div class="ladder-node">
-          <div class="ladder-icon">
-            <svg viewBox="0 0 200 104" aria-hidden="true">
-              <g fill="#22c1ff" opacity="0.5">
-                <circle cx="30" cy="34" r="1.4"/><circle cx="24" cy="50" r="1.3"/><circle cx="32" cy="68" r="1.3"/>
-              </g>
-              <g fill="#FF6657" opacity="0.5">
-                <circle cx="170" cy="34" r="1.4"/><circle cx="176" cy="50" r="1.3"/><circle cx="168" cy="68" r="1.3"/>
-              </g>
-              <g transform="translate(64,56) scale(0.82)" stroke="#22c1ff" fill="none" stroke-linecap="round">
-                <path d="M-5,9 C-9,12 -13,14 -18,16" stroke-width="1.1"/>
-                <path d="M-2,10 C-4,15 -6,19 -8,24" stroke-width="1.1"/>
-                <path d="M2,10 C4,15 6,19 8,24" stroke-width="1.1"/>
-                <path d="M5,9 C9,12 13,14 18,16" stroke-width="1.1"/>
-                <path d="M0,-11 C-1,-17 1,-22 0,-29" stroke-width="1.3"/>
-                <path d="M0,-29 C-3,-32 -5,-33 -8,-35" stroke-width="1"/>
-                <path d="M0,-29 C1,-32 1,-34 0,-37" stroke-width="1"/>
-                <path d="M0,-29 C3,-32 5,-33 8,-35" stroke-width="1"/>
-                <path d="M0,-13 C5,-11 7,-4 6,4 C5,9 -5,9 -6,4 C-7,-4 -5,-11 0,-13 Z" fill="url(#somaBlue)" stroke-width="1"/>
-                <path d="M0,9 C1,15 -1,19 0,25 C1,29 -1,32 0,36" stroke-width="1.2"/>
-                <path d="M0,36 C-2,38 -3,39 -5,41" stroke-width="0.9"/>
-                <path d="M0,36 C2,38 3,39 5,41" stroke-width="0.9"/>
-                <circle cx="-5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
-                <circle cx="5" cy="41" r="1.3" fill="#22c1ff" stroke="none"/>
-              </g>
-              <g transform="translate(136,56) scale(0.82)" stroke="#FF6657" fill="none" stroke-linecap="round">
-                <path d="M-2,-7 C-4,-12 -5,-16 -7,-20" stroke-width="1"/>
-                <path d="M2,-7 C4,-12 5,-16 7,-20" stroke-width="1"/>
-                <path d="M-6,-4 C-11,-6 -14,-8 -18,-11" stroke-width="1"/>
-                <path d="M6,-4 C11,-6 14,-8 18,-11" stroke-width="1"/>
-                <path d="M-7,3 C-12,4 -16,5 -20,6" stroke-width="1"/>
-                <path d="M7,3 C12,4 16,5 20,6" stroke-width="1"/>
-                <circle cx="0" cy="0" r="8" fill="url(#somaCoral)" stroke-width="1"/>
-                <path d="M0,8 C1,14 -1,17 0,22" stroke-width="1.1"/>
-                <path d="M0,22 C-2,24 -3,25 -5,27" stroke-width="0.9"/>
-                <path d="M0,22 C2,24 3,25 5,27" stroke-width="0.9"/>
-                <circle cx="-5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
-                <circle cx="5" cy="27" r="1.2" fill="#FF6657" stroke="none"/>
-              </g>
-              <path d="M80,44 Q100,32 120,44" fill="none" stroke="#22c1ff" stroke-width="1.8" marker-end="url(#arrowBlue)"/>
-              <path d="M120,70 Q100,82 80,70" fill="none" stroke="#FF6657" stroke-width="1.8" marker-end="url(#barCoral)"/>
-            </svg>
-          </div>
-          <div class="ladder-text">
-            <h3>NMM2 <span>rung 6 · next-gen mean field</span></h3>
-            <p>Replaces the static sigmoid with an exact mean-field reduction of spiking QIF neurons — same E/I skeleton, but the transfer function itself now has its own dynamics.</p>
-          </div>
-        </div>
-
-      </div>
-    </div>
+    </svg></div><div class="ct-cap">one node = a population of spiking neurons → (r, v)</div></div>
+      <div class="ct-cell ct-eq">v̇ᵢ = vᵢ² − π²rᵢ² + η̄ + <span class="hl">Σⱼ Cᵢⱼ sᵢⱼ</span>,  sᵢⱼ = K̂[rⱼ] <span class="ref">synaptic-current coupling · §7, Eq. 7.10</span></div>
+      <div class="ct-cell ct-diag"><div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet"><path id="nmm2w" d="M92,75 L306,75" fill="none"/><line x1="92" y1="75" x2="306" y2="75" stroke="#7f8bb0" stroke-width="2" marker-end="url(#arrowNet)"/><rect x="166" y="52" width="58" height="46" rx="6" fill="#101b3d" stroke="#c026a8" stroke-width="1.7"/><path d="M174,90 C185,90 187,60 196,60 C210,60 216,92 218,92" fill="none" stroke="#e05fc4" stroke-width="1.7"/><text x="195" y="46" text-anchor="middle" font-size="9.5" fill="#e05fc4">synapse K̂</text><circle cx="68" cy="75" r="24" fill="url(#somaBlue)" stroke="white" stroke-width="2"/><text x="68" y="80" text-anchor="middle" font-size="15" font-weight="700" fill="white">j</text><circle cx="332" cy="75" r="24" fill="url(#somaBlue)" stroke="white" stroke-width="2"/><text x="332" y="80" text-anchor="middle" font-size="15" font-weight="700" fill="white">i</text><circle r="5" fill="#e05fc4"><animateMotion dur="2.6s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#nmm2w"/></animateMotion></circle><text x="200" y="134" text-anchor="middle" font-size="12.5" fill="#e05fc4" font-style="italic">rⱼ → sᵢⱼ → vᵢ</text></svg></div><div class="ct-cap">node j’s synaptic activation sᵢⱼ drives node i’s voltage</div></div>
+    </div></div>
   </section>
 
 </main>
