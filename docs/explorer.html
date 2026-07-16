@@ -192,6 +192,34 @@ input[type=range] { width: 100%; accent-color: var(--blue); cursor: pointer; mar
   display: inline-block; margin-top: 1.2rem; background: var(--light); color: var(--blue);
   padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
 }
+/* ===== Micro → Macro (NMM2 QIF ↔ mean field) ===== */
+.mm-panel { padding: 1rem 0.5rem 2rem; }
+.mm-intro { font-size: 0.86rem; color: #444; line-height: 1.6; max-width: 920px; margin: 0 auto 1.1rem; }
+.mm-intro b { color: var(--blue); }
+.mm-controls { display: flex; flex-wrap: wrap; gap: 1rem 1.6rem; align-items: flex-end; justify-content: center; margin-bottom: 1.2rem; }
+.mm-sliders { display: grid; grid-template-columns: repeat(2, minmax(180px, 240px)); gap: 0.55rem 1.3rem; }
+.mm-slider label { font-size: 0.74rem; color: var(--muted); display: block; margin-bottom: 3px; }
+.mm-slider label span { color: var(--blue); font-weight: 700; }
+.mm-slider input { width: 100%; accent-color: var(--coral); }
+.mm-buttons { display: flex; gap: 0.5rem; }
+.mm-btn { font: inherit; font-size: 0.85rem; padding: 0.5rem 1.05rem; border-radius: 8px; border: 1px solid var(--card-border); background: white; cursor: pointer; }
+.mm-btn:hover { border-color: var(--coral); }
+.mm-btn.primary { background: var(--blue); color: white; border-color: var(--blue); font-weight: 600; }
+.mm-stage { display: flex; flex-wrap: wrap; gap: 1.4rem; justify-content: center; }
+.mm-col-left { flex: 0 0 236px; }
+.mm-col-right { flex: 1 1 480px; min-width: 320px; }
+.mm-label { font-size: 0.72rem; color: var(--faint); margin-bottom: 0.5rem; }
+.mm-node-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-bottom: 0.5rem; }
+.mm-node { width: 100%; aspect-ratio: 1 / 1; border-radius: 50%; border: 1px solid #cdd3e2; background: #eef1f7; cursor: pointer; padding: 0; transition: background .04s, box-shadow .04s, border-color .04s; }
+.mm-node:hover { border-color: var(--blue); }
+.mm-node.fired { background: var(--coral); border-color: var(--coral); box-shadow: 0 0 7px 1px rgba(255,102,87,0.75); }
+.mm-node.sel { outline: 2px solid var(--blue); outline-offset: 1px; }
+.mm-mini { margin-top: 0.5rem; }
+.mm-mini canvas { width: 100%; height: auto; border: 1px solid #eef0f6; border-radius: 6px; background: #fcfcfe; display: block; }
+.mm-cap { font-size: 0.68rem; color: var(--faint); margin: 0.3rem 0 0.7rem; line-height: 1.45; }
+.mm-cap b { font-weight: 700; }
+.mm-col-right canvas { width: 100%; height: auto; border: 1px solid #eef0f6; border-radius: 6px; background: #fcfcfe; display: block; }
+@media (max-width: 760px) { .mm-sliders { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -219,6 +247,7 @@ input[type=range] { width: 100%; accent-color: var(--blue); cursor: pointer; mar
 <div class="page-tabs" id="pageTabs">
   <button class="page-tab" data-tab="info" onclick="selectTab('info')">Info</button>
   <button class="page-tab active" data-tab="demo" onclick="selectTab('demo')">Demo</button>
+  <button class="page-tab" data-tab="micromacro" id="mmTab" onclick="selectTab('micromacro')" style="display:none;">Micro → Macro</button>
 </div>
 
 <div class="variant-bar" id="variantBar"></div>
@@ -229,6 +258,8 @@ input[type=range] { width: 100%; accent-color: var(--blue); cursor: pointer; mar
 </div>
 
 <div class="info-panel" id="infoPanel" style="display:none;"></div>
+
+<div class="mm-panel" id="mmPanel" style="display:none;"></div>
 
 <script>
 // ============================================================
@@ -1864,7 +1895,9 @@ function selectTab(tab){
   document.getElementById('variantBar').style.display = tab==='demo' ? '' : 'none';
   document.getElementById('workspace').style.display = tab==='demo' ? '' : 'none';
   document.getElementById('infoPanel').style.display = tab==='info' ? '' : 'none';
+  const mm=document.getElementById('mmPanel'); if(mm) mm.style.display = tab==='micromacro' ? '' : 'none';
   if(tab==='info') renderInfoPanel();
+  if(tab==='micromacro') renderMicroMacro();
 }
 function renderInfoPanel(){
   const info=MODEL_INFO[activeModel];
@@ -2158,8 +2191,173 @@ function fullRender(){
 function selectModel(id){
   activeModel=id; activeVariant=(MODELS[id].impl?.variants[0])||'';
   document.querySelectorAll('.model-tab').forEach(t=>t.classList.toggle('active',t.dataset.model===id));
+  const mmTab=document.getElementById('mmTab');
+  if(mmTab) mmTab.style.display = (id==='nmm2') ? '' : 'none';
+  if(id!=='nmm2' && activeTab==='micromacro') selectTab('demo');
   fullRender();
   if(activeTab==='info') renderInfoPanel();
+  if(activeTab==='micromacro') renderMicroMacro();
+}
+
+// ============================================================
+// MICRO → MACRO — NMM2 only. 30 QIF neurons (θ-neuron form, exactly QIF via
+// V = tan(θ/2)) vs the MPR mean field. §7, Eq. 7.1 (micro) & 7.4–7.6 (macro).
+// ============================================================
+const MM = {
+  N:30, dt:0.005, T:10, tau_s:1.0, playDur:9, win:0.12,
+  params:{eta:-5, delta:1, J:10, I:5},
+  sliders:[
+    {id:'eta',   label:'η̄  (mean excitability)',   min:-10, max:5,  step:0.5},
+    {id:'delta', label:'Δ  (excitability spread)',  min:0.1, max:3,  step:0.1},
+    {id:'J',     label:'J  (recurrent coupling)',   min:0,   max:20, step:0.5},
+    {id:'I',     label:'I  (external input)',       min:-5,  max:12, step:0.5},
+  ],
+  sim:null, playT:0, playing:false, raf:null, sel:14, lastReal:0,
+};
+
+function mmCompute(){
+  const {eta,delta,J,I}=MM.params, N=MM.N, dt=MM.dt, PI=Math.PI, PI2=PI*PI;
+  const steps=Math.round(MM.T/dt);
+  const etas=new Float64Array(N);
+  for(let i=0;i<N;i++) etas[i]=eta+delta*Math.tan(PI/2*(2*(i+1)-N-1)/(N+1));
+  const th=new Float64Array(N);
+  for(let i=0;i<N;i++) th[i]=-2.5+1.0*i/(N-1);          // deterministic spread of start states
+  let s=0.0;
+  const ts=new Float32Array(steps), rateRaw=new Float32Array(steps);
+  const thTrace=Array.from({length:N},()=>new Float32Array(steps));
+  const spikes=[];
+  for(let k=0;k<steps;k++){
+    const t=k*dt, drive=J*s+I;
+    let nf=0;
+    for(let i=0;i<N;i++){
+      const cur=etas[i]+drive, x=th[i];
+      const f=(a)=>(1-Math.cos(a))+(1+Math.cos(a))*cur;
+      const k1=f(x), k2=f(x+0.5*dt*k1), k3=f(x+0.5*dt*k2), k4=f(x+dt*k3);
+      let xn=x+dt/6*(k1+2*k2+2*k3+k4);
+      if(x<PI && xn>=PI){ spikes.push({t,id:i}); nf++; }
+      if(xn>=PI) xn-=2*PI;
+      th[i]=xn; thTrace[i][k]=xn;
+    }
+    const R=nf/(N*dt);
+    s=s+dt*(-s+R)/MM.tau_s;
+    ts[k]=t; rateRaw[k]=R;
+  }
+  // centred box-smoothing of the raw population rate (window ~0.4 τ)
+  const w2=Math.max(1,Math.round(0.2/dt)), rateSm=new Float32Array(steps);
+  for(let k=0;k<steps;k++){ let a=0,c=0; for(let j=Math.max(0,k-w2);j<=Math.min(steps-1,k+w2);j++){a+=rateRaw[j];c++;} rateSm[k]=a/c; }
+  // MPR mean field with first-order synapse (Eq. 7.4–7.6)
+  const rateMF=new Float32Array(steps);
+  { let r=0.1,v=-2.0,sm=0.1;
+    for(let k=0;k<steps;k++){ const dr=delta/PI+2*r*v, dv=v*v-PI2*r*r+eta+J*sm+I, ds=(-sm+r)/MM.tau_s;
+      r+=dt*dr; v+=dt*dv; sm+=dt*ds; rateMF[k]=r>0?r:0; } }
+  let maxR=0.2; for(let k=0;k<steps;k++){ if(rateMF[k]>maxR)maxR=rateMF[k]; if(rateSm[k]>maxR)maxR=rateSm[k]; }
+  MM.sim={steps,ts,spikes,rateSm,rateMF,thTrace,maxR};
+}
+
+function mmXt(c,padL,padR){ return t=>padL+(t/MM.T)*(c.width-padL-padR); }
+function mmDrawRaster(){
+  const c=document.getElementById('mmRaster'); if(!c||!MM.sim) return;
+  const ctx=c.getContext('2d'), W=c.width, H=c.height, padL=30, padR=8, padT=8, padB=16, N=MM.N;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='#e6e9f2'; ctx.lineWidth=1; ctx.strokeRect(padL,padT,W-padL-padR,H-padT-padB);
+  ctx.fillStyle='#8a8fa3'; ctx.font='9px sans-serif'; ctx.textAlign='right';
+  ctx.fillText('30',padL-3,padT+8); ctx.fillText('1',padL-3,H-padB);
+  ctx.textAlign='center'; ctx.fillText('t = 0…'+MM.T,W/2,H-3);
+  const xx=mmXt(c,padL,padR), yy=id=>padT+((N-1-id)/(N-1))*(H-padT-padB), pt=MM.playT;
+  ctx.strokeStyle='#0f4bb3'; ctx.lineWidth=1.3; ctx.beginPath();
+  for(const sp of MM.sim.spikes){ if(sp.t>pt) break; const x=xx(sp.t), y=yy(sp.id); ctx.moveTo(x,y-2.1); ctx.lineTo(x,y+2.1); }
+  ctx.stroke();
+  ctx.strokeStyle='#FF6F00'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(xx(pt),padT); ctx.lineTo(xx(pt),H-padB); ctx.stroke();
+}
+function mmDrawRate(){
+  const c=document.getElementById('mmRate'); if(!c||!MM.sim) return;
+  const ctx=c.getContext('2d'), W=c.width, H=c.height, padL=30, padR=8, padT=8, padB=16;
+  const {ts,rateSm,rateMF,maxR,steps}=MM.sim, pt=MM.playT;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='#e6e9f2'; ctx.lineWidth=1; ctx.strokeRect(padL,padT,W-padL-padR,H-padT-padB);
+  const xx=mmXt(c,padL,padR), yy=r=>H-padB-(r/(maxR*1.1))*(H-padT-padB);
+  ctx.strokeStyle=BLUE; ctx.lineWidth=2; ctx.beginPath();
+  for(let k=0;k<steps;k++){ const x=xx(ts[k]),y=yy(rateMF[k]); k?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke();
+  ctx.strokeStyle=CORAL; ctx.lineWidth=1.6; ctx.beginPath(); let st=false;
+  for(let k=0;k<steps;k++){ if(ts[k]>pt) break; const x=xx(ts[k]),y=yy(rateSm[k]); st?ctx.lineTo(x,y):ctx.moveTo(x,y); st=true; } ctx.stroke();
+  ctx.strokeStyle='#FF6F00'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(xx(pt),padT); ctx.lineTo(xx(pt),H-padB); ctx.stroke();
+  ctx.fillStyle='#8a8fa3'; ctx.font='9px sans-serif'; ctx.textAlign='right';
+  ctx.fillText(maxR.toFixed(1),padL-3,padT+8); ctx.fillText('0',padL-3,H-padB);
+  ctx.textAlign='left'; ctx.fillText('firing rate r',padL+3,padT+8);
+}
+function mmDrawNodes(){
+  if(!MM.sim) return; const pt=MM.playT, win=MM.win, lit=new Array(MM.N).fill(false);
+  for(const sp of MM.sim.spikes){ if(sp.t>pt) break; if(sp.t>pt-win) lit[sp.id]=true; }
+  for(let i=0;i<MM.N;i++){ const el=document.getElementById('mmnode'+i); if(el) el.classList.toggle('fired',lit[i]); }
+}
+function mmDrawNeuron(){
+  const c=document.getElementById('mmNeuronTrace'); if(!c||!MM.sim) return;
+  const ctx=c.getContext('2d'), W=c.width, H=c.height, padL=6, padR=6, padT=6, padB=6;
+  const {thTrace,ts,steps}=MM.sim, th=thTrace[MM.sel], pt=MM.playT, PI=Math.PI, clip=8;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='#eef0f6'; ctx.lineWidth=0.7; ctx.beginPath(); ctx.moveTo(padL,H/2); ctx.lineTo(W-padR,H/2); ctx.stroke();
+  const xx=mmXt(c,padL,padR), yy=V=>H/2-(Math.max(-clip,Math.min(clip,V))/clip)*(H/2-padT);
+  ctx.strokeStyle='#0f7bb3'; ctx.lineWidth=1.3; ctx.beginPath(); let st=false;
+  for(let k=0;k<steps;k++){ if(k>0 && Math.abs(th[k]-th[k-1])>3){ st=false; } const V=Math.tan(th[k]/2); const x=xx(ts[k]),y=yy(V); st?ctx.lineTo(x,y):ctx.moveTo(x,y); st=true; }
+  ctx.stroke();
+  ctx.strokeStyle='#FF6F00'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(xx(pt),padT); ctx.lineTo(xx(pt),H-padB); ctx.stroke();
+  ctx.fillStyle='#8a8fa3'; ctx.font='9px sans-serif'; ctx.textAlign='left'; ctx.fillText('neuron '+(MM.sel+1)+' — V(t)',padL+2,padT+7);
+}
+function mmDrawFrame(){ mmDrawRaster(); mmDrawRate(); mmDrawNodes(); mmDrawNeuron(); }
+
+function mmUpdateBtn(){ const b=document.getElementById('mmPlayBtn'); if(b) b.textContent=MM.playing?'❚❚ Pause':(MM.playT>=MM.T?'↻ Replay':'▶ Play'); }
+function mmFrame(now){
+  if(!MM.playing) return;
+  const dtr=Math.min(0.05,(now-MM.lastReal)/1000); MM.lastReal=now;
+  MM.playT+=dtr*(MM.T/MM.playDur);
+  if(MM.playT>=MM.T){ MM.playT=MM.T; MM.playing=false; mmUpdateBtn(); }
+  mmDrawFrame();
+  if(MM.playing) MM.raf=requestAnimationFrame(mmFrame);
+}
+function mmToggle(){
+  if(MM.playing){ MM.playing=false; if(MM.raf) cancelAnimationFrame(MM.raf); }
+  else { if(MM.playT>=MM.T) MM.playT=0; MM.playing=true; MM.lastReal=performance.now(); MM.raf=requestAnimationFrame(mmFrame); }
+  mmUpdateBtn();
+}
+function mmReset(){ MM.playing=false; if(MM.raf) cancelAnimationFrame(MM.raf); MM.playT=0; mmUpdateBtn(); mmDrawFrame(); }
+function mmComputeAndDraw(){ mmCompute(); MM.playT=0; MM.playing=false; mmUpdateBtn(); mmDrawFrame(); }
+function mmOnSlider(id,val){
+  MM.params[id]=parseFloat(val);
+  const el=document.getElementById('mmval_'+id); if(el) el.textContent=parseFloat(val).toFixed(2);
+  if(MM.raf) cancelAnimationFrame(MM.raf); MM.playing=false;
+  mmComputeAndDraw();
+}
+function mmSelectNeuron(i){
+  MM.sel=i;
+  document.querySelectorAll('.mm-node').forEach(n=>n.classList.toggle('sel',+n.dataset.id===i));
+  mmDrawNeuron();
+}
+function renderMicroMacro(){
+  const panel=document.getElementById('mmPanel'); if(!panel) return;
+  if(activeModel!=='nmm2'){ panel.innerHTML='<div class="mm-intro">The micro→macro view exists only for <b>NMM2</b> — the one model built up from single spiking neurons.</div>'; return; }
+  const sl=MM.sliders.map(s=>`<div class="mm-slider"><label>${s.label} <span id="mmval_${s.id}">${MM.params[s.id].toFixed(2)}</span></label><input type="range" min="${s.min}" max="${s.max}" step="${s.step}" value="${MM.params[s.id]}" oninput="mmOnSlider('${s.id}',this.value)"></div>`).join('');
+  let nodes=''; for(let i=0;i<MM.N;i++) nodes+=`<button class="mm-node${i===MM.sel?' sel':''}" id="mmnode${i}" data-id="${i}" onclick="mmSelectNeuron(${i})" title="neuron ${i+1}"></button>`;
+  panel.innerHTML=`
+    <div class="mm-intro">NMM2 is the only rung built from single neurons up. Below are <b>${MM.N} quadratic integrate-and-fire (QIF) neurons</b> (Eq. 7.1) — each with its own excitability ηⱼ drawn from a Lorentzian (centre η̄, spread Δ), coupled all-to-all through their mean firing rate. The <b style="color:${BLUE}">NMM2 mean field</b> (Eq. 7.4–7.6) predicts their population rate <em>before you run anything</em>; press play and watch the <b style="color:${CORAL}">measured average</b> track that prediction. Dimensionless (τ = 1); more neurons ⇒ tighter match.</div>
+    <div class="mm-controls">
+      <div class="mm-sliders">${sl}</div>
+      <div class="mm-buttons"><button class="mm-btn primary" id="mmPlayBtn" onclick="mmToggle()">▶ Play</button><button class="mm-btn" onclick="mmReset()">Reset</button></div>
+    </div>
+    <div class="mm-stage">
+      <div class="mm-col-left">
+        <div class="mm-label">${MM.N} QIF neurons — each lights up when it spikes</div>
+        <div class="mm-node-grid">${nodes}</div>
+        <div class="mm-mini"><canvas id="mmNeuronTrace" width="248" height="104"></canvas></div>
+        <div class="mm-cap">one neuron = the QIF equation V̇ = V² + ηⱼ + J·s + I&nbsp;&nbsp;(V = tan(θ/2); spikes to ±∞). Click a node to pick which one.</div>
+      </div>
+      <div class="mm-col-right">
+        <canvas id="mmRaster" width="560" height="184"></canvas>
+        <div class="mm-cap">Raster — one tick when neuron <i>i</i> fires (row = neuron ID).</div>
+        <canvas id="mmRate" width="560" height="140"></canvas>
+        <div class="mm-cap"><b style="color:${CORAL}">Measured average</b> firing rate of the 30 neurons vs the <b style="color:${BLUE}">NMM2 mean-field prediction</b> — they should track (up to finite-size wiggle).</div>
+      </div>
+    </div>`;
+  mmComputeAndDraw();
 }
 function selectVariant(v){
   renderGen++;
