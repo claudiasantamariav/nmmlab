@@ -1044,7 +1044,7 @@ const WILCO = {
         <div class="eq-main">τ<sub>y</sub>ẏ<sub>i</sub> + y<sub>i</sub> = σ(w<sub>yx</sub>x<sub>i</sub> − w<sub>yy</sub>y<sub>i</sub>)</div>
         <hr class="eq-hr">
         <div class="eq-sub">x̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the single node</div>`,
-      explain:'N copies of the node above, each pulled toward the network mean firing rate x̄ by coupling G, added inside σ — a diffusive stand-in for the paper\'s row-summed term (Eq. 5.5), G Σⱼ Cᵢⱼxⱼ, chosen so the coupling input stays bounded as N grows instead of scaling with it. Nodes get a slightly different P<sub>x</sub> so some may need coupling to oscillate at all; only node 0 feels A/f<sub>stim</sub> directly — watch it reach the others only through coupling. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>',
+      explain:'N copies of the node above, each pulled toward the network mean firing rate x̄ by coupling G, added inside σ — a diffusive stand-in for the paper\'s row-summed term (Eq. 5.5), Σⱼ Cᵢⱼxⱼ, chosen so the coupling input stays bounded as N grows instead of scaling with it. Nodes get a slightly different P<sub>x</sub> so some may need coupling to oscillate at all; only node 0 feels A/f<sub>stim</sub> directly — watch it reach the others only through coupling. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>',
       params:[
         {id:'Px',    label:'P<sub>x</sub>  (drive)', min:0, max:6, step:0.05, def:1.5},
         {id:'wxx',   label:'w<sub>xx</sub>  (E→E)',  min:0, max:20, step:0.5, def:16},
@@ -1648,7 +1648,7 @@ kuramoto: {
   params: [
     {name:'θᵢ', unit:'rad', meaning:'Phase of oscillator i', effect:'The model\'s only state variable — no amplitude exists at all.'},
     {name:'ωᵢ', unit:'rad/s', meaning:'Natural (intrinsic) frequency of oscillator i', effect:'How fast oscillator i would spin on its own, absent coupling. A spread of ωᵢ across nodes is what coupling has to overcome to synchronize.'},
-    {name:'G', unit:'s⁻¹', meaning:'Global coupling gain', effect:'Strength of the pull toward the group\'s phase; synchrony switches on abruptly once G exceeds a critical value set by the spread of ωᵢ.'},
+    {name:'G', unit:'s⁻¹', meaning:'Global coupling gain', effect:'Strength of the pull toward the group\'s phase; synchrony kicks in sharply once G exceeds a critical value set by the spread of ωᵢ.'},
     {name:'N', unit:'count', meaning:'Number of oscillators', effect:'Network size — the order parameter r becomes a sharper, less noisy measure of synchrony as N grows.'},
     {name:'r (order parameter)', unit:'dimensionless, 0–1', meaning:'r = |1/N · Σ e^(iθ)|', effect:'r = 1 means every oscillator shares the same phase (fully locked); r = 0 means phases are spread uniformly around the circle (incoherent).'},
   ],
@@ -1656,7 +1656,7 @@ kuramoto: {
 
 ho: {
   title: 'Harmonic Oscillator (HO)',
-  tagline: 'The starting point of the ladder — everything else on this site is a more biologically detailed version of the same push–pull loop, where two variables continuously drive each other and, written as one complex number z = x + iy, trace out a rotating circle. It\'s the "hydrogen atom" of the ladder: the simplest system that can oscillate at all, and the template every later model elaborates on. Damping turns that circle into a spiral, and coupling many oscillators together reduces, in the right limit, to the Kuramoto model.',
+  tagline: 'The starting point of the ladder — every later model on this ladder is a more biologically detailed version of the same push–pull loop, where two variables continuously drive each other and, written as one complex number z = x + iy, trace out a rotating circle. It\'s the "hydrogen atom" of the ladder: the simplest system that can oscillate at all, and the template every later model elaborates on. Damping turns that circle into a spiral, and coupling many oscillators together reduces, in the right limit, to the Kuramoto model.',
   equations: `
     <div class="info-eq-box">
       <div class="eq-name">Undamped (§2.1, Eq. 2.1–2.8)</div>
@@ -1775,7 +1775,7 @@ wilco: {
     </div>
     <div class="info-eq-box" style="border-left-color:var(--coral);">
       <div class="eq-name" style="color:var(--coral);">In the Simulator</div>
-      <div class="eq-note" style="font-size:0.85rem;">Unforced and forced are the same equation with F₀ = 0 or not, so the Simulator tab combines them into one "Single Node" variant — set A = 0 to remove the rhythmic stimulus. Coupling is structurally different (multiple nodes, a mean-field term), so it gets its own "Network" variant instead of a slider on this one. That variant writes the coupling as G(x̄ − xᵢ) — a diffusive simplification of the paper's row-summed GΣⱼCᵢⱼxⱼ that keeps each node's coupling input centered on the network average and bounded regardless of network size N, rather than growing with it — see the <a href="tutorial.html#coupling" target="_blank">Intro</a>.</div>
+      <div class="eq-note" style="font-size:0.85rem;">Unforced and forced are the same equation with F₀ = 0 or not, so the Simulator tab combines them into one "Single Node" variant — set A = 0 to remove the rhythmic stimulus. Coupling is structurally different (multiple nodes, a mean-field term), so it gets its own "Network" variant instead of a slider on this one. That variant writes the coupling as G(x̄ − xᵢ) — a diffusive simplification of the paper's row-summed Σⱼ Cᵢⱼxⱼ that keeps each node's coupling input centered on the network average and bounded regardless of network size N, rather than growing with it — see the <a href="tutorial.html#coupling" target="_blank">Intro</a>.</div>
     </div>`,
   params: [
     {name:'τₓ, τᵧ', unit:'ms', meaning:'Membrane/synaptic time constants', effect:'Sets how fast each population responds; the E–I timescale separation shapes the oscillation frequency.'},
