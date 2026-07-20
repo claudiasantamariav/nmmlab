@@ -61,6 +61,10 @@ nav.topnav .links a.demos-link.active { color: var(--coral); border-bottom-color
 .info-panel { max-width: 860px; margin: 0 auto; padding: 2.2rem 1.5rem 4rem; }
 .info-panel h2 { color: var(--blue); font-size: 1.55rem; margin-bottom: 0.3rem; }
 .info-panel .tagline { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.5; }
+.info-diagram { max-width: 320px; margin: 0 auto 2rem; text-align: center; }
+.info-diagram .diag-viz { background: #0d1330; border-radius: 8px; padding: 0.4rem 0.35rem; }
+.info-diagram .diag-viz svg { width: 100%; height: auto; display: block; }
+.info-diagram .diag-cap { font-size: 0.76rem; color: var(--muted); margin-top: 0.55rem; line-height: 1.4; }
 .info-section { margin-bottom: 2.2rem; }
 .info-section h3 {
   font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
@@ -222,6 +226,21 @@ input[type=range] { width: 100%; accent-color: var(--blue); cursor: pointer; mar
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="aBlue" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#2f6df6"/></marker>
+  <marker id="aGrey" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L7,4 L0,8 Z" fill="#9aa0b4"/></marker>
+  <marker id="barI" markerWidth="10" markerHeight="12" refX="8" refY="6" orient="auto"><line x1="8" y1="1.5" x2="8" y2="10.5" stroke="#FF6657" stroke-width="2.2"/></marker>
+  <radialGradient id="sBlue" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#a9e8ff"/><stop offset="100%" stop-color="#0f7bb3"/></radialGradient>
+  <radialGradient id="sPurple" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#e0c8ff"/><stop offset="100%" stop-color="#8b3fd4"/></radialGradient>
+  <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#22c1ff"/></marker>
+  <marker id="barCoral" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><line x1="8" y1="1" x2="8" y2="9" stroke="#FF6657" stroke-width="2"/></marker>
+  <marker id="arrowLight" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#e8edf7"/></marker>
+  <radialGradient id="somaBlue" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#a9e8ff"/><stop offset="100%" stop-color="#0f7bb3"/></radialGradient>
+  <radialGradient id="somaCoral" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#ffcabf"/><stop offset="100%" stop-color="#d94b36"/></radialGradient>
+  <radialGradient id="somaPurple" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#e0c8ff"/><stop offset="100%" stop-color="#8b3fd4"/></radialGradient>
+  <marker id="arrowNet" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#5b6788"/></marker>
+</defs></svg>
+
 
 <nav class="topnav">
   <div class="brand">Rosetta Stone of Neural Mass Models</div>
@@ -1634,6 +1653,19 @@ const MODEL_INFO = {
 kuramoto: {
   title: 'Phase Oscillators (Kuramoto)',
   tagline: 'The barest possible skeleton for synchronization — a phase and nothing else, with every later rung on this ladder adding detail (amplitude, then biology) on top of this same bare rotation. Nodes are pulled together by a sine of their phase difference, sin(θⱼ−θᵢ) — a genuinely different coupling law from the diffusive or additive coupling used everywhere else on this site. It\'s the same synchronization mechanism behind fireflies flashing in unison and the phase-locking of brain rhythms measured by EEG and MEG.',
+  oneNodeViz: `
+      <circle cx="200" cy="75" r="52" fill="none" stroke="#e8edf7" stroke-width="2" stroke-dasharray="3 4" opacity="0.6"/>
+      <g>
+        <line x1="200" y1="75" x2="200" y2="23" stroke="#22c1ff" stroke-width="2.6">
+          <animateTransform attributeName="transform" type="rotate" from="0 200 75" to="360 200 75" dur="2.4s" repeatCount="indefinite"/>
+        </line>
+        <circle cx="200" cy="23" r="7" fill="url(#somaBlue)" stroke="white" stroke-width="1.5">
+          <animateTransform attributeName="transform" type="rotate" from="0 200 75" to="360 200 75" dur="2.4s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+      <circle cx="200" cy="75" r="4" fill="#22c1ff"/>
+    `,
+  oneNodeCap: `one node = a bare phase θᵢ rotating at ωᵢ — no amplitude at all`,
   equations: `
     <div class="info-eq-box">
       <div class="eq-name">Single oscillator</div>
@@ -1657,6 +1689,28 @@ kuramoto: {
 ho: {
   title: 'Harmonic Oscillator (HO)',
   tagline: 'The starting point of the ladder — every later model on this ladder is a more biologically detailed version of the same push–pull loop, where two variables continuously drive each other and, written as one complex number z = x + iy, trace out a rotating circle. It\'s the "hydrogen atom" of the ladder: the simplest system that can oscillate at all, and the template every later model elaborates on. Damping turns that circle into a spiral, and coupling many oscillators together reduces, in the right limit, to the Kuramoto model.',
+  oneNodeViz: `
+      <line x1="34" y1="42" x2="34" y2="108" stroke="#e8edf7" stroke-width="4" stroke-linecap="round" opacity="0.85"/>
+      <line x1="34" y1="52" x2="20" y2="64" stroke="#e8edf7" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+      <line x1="34" y1="68" x2="20" y2="80" stroke="#e8edf7" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+      <line x1="34" y1="84" x2="20" y2="96" stroke="#e8edf7" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+      <line x1="34" y1="100" x2="20" y2="112" stroke="#e8edf7" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+      <path fill="none" stroke="#22c1ff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
+        d="M34,75 L58,58 L82,92 L107,58 L131,92 L155,58 L179,75">
+        <animate attributeName="d"
+          values="M34,75 L58,58 L82,92 L107,58 L131,92 L155,58 L179,75;
+                  M34,75 L63,58 L92,92 L121,58 L150,92 L179,58 L208,75;
+                  M34,75 L54,58 L74,92 L94,58 L114,92 L134,58 L154,75;
+                  M34,75 L58,58 L82,92 L107,58 L131,92 L155,58 L179,75"
+          keyTimes="0;0.33;0.66;1" dur="2.6s" repeatCount="indefinite"
+          calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1"/>
+      </path>
+      <circle cy="75" r="22" fill="url(#somaBlue)" stroke="white" stroke-width="2">
+        <animate attributeName="cx" values="199;228;174;199" keyTimes="0;0.33;0.66;1" dur="2.6s" repeatCount="indefinite"
+          calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1;0.45 0 0.55 1"/>
+      </circle>
+    `,
+  oneNodeCap: `one node = one oscillator (a coarse-grained population)`,
   equations: `
     <div class="info-eq-box">
       <div class="eq-name">Undamped (§2.1, Eq. 2.1–2.8)</div>
@@ -1711,6 +1765,15 @@ ho: {
 sl: {
   title: 'Stuart–Landau Oscillator (SL)',
   tagline: 'The HO gains a cubic nonlinearity −γ|z|²z that caps runaway growth, turning its neutral circle into a genuine limit cycle whose radius r* = √(α/γ) is fixed regardless of where it starts. This is the normal form of a Hopf bifurcation — the universal minimal model for any system transitioning from a damped fixed point to a self-sustained rhythm. SL networks tuned near that bifurcation are widely used to model resting-state brain dynamics in whole-brain fMRI and MEG.',
+  oneNodeViz: `
+      <circle cx="200" cy="75" r="44" fill="none" stroke="#ec4899" stroke-width="3.5" opacity="0.95"/>
+      <path d="M200,75 C214,71 219,53 202,47 C178,38 150,53 152,78 C154,106 189,120 218,106 C237,97 239,77 229,60"
+            fill="none" stroke="#c084fc" stroke-width="2" stroke-dasharray="4 4" opacity="0.7" stroke-linecap="round"/>
+      <circle r="7" fill="#c084fc" stroke="white" stroke-width="1.5">
+        <animateMotion dur="3.2s" repeatCount="indefinite" path="M244,75 A44,44 0 1,1 156,75 A44,44 0 1,1 244,75"/>
+      </circle>
+    `,
+  oneNodeCap: `one node orbits a fixed ring (limit cycle)`,
   equations: `
     <div class="info-eq-box">
       <div class="eq-name">Polar form (§3, Eq. 3.1–3.2)</div>
@@ -1756,6 +1819,17 @@ sl: {
 wilco: {
   title: 'Wilson–Cowan Model (WILCO)',
   tagline: 'The HO/SL push–pull motif made biological: excitatory and inhibitory firing rates interact through a sigmoid instead of a linear term. Near its Hopf bifurcation the equations reduce exactly to the Stuart–Landau normal form — WILCO is "SL in disguise," but every coefficient is now a measurable biophysical quantity (a synaptic weight, a time constant, a drive current). Introduced by Wilson and Cowan in the 1970s, it remains a modeling workhorse today, from single microcircuits to whole-brain simulations fit to MEG, EEG, and fMRI.',
+  oneNodeViz: `
+      <path d="M158,64 Q200,30 242,64" fill="none" stroke="#22c1ff" stroke-width="3" marker-end="url(#arrowBlue)"/>
+      <path d="M242,98 Q200,138 158,98" fill="none" stroke="#FF6657" stroke-width="3" marker-end="url(#barCoral)"/>
+      <path d="M112,55 Q88,14 132,24 Q152,30 132,55" fill="none" stroke="#22c1ff" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+      <path d="M288,55 Q312,14 268,24 Q248,30 268,55" fill="none" stroke="#FF6657" stroke-width="2.5" marker-end="url(#barCoral)"/>
+      <circle cx="130" cy="80" r="30" fill="url(#somaBlue)" stroke="white" stroke-width="2"/>
+      <text x="130" y="90" font-size="28" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">E</text>
+      <circle cx="270" cy="80" r="30" fill="url(#somaCoral)" stroke="white" stroke-width="2"/>
+      <text x="270" y="90" font-size="28" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">I</text>
+    `,
+  oneNodeCap: `one node = excitatory + inhibitory populations`,
   equations: `
     <div class="info-eq-box">
       <div class="eq-name">Unforced, firing-rate form (§5, Eq. 5.2)</div>
@@ -1803,6 +1877,8 @@ wilco: {
 nmm1: {
   title: 'NMM with Second-Order Synapses (NMM1)',
   tagline: 'Jansen–Rit-style models: synapses get their own realistic rise/decay filter instead of collapsing into one firing-rate equation, cleanly separating "synapse" (the filter) from "soma" (the sigmoid). That filter\'s own frequency-dependent phase lag is enough on its own to sustain oscillation — unlike WILCO, NMM1 needs no explicit self-coupling term. This family includes the classic Jansen–Rit model, which reproduces alpha-band EEG and is the standard neuronal model inside Dynamic Causal Modeling.',
+  oneNodeViz: `<path id="n1ei" d="M160,58 Q200,20 240,58" fill="none" stroke="#22c1ff" stroke-width="2.6" marker-end="url(#arrowBlue)"/><rect x="186" y="30" width="28" height="18" rx="4" fill="#101b3d" stroke="#22c1ff" stroke-width="1.3"/><path d="M190,44 C194,44 195,34 200,34 C205,34 207,46 210,46" fill="none" stroke="#22c1ff" stroke-width="1.2"/><path id="n1ie" d="M240,92 Q200,130 160,92" fill="none" stroke="#FF6657" stroke-width="2.6" marker-end="url(#barCoral)"/><rect x="186" y="102" width="28" height="18" rx="4" fill="#101b3d" stroke="#FF6657" stroke-width="1.3"/><path d="M190,116 C194,116 195,106 200,106 C205,106 207,118 210,118" fill="none" stroke="#FF6657" stroke-width="1.2"/><circle cx="130" cy="75" r="30" fill="url(#somaBlue)" stroke="white" stroke-width="2"/><text x="130" y="85" font-size="28" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">E</text><circle cx="270" cy="75" r="30" fill="url(#somaCoral)" stroke="white" stroke-width="2"/><text x="270" y="85" font-size="28" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">I</text><circle r="5" fill="#22c1ff"><animateMotion dur="3s" repeatCount="indefinite" keyPoints="0;0.5;0.5;1" keyTimes="0;0.34;0.62;1" calcMode="linear"><mpath href="#n1ei"/></animateMotion></circle><circle r="5" fill="#FF6657"><animateMotion dur="3s" begin="1.5s" repeatCount="indefinite" keyPoints="0;0.5;0.5;1" keyTimes="0;0.34;0.62;1" calcMode="linear"><mpath href="#n1ie"/></animateMotion></circle>`,
+  oneNodeCap: `E and I populations (like WILCO) — but each synapse adds a rise/decay + delay`,
   equations: `
     <div class="info-eq-box">
       <div class="eq-name">E–I pair, without self-coupling (§6, Eq. 6.1)</div>
@@ -1841,6 +1917,30 @@ nmm1: {
 nmm2: {
   title: 'Next-Generation Neural Mass Model (NMM2)',
   tagline: 'Replaces every earlier model\'s heuristic sigmoid with an exact mean-field theory: a population of spiking QIF neurons with a spread of excitabilities reduces, with no approximation, to two ODEs for the mean firing rate r(t) and mean membrane potential v(t). Because that r–v relationship is genuinely dynamic rather than a fixed curve, NMM2 predicts an enhanced, state-dependent sensitivity to weak, uniform inputs — such as the electric fields used in non-invasive brain stimulation — that static-sigmoid models can\'t capture. It\'s the newest rung: the same E–I push-pull skeleton, but now derived from first principles instead of assumed.',
+  oneNodeViz: `
+      <ellipse cx="115" cy="75" rx="72" ry="55" fill="none" stroke="#e8edf7" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.5"/>
+      <circle cx="80" cy="50" r="4.5" fill="#22c1ff"/>
+      <circle cx="115" cy="42" r="4.5" fill="#FF6657"/>
+      <circle cx="145" cy="55" r="4.5" fill="#22c1ff"/>
+      <circle cx="70" cy="80" r="4.5" fill="#FF6657"/>
+      <circle cx="105" cy="78" r="4.5" fill="#22c1ff"/>
+      <circle cx="140" cy="85" r="4.5" fill="#FF6657"/>
+      <circle cx="85" cy="108" r="4.5" fill="#22c1ff"/>
+      <circle cx="120" cy="112" r="4.5" fill="#FF6657"/>
+      <circle cx="155" cy="100" r="4.5" fill="#22c1ff"/>
+      <circle cx="60" cy="65" r="4.5" fill="#FF6657"/>
+      <line x1="80" y1="50" x2="80" y2="39" stroke="#22c1ff" stroke-width="1.5" opacity="0.8"/>
+      <line x1="115" y1="42" x2="115" y2="31" stroke="#FF6657" stroke-width="1.5" opacity="0.8"/>
+      <line x1="120" y1="112" x2="120" y2="123" stroke="#FF6657" stroke-width="1.5" opacity="0.8"/>
+      <path d="M198,75 Q225,75 248,75" fill="none" stroke="#e8edf7" stroke-width="3" marker-end="url(#arrowLight)"/>
+      <circle cx="315" cy="50" r="27" fill="url(#somaPurple)" stroke="white" stroke-width="2"/>
+      <text x="315" y="59" font-size="24" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">r</text>
+      <circle cx="315" cy="106" r="27" fill="url(#somaPurple)" stroke="white" stroke-width="2"/>
+      <text x="315" y="115" font-size="24" font-weight="700" text-anchor="middle" fill="white" font-family="sans-serif">v</text>
+      <path d="M300,68 Q290,78 300,88" fill="none" stroke="#e8edf7" stroke-width="1.5" marker-end="url(#arrowLight)" opacity="0.8"/>
+      <path d="M330,88 Q340,78 330,68" fill="none" stroke="#e8edf7" stroke-width="1.5" marker-end="url(#arrowLight)" opacity="0.8"/>
+    `,
+  oneNodeCap: `one node = a population of spiking neurons → (r, v)`,
   equations: `
     <div class="info-eq-box">
       <div class="eq-name">Montbrió–Pazó–Roxin mean field (§7, Eq. 7.4–7.6)</div>
@@ -1901,6 +2001,11 @@ function renderInfoPanel(){
   panel.innerHTML=`
     <h2>${info.title}</h2>
     <div class="tagline">${info.tagline}</div>
+    ${info.oneNodeViz ? `
+    <div class="info-diagram">
+      <div class="diag-viz"><svg viewBox="0 0 400 150" preserveAspectRatio="xMidYMid meet">${info.oneNodeViz}</svg></div>
+      <div class="diag-cap">${info.oneNodeCap}</div>
+    </div>` : ''}
     <div class="info-section">
       <h3>The Equations</h3>
       ${info.equations}
