@@ -76,16 +76,12 @@ nav.topnav .links a.demos-link.active { color: var(--coral); border-bottom-color
 }
 .info-eq-box .eq-main { font-family: Georgia, 'Times New Roman', serif; font-size: 0.98rem; line-height: 1.85; color: var(--text); }
 .info-eq-box .eq-note { font-size: 0.78rem; color: var(--muted); margin-top: 0.3rem; line-height: 1.5; }
-.info-prose { font-size: 0.92rem; line-height: 1.75; color: #333; }
-.info-prose p { margin-bottom: 0.8rem; }
 .param-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; background: white; border-radius: 8px; overflow: hidden; }
 .param-table th { background: var(--blue); color: white; text-align: left; padding: 0.55rem 0.8rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
 .param-table td { padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
 .param-table tr:last-child td { border-bottom: none; }
 .param-table tr:nth-child(even) td { background: #f7f9fd; }
 .param-table td:first-child { font-weight: 700; color: var(--blue); white-space: nowrap; }
-.info-about { background: var(--light); border-radius: 10px; padding: 1.2rem 1.4rem; font-size: 0.9rem; line-height: 1.75; color: #333; }
-.info-about strong { color: var(--blue); }
 
 .breakdown-item { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.7rem; overflow: hidden; background: white; }
 .breakdown-header { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.1rem; cursor: pointer; user-select: none; }
@@ -248,19 +244,19 @@ input[type=range] { width: 100%; accent-color: var(--blue); cursor: pointer; mar
 </div>
 
 <div class="page-tabs" id="pageTabs">
-  <button class="page-tab" data-tab="info" onclick="selectTab('info')">Info</button>
-  <button class="page-tab active" data-tab="demo" onclick="selectTab('demo')">Simulator</button>
+  <button class="page-tab active" data-tab="info" onclick="selectTab('info')">Info</button>
+  <button class="page-tab" data-tab="demo" onclick="selectTab('demo')">Simulator</button>
   <button class="page-tab" data-tab="micromacro" id="mmTab" onclick="selectTab('micromacro')" style="display:none;">Micro → Macro</button>
 </div>
 
-<div class="variant-bar" id="variantBar"></div>
+<div class="variant-bar" id="variantBar" style="display:none;"></div>
 
-<div class="workspace" id="workspace">
+<div class="workspace" id="workspace" style="display:none;">
   <div class="left-panel" id="leftPanel"></div>
   <div class="right-panel" id="rightPanel"></div>
 </div>
 
-<div class="info-panel" id="infoPanel" style="display:none;"></div>
+<div class="info-panel" id="infoPanel"></div>
 
 <div class="mm-panel" id="mmPanel" style="display:none;"></div>
 
@@ -1636,7 +1632,7 @@ const MODEL_INFO = {
 
 kuramoto: {
   title: 'Phase Oscillators (Kuramoto)',
-  tagline: 'The barest possible skeleton for synchronization — a phase and nothing else. Every later rung on this ladder is this bare rotation with detail (amplitude, biology) added on top.',
+  tagline: 'The barest possible skeleton for synchronization — a phase and nothing else, with every later rung on this ladder adding detail (amplitude, then biology) on top of this same bare rotation. Nodes are pulled together by a sine of their phase difference, sin(θⱼ−θᵢ) — a genuinely different coupling law from the diffusive or additive coupling used everywhere else on this site. It\'s the same synchronization mechanism behind fireflies flashing in unison and the phase-locking of brain rhythms measured by EEG and MEG.',
   equations: `
     <div class="info-eq-box">
       <div class="eq-name">Single oscillator</div>
@@ -1646,10 +1642,8 @@ kuramoto: {
     <div class="info-eq-box">
       <div class="eq-name">Coupled network (§2.1.4, Eq. 2.19, App. D)</div>
       <div class="eq-main">θ̇ᵢ = ωᵢ + (G/N) Σⱼ sin(θⱼ − θᵢ)</div>
-      <div class="eq-note">Each oscillator is pulled toward every other oscillator's phase by the sine of their phase difference — a genuinely different functional form from the linear/diffusive and additive-sigmoid coupling used everywhere else on this site (see "How It Works").</div>
+      <div class="eq-note">Each oscillator is pulled toward every other oscillator's phase by the sine of their phase difference — a genuinely different functional form from the linear/diffusive and additive-sigmoid coupling used everywhere else on this site.</div>
     </div>`,
-  how: `<p>Every other model on this site couples nodes the same two ways: <em>diffusively</em> (HO, SL add a linear term pulling each node's state toward the network average, G·(z̄−zᵢ) or its weighted-connectome form G·Σⱼ Cᵢⱼ(zⱼ−zᵢ)) or <em>additively</em> (WILCO, NMM1, NMM2 sum a neighbor's output straight into the receiving node's input, G·Σⱼ Cᵢⱼxⱼ). Phase-only's coupling is neither: it's a <strong>sine of the phase difference</strong>, sin(θⱼ−θᵢ) — a term that vanishes when two oscillators are already in phase, is strongest a quarter-cycle apart, and actually pushes <em>away</em> from synchrony beyond a half-cycle apart. That nonlinearity in the phase difference itself, not in any amplitude, is what makes Kuramoto the canonical toy model for synchronization phenomena in physics, biology, and neuroscience alike.</p>
-    <p>The reason it belongs on this ladder at all is that it isn't a separate invention — Castaldo et al. derive it (§2.1.4) starting from the <em>undamped</em> HO's limit cycle (Eq. 2.4), where every oscillator already holds a fixed, identical amplitude (a damped oscillator's amplitude decays by construction, so only the undamped case qualifies); assuming each oscillator interacts with the others only through the difference of their phases then leads <em>exactly</em> to Kuramoto's coupling law (Eq. 2.19–2.20). Presented here first, it's the leanest possible version of that idea: one real number per node, no damping, no saturation, nothing biological yet — just phase and coupling. Every later rung keeps this same "nudge toward the group" intuition but reattaches the machinery Kuramoto strips away, starting with amplitude in the very next model, HO.</p>`,
   params: [
     {name:'θᵢ', unit:'rad', meaning:'Phase of oscillator i', effect:'The model\'s only state variable — no amplitude exists at all.'},
     {name:'ωᵢ', unit:'rad/s', meaning:'Natural (intrinsic) frequency of oscillator i', effect:'How fast oscillator i would spin on its own, absent coupling. A spread of ωᵢ across nodes is what coupling has to overcome to synchronize.'},
@@ -1657,12 +1651,11 @@ kuramoto: {
     {name:'N', unit:'count', meaning:'Number of oscillators', effect:'Network size — the order parameter r becomes a sharper, less noisy measure of synchrony as N grows.'},
     {name:'r (order parameter)', unit:'dimensionless, 0–1', meaning:'r = |1/N · Σ e^(iθ)|', effect:'r = 1 means every oscillator shares the same phase (fully locked); r = 0 means phases are spread uniformly around the circle (incoherent).'},
   ],
-  about: `Introduced by Yoshiki Kuramoto in 1975, this is the canonical minimal model of spontaneous synchronization — the same phase-locking mechanism used to describe flashing fireflies, clapping audiences, power-grid generators, and, in neuroscience, the phase-locking of brain rhythms measured by EEG and MEG. <strong>Castaldo et al.</strong> place it on the ladder as the phase-only limit of the <em>undamped</em> HO (§2.1.4, Eq. 2.4): with amplitude already fixed and identical across oscillators, coupling only the phase difference between them reduces exactly to Kuramoto's sine-coupling law (Eq. 2.19–2.20). It's presented first on this site precisely because it's the most stripped-down rung — everything every later model adds (amplitude, nonlinearity, biophysical detail) is additional machinery layered on top of this same "nudge toward the group" idea.`,
 },
 
 ho: {
   title: 'Harmonic Oscillator (HO)',
-  tagline: 'The starting point of the ladder — everything else on this site is a more biologically detailed version of the same push-pull loop.',
+  tagline: 'The starting point of the ladder — everything else on this site is a more biologically detailed version of the same push–pull loop, where two variables continuously drive each other and, written as one complex number z = x + iy, trace out a rotating circle. It\'s the "hydrogen atom" of the ladder: the simplest system that can oscillate at all, and the template every later model elaborates on. Damping turns that circle into a spiral, and coupling many oscillators together reduces, in the right limit, to the Kuramoto model.',
   equations: `
     <div class="info-eq-box">
       <div class="eq-name">Undamped (§2.1, Eq. 2.1–2.8)</div>
@@ -1689,8 +1682,6 @@ ho: {
       <div class="eq-name" style="color:var(--coral);">In the Simulator</div>
       <div class="eq-note" style="font-size:0.85rem;">Undamped, damped, and forced are the same equation with different parameters, so the Simulator tab combines them into one "Oscillator" — set α = 0 for the undamped case, or F₀ = 0 to remove forcing. Coupled networks are structurally different (many oscillators), so they stay a separate variant. The phase-only limit of this network — amplitude dropped entirely, only relative phase left — is the Kuramoto model, presented as its own rung on this site rather than a variant here; see the <a href="explorer.html?model=kuramoto">Phase-only tab</a>.</div>
     </div>`,
-  how: `<p>Every model on this site is built from the same "push–pull" motif: two variables, x and y, that continuously drive each other. A positive y suppresses x (acting like inhibition), while a positive x excites y — this reciprocal chase is what makes the pair rotate instead of settling. Written as one complex number z = x + iy, that rotation is just ż = iωz, a circle traced out at constant amplitude and angular speed ω.</p>
-    <p>Adding a damping term α turns the neutral circle into a spiral: negative α leaks energy out every cycle (a stable, decaying oscillation), positive α pumps energy in (unstable, growing). Forcing F(t) shifts where the oscillator settles and, if oscillatory, can pull its phase and amplitude toward the drive — the seed of resonance and entrainment. Coupling several of these oscillators together makes them pull toward each other's state; in the special case of identical amplitudes and only phase differences mattering, this coupled network reduces exactly to the Kuramoto model, the standard tool for describing how brain rhythms synchronize.</p>`,
   params: [
     {name:'ω (omega)', unit:'rad/s', meaning:'Natural angular frequency', effect:'Sets rotation speed; frequency in Hz is f = ω/2π. Reflects effective synaptic/membrane time constants.'},
     {name:'α (alpha)', unit:'s⁻¹', meaning:'Linear damping / growth rate', effect:'α &lt; 0 → stable, decaying spiral (decay time −1/α); α = 0 → neutral circle; α &gt; 0 → unstable, growing spiral.'},
@@ -1714,12 +1705,11 @@ ho: {
      fixed:{alpha:-0.15, F0:0, N:3},
      prose:'Finally, turn forcing back off and instead connect several damped oscillators together: żᵢ = (α+iωᵢ)zᵢ + (G/N)Σⱼ(zⱼ−zᵢ). Each node has a slightly different natural frequency, so at G = 0 they drift apart; turn G up and the diffusive coupling pulls them toward the network mean until they move as one.'},
   ],
-  about: `The HO is what the paper calls the "hydrogen atom" of the ladder: the simplest system that can oscillate at all, and the template every later model elaborates on. <strong>Castaldo et al.</strong> show that going from a single undamped oscillator → damped → forced → coupled network leads directly, in the right limit, to the <strong>Kuramoto model</strong> — the field's standard description of phase synchronization, used everywhere from whole-brain connectome simulations to explaining EEG/MEG phase-locking and entrainment by rhythmic stimulation.`,
 },
 
 sl: {
   title: 'Stuart–Landau Oscillator (SL)',
-  tagline: 'The HO gains a cubic nonlinearity — amplitude becomes self-regulating instead of just marginally stable.',
+  tagline: 'The HO gains a cubic nonlinearity −γ|z|²z that caps runaway growth, turning its neutral circle into a genuine limit cycle whose radius r* = √(α/γ) is fixed regardless of where it starts. This is the normal form of a Hopf bifurcation — the universal minimal model for any system transitioning from a damped fixed point to a self-sustained rhythm. SL networks tuned near that bifurcation are widely used to model resting-state brain dynamics in whole-brain fMRI and MEG.',
   equations: `
     <div class="info-eq-box">
       <div class="eq-name">Polar form (§3, Eq. 3.1–3.2)</div>
@@ -1741,8 +1731,6 @@ sl: {
       <div class="eq-main">Eq. 3.9 (general): żᵢ = (α + iωᵢ)zᵢ − (γ + iβ)|zᵢ|²zᵢ + G Σⱼ Cᵢⱼ(zⱼ − zᵢ) + F̂ₑ,ᵢ(t)</div>
       <div class="eq-note">Eq. 3.8 is the uniform, all-to-all special case (Cᵢⱼ = 1/N); Eq. 3.9 generalizes to a weighted connectome, with no 1/N factor.</div>
     </div>`,
-  how: `<p>Purely linear oscillators like the HO can't describe real neural rhythms on their own: without some regulating nonlinearity, activity would either grow without bound or decay to nothing. The Stuart–Landau oscillator adds the simplest possible fix — a cubic term −γ|z|²z — that grows the same way as the HO for small amplitudes but pushes back once |z| gets large. The result is a genuine <em>limit cycle</em>: for α &gt; 0 the amplitude relaxes onto a fixed radius r* = √(α/γ) regardless of where it started, unlike the HO's neutral circle whose size is set entirely by the initial condition.</p>
-    <p>This is the normal form of a Hopf bifurcation — the minimal, universal model for any system transitioning from a damped fixed point to a self-sustained oscillation. Forcing displaces the limit cycle to a new operating point; coupling many SL nodes diffusively (each pulled toward the network average) produces synchronization, clustering, and even "amplitude death," while the cubic term keeps every node's amplitude bounded.</p>`,
   params: [
     {name:'α (alpha)', unit:'s⁻¹', meaning:'Bifurcation parameter (linear growth/decay)', effect:'α &lt; 0 → damped, noise-driven fluctuations; α &gt; 0 → self-sustained limit cycle of radius √(α/γ).'},
     {name:'ω (omega)', unit:'rad/s', meaning:'Intrinsic angular frequency', effect:'Sets the base rotation rate, further shifted by β once amplitude grows.'},
@@ -1762,12 +1750,11 @@ sl: {
      fixed:{alpha:1, gamma:1, beta:0, omega:2, F0:0, N:3},
      prose:'Finally, turn forcing back off and connect three of these limit-cycle oscillators — each with a slightly different natural frequency — and drag G. At G = 0 they run independently, each at its own pace; diffusive coupling toward the network mean pulls them toward a shared rhythm as G increases. Same synchronization mechanism as the HO\'s coupled case, but now every node\'s amplitude is self-stabilized by γ rather than fixed by its initial condition.'},
   ],
-  about: `Stuart–Landau traces back to Landau's 1944 model of the laminar-turbulent transition and Stuart's rigorous derivation for shear flows — it is now understood as <em>the</em> normal form of a Hopf bifurcation. <strong>Castaldo et al.</strong> place it directly above the HO on the ladder: same push-pull skeleton, now with a physiologically essential self-limiting mechanism. SL networks tuned near their Hopf bifurcation are widely used to reproduce resting-state functional connectivity and its variability (FCD) in whole-brain fMRI and MEG models.`,
 },
 
 wilco: {
   title: 'Wilson–Cowan Model (WILCO)',
-  tagline: 'The HO/SL push-pull motif made biological: excitatory and inhibitory firing rates interacting through a sigmoid.',
+  tagline: 'The HO/SL push–pull motif made biological: excitatory and inhibitory firing rates interact through a sigmoid instead of a linear term. Near its Hopf bifurcation the equations reduce exactly to the Stuart–Landau normal form — WILCO is "SL in disguise," but every coefficient is now a measurable biophysical quantity (a synaptic weight, a time constant, a drive current). Introduced by Wilson and Cowan in the 1970s, it remains a modeling workhorse today, from single microcircuits to whole-brain simulations fit to MEG, EEG, and fMRI.',
   equations: `
     <div class="info-eq-box">
       <div class="eq-name">Unforced, firing-rate form (§5, Eq. 5.2)</div>
@@ -1789,8 +1776,6 @@ wilco: {
       <div class="eq-name" style="color:var(--coral);">In the Simulator</div>
       <div class="eq-note" style="font-size:0.85rem;">Unforced and forced are the same equation with F₀ = 0 or not, so the Simulator tab combines them into one "Single Node" variant — set A = 0 to remove the rhythmic stimulus. Coupling is structurally different (multiple nodes, a mean-field term), so it gets its own "Network" variant instead of a slider on this one. That variant writes the coupling as G(x̄ − xᵢ) — a diffusive simplification of the paper's row-summed GΣⱼCᵢⱼxⱼ that keeps each node's coupling input centered on the network average and bounded regardless of network size N, rather than growing with it — see the <a href="tutorial.html#coupling" target="_blank">Intro</a>.</div>
     </div>`,
-  how: `<p>WILCO replaces the HO/SL's abstract complex number with two concrete, biologically legible variables: an excitatory firing rate x and an inhibitory firing rate y, wired together through a sigmoid σ(·) instead of a simple linear term. Turning up the tonic drive Pₓ moves the operating point along the steep part of the sigmoid; the paper shows a Hopf bifurcation needs three ingredients — reciprocal E–I coupling (wₓᵧwᵧₓ &lt; 0), enough self-excitation or drive to sit on the steep part of σ, and the sigmoid's curvature to supply the cubic term that caps the oscillation's growth.</p>
-    <p>Once those conditions are met, the fixed point destabilizes and a self-sustained limit-cycle rhythm switches on spontaneously — no external clock required. Near that bifurcation point, a Taylor expansion of the WILCO equations recovers exactly the Stuart–Landau normal form (§5.2, Eq. 5.4): the sigmoid's first derivative sets the linear gain, and its second derivative supplies the nonlinear term that stabilizes the limit cycle. This is why the paper describes WILCO as "SL in disguise" — the same universal bifurcation machinery, now anchored to measurable biophysical quantities.</p>`,
   params: [
     {name:'τₓ, τᵧ', unit:'ms', meaning:'Membrane/synaptic time constants', effect:'Sets how fast each population responds; the E–I timescale separation shapes the oscillation frequency.'},
     {name:'wₓₓ', unit:'dimensionless', meaning:'E→E weight (self-excitation)', effect:'Needed (with drive) to push the operating point onto the steep part of the sigmoid.'},
@@ -1812,12 +1797,11 @@ wilco: {
      fixed:{Px:1.5, wxx:16, taux:8, A:0, N:3},
      prose:'Finally, turn forcing back off and instead connect three nodes with slightly different drive Pₓ, and drag the coupling gain G. At G = 0 each node oscillates — or stays silent — purely on its own; strong enough coupling can pull a node that would be silent alone into a shared rhythm, entrained by its neighbours rather than generating the rhythm itself.'},
   ],
-  about: `Wilson and Cowan introduced this model in the early 1970s as the first tractable mean-field description of interacting excitatory and inhibitory populations, and it remains a modeling workhorse today — from single microcircuits to whole-brain simulations fit to MEG, EEG, and fMRI. <strong>Castaldo et al.</strong> place WILCO directly above Stuart–Landau on the ladder: the same Hopf-bifurcation machinery, but every coefficient is now anchored to a measurable biophysical quantity (a synaptic weight, a time constant, a drive current) rather than an abstract normal-form parameter.`,
 },
 
 nmm1: {
   title: 'NMM with Second-Order Synapses (NMM1)',
-  tagline: 'Jansen–Rit-style models: synapses get their own realistic rise/decay filter instead of collapsing into one firing-rate equation.',
+  tagline: 'Jansen–Rit-style models: synapses get their own realistic rise/decay filter instead of collapsing into one firing-rate equation, cleanly separating "synapse" (the filter) from "soma" (the sigmoid). That filter\'s own frequency-dependent phase lag is enough on its own to sustain oscillation — unlike WILCO, NMM1 needs no explicit self-coupling term. This family includes the classic Jansen–Rit model, which reproduces alpha-band EEG and is the standard neuronal model inside Dynamic Causal Modeling.',
   equations: `
     <div class="info-eq-box">
       <div class="eq-name">E–I pair, without self-coupling (§6, Eq. 6.1)</div>
@@ -1834,8 +1818,6 @@ nmm1: {
       <div class="eq-name" style="color:var(--coral);">In the Simulator</div>
       <div class="eq-note" style="font-size:0.85rem;">The L̂/C formalism above is deliberately general — it doesn't commit to a specific connectivity, and §5.3 (which NMM1's Eq. 6.5 mirrors) is explicit that the paper's own coupling is additive, not diffusive: each node sums weighted inputs from its neighbours, Σⱼ Cᵢⱼxⱼ, specifically because this avoids the homeostatic constraints of diffusive schemes. For consistency with every other model on this site, the interactive demo instead instantiates a diffusive simplification: a "Network" variant adds G(x̄ − xᵢ) inside the excitatory sigmoid, pulling each node toward the network's mean excitatory PSP x̄ rather than summing a full connectivity matrix — see the <a href="tutorial.html#coupling" target="_blank">Intro</a>.</div>
     </div>`,
-  how: `<p>WILCO's single firing-rate equation implicitly assumes synaptic transmission is instantaneous. NMM1 makes it explicit: each post-synaptic potential is the output of a proper linear filter with its own rise and decay time constants, not just a first-order lag. Multiple PSPs are then summed into a membrane perturbation v, and a static sigmoid converts that perturbation into an output firing rate — cleanly separating "synapse" (the filter) from "soma" (the sigmoid).</p>
-    <p>The payoff is that a second-order synaptic filter introduces its own frequency-dependent phase shift. By the Barkhausen stability criterion, a feedback loop oscillates once its total gain is 1 and its total phase shift is a multiple of 360°; in a push-pull E–I loop, the phase lag from realistic synaptic kinetics alone can satisfy that condition — so, unlike Wilson–Cowan, NMM1 can sustain oscillations without any explicit self-coupling term.</p>`,
   params: [
     {name:'x, y', unit:'mV', meaning:'Excitatory / inhibitory post-synaptic potentials (PSPs)', effect:'Outputs of the second-order synaptic filters — not firing rates themselves.'},
     {name:'τₓ, τᵧ (or rise/decay pairs)', unit:'ms', meaning:'Synaptic time constants', effect:'Set each synapse\'s resonance frequency and intrinsic phase lag; distinct rise/decay values are what let phase lag accumulate.'},
@@ -1853,12 +1835,11 @@ nmm1: {
      fixed:{gx:1, gy:1, wxy:1, wyx:1, tau_x:0.5, tau_y:0.5, a:2.5, Fe:0, N:3},
      prose:'Finally, connect three nodes — each with a slightly different sigmoid slope a — and drag the coupling gain G. At G = 0 every node oscillates independently at its own rate; increasing G pulls the network toward a shared rhythm, the same long-range coupling mechanism as every other model on this site.'},
   ],
-  about: `NMM1 is the family that includes the classic <strong>Jansen–Rit</strong> model (three populations: pyramidal, excitatory and inhibitory interneurons), which reproduces alpha-band EEG and realistic evoked responses, and is the standard neuronal model inside Dynamic Causal Modeling (DCM). Related variants — <strong>Wendling's</strong> model (adds fast/slow inhibition, used to study epileptiform activity) and the <strong>laminar model (LaNMM)</strong> (adds depth-resolved, layer-specific generators) — sit in the same family. <strong>Castaldo et al.</strong> place NMM1 above WILCO on the ladder: the same E–I push-pull motif, but now with biologically explicit synaptic kinetics doing the work that WILCO's self-coupling term did more abstractly.`,
 },
 
 nmm2: {
   title: 'Next-Generation Neural Mass Model (NMM2)',
-  tagline: 'Replaces the heuristic sigmoid with an exact mean-field theory derived from spiking neurons.',
+  tagline: 'Replaces every earlier model\'s heuristic sigmoid with an exact mean-field theory: a population of spiking QIF neurons with a spread of excitabilities reduces, with no approximation, to two ODEs for the mean firing rate r(t) and mean membrane potential v(t). Because that r–v relationship is genuinely dynamic rather than a fixed curve, NMM2 predicts an enhanced, state-dependent sensitivity to weak, uniform inputs — such as the electric fields used in non-invasive brain stimulation — that static-sigmoid models can\'t capture. It\'s the newest rung: the same E–I push-pull skeleton, but now derived from first principles instead of assumed.',
   equations: `
     <div class="info-eq-box">
       <div class="eq-name">Montbrió–Pazó–Roxin mean field (§7, Eq. 7.4–7.6)</div>
@@ -1872,8 +1853,6 @@ nmm2: {
       <div class="eq-main">ṙₓ = Δₓ/π + 2rₓvₓ,&nbsp;&nbsp; v̇ₓ = vₓ² − π²rₓ² + Jₓsₓ − Cₓᵧsᵧ + η̄ₓ + F̂ₑ</div>
       <div class="eq-note">Driven only on the excitatory population, mirroring every other model on this site.</div>
     </div>`,
-  how: `<p>Every earlier model on this ladder uses a static "wave-to-pulse" sigmoid to turn membrane potential into firing rate — a convenient but heuristic shortcut. NMM2 replaces it with something derived from first principles: Montbrió, Pazó and Roxin showed that a large population of quadratic integrate-and-fire (QIF) spiking neurons with a spread of excitabilities (drawn from a Lorentzian distribution) reduces <em>exactly</em>, with no approximation, to just two ODEs for the population's mean firing rate r(t) and mean membrane potential v(t).</p>
-    <p>The key difference from a static sigmoid is that the r–v relationship is now dynamic: it has its own "inertia" and a gain that depends on the network's recent history, not a fixed curve. Self-coupling strength J shifts the population toward higher firing rates and closer to resonance, which is why NMM2 predicts an enhanced, state-dependent sensitivity to weak, spatially uniform inputs — such as the electric fields used in non-invasive brain stimulation — that static-sigmoid models like WILCO or NMM1 cannot capture on their own.</p>`,
   params: [
     {name:'r(t)', unit:'s⁻¹', meaning:'Population mean firing rate', effect:'The model\'s output variable — replaces the static sigmoid\'s instantaneous readout with genuine dynamics.'},
     {name:'v(t)', unit:'dimensionless (rescaled units)', meaning:'Population mean membrane potential', effect:'Evolves jointly with r(t); together they replace Freeman\'s static wave-to-pulse curve.'},
@@ -1883,7 +1862,6 @@ nmm2: {
     {name:'I(t), F̂ₑ(t)', unit:'s⁻¹', meaning:'External input (uniform current or electric field)', effect:'Because the r–v gain is state-dependent, the network\'s sensitivity to this input is itself dynamic — not fixed as in a static-sigmoid model.'},
     {name:'Cₙₘ', unit:'dimensionless', meaning:'Long-range connectivity between populations/nodes', effect:'Same role as in every other network form on this site.'},
   ],
-  about: `NMM2 is the newest rung: it keeps the E–I push-pull skeleton and the second-order synaptic filters from NMM1, but derives the transfer function itself from first principles (quadratic integrate-and-fire neurons) rather than assuming a sigmoid. <strong>Castaldo et al.</strong> frame this as a principled coarse-graining — in the language of renormalization, r and v are the "relevant" mesoscale variables that survive integrating out fast spiking detail. Applications so far include modeling the emergence of fast collective oscillations, whole-brain simulations on human connectomes, and theories of why densely self-coupled circuits respond more strongly to weak, uniform non-invasive stimulation.`,
 },
 
 };
@@ -1927,10 +1905,6 @@ function renderInfoPanel(){
       ${info.equations}
     </div>
     <div class="info-section">
-      <h3>How It Works</h3>
-      <div class="info-prose">${info.how}</div>
-    </div>
-    <div class="info-section">
       <h3>Parameters</h3>
       <table class="param-table">
         <thead><tr><th>Parameter</th><th>Unit</th><th>Meaning</th><th>Effect</th></tr></thead>
@@ -1956,11 +1930,7 @@ function renderInfoPanel(){
           </div>`;
         }).join('')}
       </div>
-    </div>` : ''}
-    <div class="info-section">
-      <h3>About This Model</h3>
-      <div class="info-about">${info.about}</div>
-    </div>`;
+    </div>` : ''}`;
 }
 
 // ============================================================
@@ -2436,6 +2406,7 @@ document.querySelectorAll('.model-tab').forEach(btn=>
   if(mmTab) mmTab.style.display=(activeModel==='nmm2')?'':'none';
 })();
 fullRender();
+selectTab('info');
 </script>
 </body>
 </html>
