@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — Rosetta Stone of Neural Mass Models</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #002878;
+    --coral: #FF6657;
+    --light-blue: #e8edf7;
+    --bg: #fafafa;
+    --card-bg: #ffffff;
+    --card-border: #e2e6f0;
+    --text: #1a1a2e;
+    --muted: #666;
+    --faint: #8a8fa3;
+  }
+  body { font-family: sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  nav.topnav {
+    background: var(--blue); color: white;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.8rem 1.4rem;
+  }
+  nav.topnav .brand { font-weight: 700; font-size: 0.95rem; }
+  nav.topnav .links a {
+    color: #a0b4e0; text-decoration: none; margin-left: 1.4rem; font-size: 0.88rem;
+    padding-bottom: 3px; border-bottom: 2px solid transparent; transition: color .15s;
+  }
+  nav.topnav .links a:hover { color: white; }
+  nav.topnav .links a.active { color: white; border-bottom-color: var(--coral); }
+  nav.topnav .links a.demos-link { color: var(--coral); }
+  nav.topnav .links a.demos-link:hover { color: var(--coral); }
+  nav.topnav .links a.demos-link.active { color: var(--coral); border-bottom-color: var(--coral); }
+
+  header { text-align: center; padding: 3rem 1.5rem 2rem; max-width: 760px; margin: 0 auto; }
+  header .label { font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--faint); margin-bottom: 1rem; }
+  header h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); font-weight: 700; line-height: 1.25; margin-bottom: 1.2rem; }
+  header h1 span { color: var(--coral); }
+  header p { font-size: 0.98rem; color: var(--muted); line-height: 1.7; }
+
+  main { max-width: 760px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+
+  .about-section { margin-bottom: 2.4rem; }
+  .about-section:last-child { margin-bottom: 0; }
+  .about-section h2 {
+    font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+    margin-bottom: 0.9rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.45rem;
+  }
+  .about-section p { font-size: 0.95rem; line-height: 1.75; color: #333; margin-bottom: 0.8rem; }
+  .about-section p:last-child { margin-bottom: 0; }
+  .about-section strong { color: var(--blue); }
+
+  .paper-card {
+    background: var(--light-blue);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 1.3rem 1.6rem;
+  }
+  .paper-card p { font-size: 0.9rem; color: var(--muted); line-height: 1.7; }
+  .paper-card strong { color: var(--blue); }
+  .paper-card a { color: var(--blue); font-weight: 600; text-decoration: none; }
+  .paper-card a:hover { text-decoration: underline; }
+
+  footer { text-align: center; font-size: 0.78rem; color: var(--faint); padding: 2rem; border-top: 1px solid var(--card-border); }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="brand">Rosetta Stone of Neural Mass Models</div>
+  <div class="links">
+    <a href="index.html">Home</a>
+    <a href="tutorial.html">Intro</a>
+    <a href="map.html">The Ladder</a>
+    <a href="explorer.html" class="demos-link">Demos</a>
+    <a href="compare.html">Compare</a>
+    <a href="about.html" class="active">About</a>
+  </div>
+</nav>
+
+<header>
+  <div class="label">Credits</div>
+  <h1>About <span>this project</span></h1>
+</header>
+
+<main>
+
+  <div class="about-section">
+    <h2>What This Is</h2>
+    <p>This site is the interactive companion to the paper <em>"Rosetta Stone of Neural Mass Models."</em> It was built during a summer internship at Neuroelectrics × BCOM, so that people could explore all six models hands-on — sliders, live plots, parameter sweeps — instead of just reading equations on a page.</p>
+  </div>
+
+  <div class="about-section">
+    <h2>The Paper</h2>
+    <div class="paper-card">
+      <p>
+        <strong>Castaldo, F., de Palma Aristides, R., Clusella, P., Garcia-Ojalvo, J., &amp; Ruffini, G. (2025).</strong>
+        <em>Rosetta Stone of Neural Mass Models.</em>
+        <a href="https://arxiv.org/abs/2512.10982" target="_blank" rel="noopener">arXiv:2512.10982</a>
+      </p>
+      <p>It shows that several widely-used neural mass models aren't separate inventions, but connected rungs on a single mathematical ladder.</p>
+    </div>
+  </div>
+
+  <div class="about-section">
+    <h2>Built By</h2>
+    <p><strong>Claudia Santamaria</strong> and <strong>Lucia Ruffini</strong>, as co-developers of this site. Claudia built the Phase-only/Kuramoto, HO, and Wilson–Cowan pages; Lucia built the Stuart–Landau, NMM1, and NMM2 pages.</p>
+  </div>
+
+  <div class="about-section">
+    <h2>Supervised By</h2>
+    <p><strong>Francesca Castaldo</strong> and <strong>Giulio Ruffini</strong>, as part of the NE × BCOM summer internship program.</p>
+  </div>
+
+  <div class="about-section">
+    <h2>Built With</h2>
+    <p>Plain HTML, CSS, and vanilla JavaScript, with Plotly for the interactive charts — no build step, no framework. Hosted on GitHub Pages.</p>
+  </div>
+
+</main>
+
+<footer>
+  Built for NE × BCOM · Castaldo et al. · GitHub Pages
+</footer>
+
+</body>
+</html>
