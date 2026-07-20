@@ -48,10 +48,26 @@
   .about-section h2 {
     font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
     margin-bottom: 0.9rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.45rem;
+    display: flex; align-items: center; gap: 0.45rem;
   }
+  .about-section h2 svg { flex-shrink: 0; }
   .about-section p { font-size: 0.95rem; line-height: 1.75; color: #333; margin-bottom: 0.8rem; }
   .about-section p:last-child { margin-bottom: 0; }
   .about-section strong { color: var(--blue); }
+
+  /* "What This Is" — same recipe as the homepage's "New here?" callout */
+  .intro-callout {
+    background: var(--light-blue);
+    border: 1px solid var(--card-border);
+    border-left: 4px solid var(--blue);
+    border-radius: 14px;
+    padding: 1.5rem 1.8rem;
+  }
+  .intro-callout-label {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--faint);
+    margin-bottom: 0.6rem;
+  }
+  .intro-callout p { font-size: 0.95rem; line-height: 1.75; color: #333; margin: 0; }
 
   .paper-card {
     background: var(--light-blue);
@@ -63,6 +79,34 @@
   .paper-card strong { color: var(--blue); }
   .paper-card a { color: var(--blue); font-weight: 600; text-decoration: none; }
   .paper-card a:hover { text-decoration: underline; }
+
+  /* Built By — team block with initials avatars, same circular-badge language as the model ladder's numbering */
+  .team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .team-member {
+    display: flex; align-items: center; gap: 0.9rem;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px;
+    padding: 1rem 1.2rem;
+  }
+  .avatar {
+    width: 3rem; height: 3rem; border-radius: 50%; background: var(--coral); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; font-weight: 700; flex-shrink: 0;
+  }
+  .team-name { font-size: 0.95rem; font-weight: 700; color: var(--blue); }
+  .team-role { font-size: 0.8rem; color: var(--muted); margin-top: 0.15rem; line-height: 1.4; }
+  @media (max-width: 560px) { .team-grid { grid-template-columns: 1fr; } }
+
+  /* Supervised By — quieter, secondary credit */
+  .supervisors-row { font-size: 0.92rem; color: var(--muted); font-weight: 600; margin-bottom: 0.35rem; }
+  .supervisors-row .sep { color: var(--faint); margin: 0 0.4rem; font-weight: 400; }
+  .supervisors-note { font-size: 0.82rem; color: var(--faint); line-height: 1.5; }
+
+  /* Built With — reuses the homepage card's pill-tag style */
+  .stack-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .tag {
+    font-size: 0.76rem; padding: 0.32rem 0.75rem; border-radius: 20px;
+    background: #f0f2f7; color: #555; font-weight: 500;
+  }
 
   footer { text-align: center; font-size: 0.78rem; color: var(--faint); padding: 2rem; border-top: 1px solid var(--card-border); }
 </style>
@@ -89,12 +133,17 @@
 <main>
 
   <div class="about-section">
-    <h2>What This Is</h2>
-    <p>This site is the interactive companion to the paper <em>"Rosetta Stone of Neural Mass Models."</em> It was built during a summer internship at Neuroelectrics × BCOM, so that people could explore all six models hands-on — sliders, live plots, parameter sweeps — instead of just reading equations on a page.</p>
+    <div class="intro-callout">
+      <div class="intro-callout-label">What This Is</div>
+      <p>This site is the interactive companion to the paper <em>"Rosetta Stone of Neural Mass Models."</em> It was built during a summer internship at Neuroelectrics × BCOM, so that people could explore all six models hands-on — sliders, live plots, parameter sweeps — instead of just reading equations on a page.</p>
+    </div>
   </div>
 
   <div class="about-section">
-    <h2>The Paper</h2>
+    <h2>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v6h6"/><line x1="9" y1="13" x2="16" y2="13"/><line x1="9" y1="17" x2="14" y2="17"/></svg>
+      The Paper
+    </h2>
     <div class="paper-card">
       <p>
         <strong>Castaldo, F., de Palma Aristides, R., Clusella, P., Garcia-Ojalvo, J., &amp; Ruffini, G. (2025).</strong>
@@ -107,17 +156,38 @@
 
   <div class="about-section">
     <h2>Built By</h2>
-    <p><strong>Claudia Santamaria</strong> and <strong>Lucia Ruffini</strong>, as co-developers of this site. Claudia built the Phase-only/Kuramoto, HO, and Wilson–Cowan pages; Lucia built the Stuart–Landau, NMM1, and NMM2 pages.</p>
+    <div class="team-grid">
+      <div class="team-member">
+        <div class="avatar">CS</div>
+        <div>
+          <div class="team-name">Claudia Santamaria</div>
+          <div class="team-role">Built the Phase-only/Kuramoto, HO, and Wilson–Cowan pages</div>
+        </div>
+      </div>
+      <div class="team-member">
+        <div class="avatar">L</div>
+        <div>
+          <!-- surname not yet confirmed -->
+          <div class="team-name">Lucia</div>
+          <div class="team-role">Built the Stuart–Landau, NMM1, and NMM2 pages</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="about-section">
     <h2>Supervised By</h2>
-    <p><strong>Francesca Castaldo</strong> and <strong>Giulio Ruffini</strong>, as part of the NE × BCOM summer internship program.</p>
+    <div class="supervisors-row">Francesca Castaldo<span class="sep">&middot;</span>Giulio Ruffini</div>
+    <p class="supervisors-note">As part of the NE × BCOM summer internship program.</p>
   </div>
 
   <div class="about-section">
     <h2>Built With</h2>
-    <p>Plain HTML, CSS, and vanilla JavaScript, with Plotly for the interactive charts — no build step, no framework. Hosted on GitHub Pages.</p>
+    <div class="stack-pills">
+      <span class="tag">HTML / CSS / JS</span>
+      <span class="tag">Plotly</span>
+      <span class="tag">GitHub Pages</span>
+    </div>
   </div>
 
 </main>
