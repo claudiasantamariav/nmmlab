@@ -258,8 +258,8 @@ input[type=range] { width: 100%; accent-color: var(--blue); cursor: pointer; mar
 </nav>
 
 <div class="model-tabs" id="modelTabs">
-  <button class="model-tab" data-model="kuramoto">Phase-only</button>
-  <button class="model-tab active" data-model="ho">HO</button>
+  <button class="model-tab active" data-model="kuramoto">Phase-only</button>
+  <button class="model-tab" data-model="ho">HO</button>
   <button class="model-tab" data-model="sl">Stuart–Landau</button>
   <button class="model-tab" data-model="wilco">WILCO</button>
   <button class="model-tab" data-model="nmm1">NMM1</button>
@@ -1985,7 +1985,7 @@ const MODELS={
 // ============================================================
 // STATE + RENDER
 // ============================================================
-let activeModel='ho', activeVariant='Oscillator', activeTab='demo', params={}, debounce=null;
+let activeModel='kuramoto', activeVariant='Network', activeTab='demo', params={}, debounce=null;
 
 function selectTab(tab){
   activeTab=tab;
