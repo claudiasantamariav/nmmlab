@@ -65,6 +65,9 @@ nav.topnav .links a.demos-link.active { color: var(--coral); border-bottom-color
 .info-diagram .diag-viz { background: #0d1330; border-radius: 8px; padding: 0.4rem 0.35rem; }
 .info-diagram .diag-viz svg { width: 100%; height: auto; display: block; }
 .info-diagram .diag-cap { font-size: 0.76rem; color: var(--muted); margin-top: 0.55rem; line-height: 1.4; }
+.info-footer-links { display: flex; gap: 1.6rem; flex-wrap: wrap; padding-top: 1.4rem; border-top: 1px solid var(--border); }
+.info-footer-links a { font-size: 0.85rem; color: var(--muted); font-weight: 600; text-decoration: none; }
+.info-footer-links a:hover { color: var(--coral); text-decoration: underline; }
 .info-section { margin-bottom: 2.2rem; }
 .info-section h3 {
   font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
@@ -2036,7 +2039,11 @@ function renderInfoPanel(){
           </div>`;
         }).join('')}
       </div>
-    </div>` : ''}`;
+    </div>` : ''}
+    <div class="info-footer-links">
+      <a href="tutorial.html">Read the shared concepts →</a>
+      <a href="map.html">How do they connect →</a>
+    </div>`;
 }
 
 // ============================================================
