@@ -420,7 +420,7 @@ const PLOT_KIND_INFO={
   powerspectrum:{title:'Power spectrum', desc:'which frequencies are present in the signal. A tall peak means a strong rhythm at that frequency.'},
   resonance:{title:'Resonance curve', desc:'the oscillator\'s steady-state response amplitude as the driving frequency is swept (computed analytically). A peak shows where the drive resonates with the system\'s own natural frequency.'},
   phasesnapshot:{title:'Phase snapshot', desc:'each dot is one unit\'s phase at a single instant — not a trajectory over time. Dots clustered together (with a long arrow toward the edge of the circle) mean the units are synchronised; dots spread around the circle (short arrow) mean they aren\'t.'},
-  syncCurve:{title:'Synchronisation curve', desc:'a summary measure of synchrony as coupling strength is swept. A rising curve means synchrony switches on past some critical coupling.'},
+  syncCurve:{title:'Synchronisation curve', desc:'a summary measure of synchrony as coupling strength is swept. A rising curve means synchrony grows in smoothly and continuously past some critical coupling, not a sudden jump.'},
 };
 
 function lay(title, xl, yl, extra) {
@@ -479,7 +479,7 @@ const KURAMOTO = {
       eqHtml:`<div class="eq-main">dθ<sub>i</sub>/dt = ω<sub>i</sub> + (G/N) Σ<sub>j</sub> sin(θ<sub>j</sub> − θ<sub>i</sub>)</div>
         <hr class="eq-hr">
         <div class="eq-sub">r = |1/N · Σ e<sup>iθ</sup>|   (order parameter)</div>`,
-      explain:'Each oscillator has only a phase θ, no amplitude at all. The coupling nudges every oscillator toward the average phase of the group; above a critical G, they snap into synchrony. A lone phase-only oscillator is trivial — θ̇ = ω, just constant rotation — so unlike every other model here there\'s no separate "single node" variant: coupling isn\'t optional, it\'s the entire model.',
+      explain:'Each oscillator has only a phase θ, no amplitude at all. The coupling nudges every oscillator toward the average phase of the group; above a critical G, they settle smoothly and continuously into synchrony, not a sudden snap. A lone phase-only oscillator is trivial — θ̇ = ω, just constant rotation — so unlike every other model here there\'s no separate "single node" variant: coupling isn\'t optional, it\'s the entire model.',
       params:[
         {id:'N',      label:'N  (oscillators)',     min:2, max:20, step:1, def:10},
         {id:'G',      label:'G  (coupling strength)',min:0, max:5, step:0.1, def:2.0},
@@ -574,7 +574,7 @@ const KURAMOTO = {
         {x:[G,G],y:[0,1.05],mode:'lines',line:{color:CORAL,width:2,dash:'dash'},name:`your G = ${G.toFixed(2)}`},
       ], kind:'syncCurve', layout:{...lay('Synchronisation curve','Coupling G','⟨R⟩ (mean order parameter)'), yaxis:{range:[0,1.05],gridcolor:'#e0e4ef',title:'⟨R⟩'}},
         capS:'Mean order parameter (averaged over the second half of an 8 s run, after discarding the initial transient) as coupling G is swept from 0 to 5. The coral line marks your current G. With few oscillators (small N), expect a noisier, less monotonic curve — a genuine finite-size effect, not numerical error.',
-        capD: `Synchrony switches on around G ≈ ${Gc}. Your G = ${G.toFixed(2)} gives ⟨R⟩ ≈ ${Rmeans[Math.min(nG,Math.round(G/Gmax*nG))]?.toFixed(2)}.`},
+        capD: `Synchrony grows in continuously from G ≈ ${Gc}. Your G = ${G.toFixed(2)} gives ⟨R⟩ ≈ ${Rmeans[Math.min(nG,Math.round(G/Gmax*nG))]?.toFixed(2)}.`},
     ];
   }
 };
@@ -1680,7 +1680,7 @@ kuramoto: {
   params: [
     {name:'θᵢ', unit:'rad', meaning:'Phase of oscillator i', effect:'The model\'s only state variable — no amplitude exists at all.'},
     {name:'ωᵢ', unit:'rad/s', meaning:'Natural (intrinsic) frequency of oscillator i', effect:'How fast oscillator i would spin on its own, absent coupling. A spread of ωᵢ across nodes is what coupling has to overcome to synchronize.'},
-    {name:'G', unit:'s⁻¹', meaning:'Global coupling gain', effect:'Strength of the pull toward the group\'s phase; synchrony kicks in sharply once G exceeds a critical value set by the spread of ωᵢ.'},
+    {name:'G', unit:'s⁻¹', meaning:'Global coupling gain', effect:'Strength of the pull toward the group\'s phase; synchrony grows smoothly and continuously from zero once G exceeds a critical value set by the spread of ωᵢ — no sudden jump, unlike the abrupt transitions this model can show under different conditions (skewed frequency distributions, phase lag, or higher-harmonic coupling).'},
     {name:'N', unit:'count', meaning:'Number of oscillators', effect:'Network size — the order parameter r becomes a sharper, less noisy measure of synchrony as N grows.'},
     {name:'r (order parameter)', unit:'dimensionless, 0–1', meaning:'r = |1/N · Σ e^(iθ)|', effect:'r = 1 means every oscillator shares the same phase (fully locked); r = 0 means phases are spread uniformly around the circle (incoherent).'},
   ],
