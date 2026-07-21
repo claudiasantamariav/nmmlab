@@ -608,7 +608,7 @@ const HO = {
       eqHtml:`<div class="eq-main">dz<sub>i</sub>/dt = (α + iω<sub>i</sub>) z<sub>i</sub> + G(z̄ − z<sub>i</sub>) + F₀ e<sup>iΩt</sup></div>
         <hr class="eq-hr">
         <div class="eq-sub">z̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the single oscillator</div>`,
-      explain:'N copies of the oscillator above, each pulled toward the network mean z̄ by coupling G — exactly the paper\'s diffusive coupling term (Eq. 2.28), (G/N)Σⱼ Cᵢⱼ(zⱼ−zᵢ), once the connectivity Cᵢⱼ is uniform and all-to-all. Nodes get a slightly different ω so coupling has something to synchronize; the F₀/Ω drive is applied to every node. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>',
+      explain:'N copies of the oscillator above, each pulled toward the network mean z̄ by coupling G — exactly the paper\'s diffusive coupling term (Eq. 2.28), (G/N)Σⱼ(zⱼ−zᵢ), the uniform all-to-all case (the general weighted-connectome form with Cᵢⱼ is Eq. 2.29). Nodes get a slightly different ω so coupling has something to synchronize; the F₀/Ω drive is applied to every node. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>',
       params:[
         {id:'omega',       label:'ω  (rad/s)', min:1, max:100, step:0.5, def:TWO_PI*1},
         {id:'alpha',       label:'α  (growth/damping)', min:-1, max:1, step:0.01, def:-0.1, zeroLabel:'undamped'},
@@ -805,7 +805,7 @@ const SL = {
       eqHtml:`<div class="eq-main">ż<sub>i</sub> = (α + iω<sub>i</sub>)z<sub>i</sub> − (γ + iβ)|z<sub>i</sub>|²z<sub>i</sub> + G(z̄ − z<sub>i</sub>) + F₀ e<sup>iΩt</sup></div>
         <hr class="eq-hr">
         <div class="eq-sub">z̄ = mean over all nodes &nbsp;·&nbsp; G = 0 or N = 1 → exactly the single oscillator</div>`,
-      explain:'N copies of the limit-cycle oscillator above, each pulled toward the network mean z̄ by coupling G — exactly the paper\'s diffusive coupling term (Eq. 3.8), (G/N)Σⱼ Cᵢⱼ(zⱼ−zᵢ), once the connectivity Cᵢⱼ is uniform and all-to-all. Nodes get a slightly different ω so coupling has something to synchronize. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>',
+      explain:'N copies of the limit-cycle oscillator above, each pulled toward the network mean z̄ by coupling G — exactly the paper\'s diffusive coupling term (Eq. 3.8), (G/N)Σⱼ(zⱼ−zᵢ), the uniform all-to-all case (the general weighted-connectome form with Cᵢⱼ is Eq. 3.9). Nodes get a slightly different ω so coupling has something to synchronize. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>',
       params:[
         {id:'alpha', label:'α  (growth/decay)', min:-2, max:2, step:0.05, def:1, zeroLabel:'undamped'},
         {id:'omega', label:'ω  (rad/s)', min:0.5, max:10, step:0.1, def:2},
@@ -1456,7 +1456,7 @@ const NMM1 = {
 };
 
 // ============================================================
-// NMM2 — next-generation mean field (Montbrió–Pazó–Roxin), §7 Eq. 7.4–7.13
+// NMM2 — next-generation mean field (Montbrió–Pazó–Roxin), §7 Eq. 7.4–7.12
 // Exact QIF reduction: state = [rₓ, vₓ, rᵧ, vᵧ]; r = firing rate, v = mean
 // membrane potential; instantaneous synapses (s = r); dimensionless (τ = 1).
 // ============================================================
@@ -1522,7 +1522,7 @@ const NMM2 = {
         <div class="eq-main">(the r-equations and the inhibitory population are as in the single node)</div>
         <hr class="eq-hr">
         <div class="eq-sub">r̄ₓ = mean excitatory rate &nbsp;·&nbsp; long-range coupling is excitatory→excitatory &nbsp;·&nbsp; G = 0 → independent nodes</div>`,
-      explain:'N copies of the node above with a small spread of excitability η̄, coupled excitatory→excitatory: each node\'s mean-voltage equation gains G·r̄ₓ, the paper\'s additive E→E connectome term (Eq. 7.13) specialised to uniform all-to-all connectivity. A node held below its own Hopf point can be dragged into rhythm by its oscillating neighbours. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>',
+      explain:'N copies of the node above with a small spread of excitability η̄, coupled excitatory→excitatory: each node\'s mean-voltage equation gains G·r̄ₓ, a diffusive stand-in for the paper\'s general connectome coupling term (Eq. 7.10), Σⱼ Cᵢⱼsᵢⱼ, specialised to uniform all-to-all connectivity with the raw rate in place of the filtered synaptic current. A node held below its own Hopf point can be dragged into rhythm by its oscillating neighbours. <a href="tutorial.html#coupling" target="_blank">Why this term? →</a>',
       params:[
         {id:'eta',   label:'η̄  (mean excitability)', min:-10, max:10, step:0.5, def:0},
         {id:'delta', label:'Δ  (excitability spread)', min:0.1, max:3, step:0.05, def:1},
@@ -1549,7 +1549,8 @@ const NMM2 = {
       return integrate(f,[0.3,-2,0.1,-2],4000,0.01,4);
     }
     // Networked: N copies with a small η̄ spread (so coupling has something to
-    // synchronize), coupled E→E by the additive term G·r̄ₓ (Eq. 7.13, uniform C).
+    // synchronize), coupled E→E by the additive term G·r̄ₓ — a diffusive
+    // stand-in for the paper's Eq. 7.10 connectome term, uniform all-to-all.
     const etas=Array.from({length:N},(_,i)=>eta+2.5*(i-(N-1)/2));
     const r0=Array.from({length:N},(_,i)=>0.3-0.03*i);
     const state0=[...r0, ...Array(N).fill(-2), ...Array(N).fill(0.1), ...Array(N).fill(-2)];
