@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What Is an Oscillation, Really? — Rosetta Stone of Neural Mass Models</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #002878;
+    --coral: #FF6657;
+    --light-blue: #e8edf7;
+    --bg: #fafafa;
+    --card-bg: #ffffff;
+    --card-border: #e2e6f0;
+    --text: #1a1a2e;
+    --muted: #666;
+    --faint: #8a8fa3;
+  }
+  body { font-family: sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  nav.topnav {
+    background: var(--blue); color: white;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.8rem 1.4rem;
+  }
+  nav.topnav .brand { font-weight: 700; font-size: 0.95rem; }
+  nav.topnav .links a {
+    color: #a0b4e0; text-decoration: none; margin-left: 1.4rem; font-size: 0.88rem;
+    padding-bottom: 3px; border-bottom: 2px solid transparent; transition: color .15s;
+  }
+  nav.topnav .links a:hover { color: white; }
+  nav.topnav .links a.active { color: white; border-bottom-color: var(--coral); }
+  nav.topnav .links a.demos-link { color: var(--coral); }
+  nav.topnav .links a.demos-link:hover { color: var(--coral); }
+  nav.topnav .links a.demos-link.active { color: var(--coral); border-bottom-color: var(--coral); }
+
+  header { text-align: center; padding: 3rem 1.5rem 2rem; max-width: 760px; margin: 0 auto; }
+  header .label { font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--faint); margin-bottom: 1rem; }
+  header h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); font-weight: 700; line-height: 1.25; margin-bottom: 1.2rem; }
+  header h1 span { color: var(--coral); }
+  header p { font-size: 0.98rem; color: var(--muted); line-height: 1.7; }
+  header p.subtitle { font-style: italic; }
+
+  main { max-width: 880px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+
+  section.block { margin-bottom: 3.2rem; scroll-margin-top: 1.5rem; }
+  section.block h2 {
+    font-size: 1.35rem; color: var(--blue); margin-bottom: 0.4rem;
+    display: flex; align-items: baseline; gap: 0.6rem;
+  }
+  section.block h2 .num {
+    font-size: 0.85rem; color: white; background: var(--coral); border-radius: 50%;
+    width: 1.6rem; height: 1.6rem; display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  section.block p { font-size: 0.95rem; line-height: 1.75; color: #333; margin-bottom: 1rem; }
+  section.block p:last-child { margin-bottom: 0; }
+  section.block strong { color: var(--blue); }
+  section.block em.term { color: var(--coral); font-style: normal; font-weight: 600; }
+
+  .diagram-box {
+    background: white; border: 1px solid var(--card-border); border-radius: 12px;
+    padding: 1.2rem; margin: 1.4rem 0; text-align: center;
+  }
+  .diagram-box svg { max-width: 100%; height: auto; }
+  .diagram-caption { font-size: 0.8rem; color: var(--faint); margin-top: 0.6rem; }
+
+  .quote-strip {
+    border-left: 3px solid var(--coral); padding: 0.5rem 1.1rem; margin: 1.2rem 0;
+    font-style: italic; color: #444; font-size: 0.9rem; line-height: 1.6; background: var(--light-blue);
+    border-radius: 0 8px 8px 0;
+  }
+  .quote-strip cite { display: block; font-style: normal; font-size: 0.76rem; color: var(--faint); margin-top: 0.3rem; }
+
+  .cta-row { text-align: center; margin: 2.6rem 0 1rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    display: inline-block; font-size: 0.92rem; font-weight: 700; color: white;
+    background: var(--blue); border: 1px solid var(--blue); border-radius: 30px; padding: 0.8rem 1.8rem;
+    text-decoration: none; transition: background .15s ease, box-shadow .15s ease, transform .15s ease;
+  }
+  .btn-primary:hover { background: #001c5c; box-shadow: 0 8px 20px rgba(0,40,120,0.22); transform: translateY(-2px); }
+  .btn-outline {
+    display: inline-block; font-size: 0.92rem; font-weight: 600; color: var(--text);
+    border: 1px solid var(--card-border); border-radius: 30px; padding: 0.8rem 1.8rem;
+    text-decoration: none; transition: border-color .15s, background .15s;
+  }
+  .btn-outline:hover { border-color: var(--coral); background: rgba(255,102,87,0.08); }
+
+  footer { text-align: center; font-size: 0.78rem; color: var(--faint); padding: 2rem; border-top: 1px solid var(--card-border); }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="brand">Rosetta Stone of Neural Mass Models</div>
+  <div class="links">
+    <a href="index.html">Home</a>
+    <a href="tutorial.html">Intro</a>
+    <a href="map.html">The Ladder</a>
+    <a href="explorer.html" class="demos-link">Demos</a>
+    <a href="compare.html">Compare</a>
+  </div>
+</nav>
+
+<header>
+  <div class="label">A closer look</div>
+  <h1>What Is an <span>Oscillation</span>, Really?</h1>
+  <p class="subtitle">Every model on this site produces a rhythm. This page asks what "rhythm" actually means —
+  and the answer turns out to be the same one thing, dressed differently, every time.</p>
+</header>
+
+<main>
+
+  <section class="block" id="meanings">
+    <h2><span class="num">1</span>Two different meanings, one word</h2>
+
+    <p>The paper is careful about this (§1.1.2b): "oscillator" and "oscillation" aren't quite the same claim. An
+    <em class="term">oscillator</em> is a property of a model — a system built to sustain rhythmic motion, usually
+    through an attracting limit cycle, or, in the idealized undamped case, a neutrally stable center. An
+    <em class="term">oscillation</em> is a property of data — a signal with a dominant timescale, typically visible
+    as a narrow peak in a power spectrum. Usually these line up. But not always: a damped system driven by noise
+    can throw off "<em class="term">noise-sustained quasi-cycles</em>" — spectral peaks with no limit cycle
+    underneath them at all — while a chaotic system can be aperiodic and still show a prominent spectral bump.
+    Every model on this site is an oscillator in the first sense. Whether its output counts as an oscillation in
+    the second sense is, in the end, a question you ask of the data, not the equations.</p>
+  </section>
+
+  <section class="block" id="compression">
+    <h2><span class="num">2</span>The compression test</h2>
+
+    <div class="quote-strip">
+      "In algorithmic information theory terms, we would say that a signal is an oscillation if it can be efficiently compressed by exploiting its approximate periodicity."
+      <cite>— Castaldo et al., §1.1.2(b)</cite>
+    </div>
+
+    <p>Here's the intuition. If a signal roughly repeats, you don't need to store every value — one cycle plus a
+    short note on how each repeat differs from the last is enough to reconstruct the rest. The paper's Appendix I
+    formalizes exactly this: a dataset counts as an oscillation when a "periodic template plus small correction"
+    description of it is dramatically shorter than any description that doesn't assume periodicity. No reference
+    model required. The test is just whether assuming a repeating pattern makes the data cheaper to describe than
+    not assuming it.</p>
+
+    <div class="diagram-box">
+      <svg viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg">
+        <text x="120" y="24" text-anchor="middle" font-size="12" font-weight="700" fill="#002878" font-family="sans-serif">RAW SIGNAL</text>
+        <polyline points="20,95 33,60 46,120 59,70 72,135 85,55 98,110 111,75 124,125 137,65 150,105 163,80 176,130 189,60 200,95"
+          fill="none" stroke="#002878" stroke-width="1.7"/>
+        <text x="110" y="178" text-anchor="middle" font-size="10.5" fill="#666" font-family="sans-serif">every value stored individually</text>
+
+        <path d="M245 100 L305 100" stroke="#FF6657" stroke-width="2.2" marker-end="url(#arrowOsc1)"/>
+        <defs>
+          <marker id="arrowOsc1" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#FF6657"/>
+          </marker>
+        </defs>
+
+        <rect x="330" y="35" width="280" height="130" rx="12" fill="#e8edf7" stroke="#002878" stroke-width="1.4"/>
+        <text x="470" y="58" text-anchor="middle" font-size="12" font-weight="700" fill="#002878" font-family="sans-serif">1 CYCLE + CORRECTION</text>
+        <path d="M355,115 C375,75 395,75 415,115 C435,150 455,150 475,115" fill="none" stroke="#FF6657" stroke-width="2.4"/>
+        <path d="M360,135 L372,131 L384,138 L396,132 L408,137 L420,133 L432,137 L444,132 L456,136 L468,132 L478,134"
+          fill="none" stroke="#002878" stroke-width="1.3"/>
+        <text x="470" y="152" text-anchor="middle" font-size="9.5" fill="#888" font-family="sans-serif">correction (small)</text>
+      </svg>
+      <div class="diagram-caption">Left: stored value-by-value, a signal has no shortcuts. Right: if it's
+      roughly periodic, one clean cycle plus a small correction reconstructs the whole thing — same signal,
+      far less to write down. The paper's compression test (Appendix I) is just this idea made precise.</div>
+    </div>
+  </section>
+
+  <section class="block" id="circle">
+    <h2><span class="num">3</span>The circle underneath everything</h2>
+
+    <p>Push the idea one step further (Appendix I.2) and every oscillator on this ladder — however many state
+    variables, however much biological detail — reduces to the same topological object: a phase circling a loop.</p>
+
+    <p>The paper builds this up literally, and it's worth watching happen. Start with the barest possible
+    oscillator: a phase clock, θ̇ = ω, tracing a circle with no amplitude at all — that's the Kuramoto rung on this
+    site. Add amplitude and you get the undamped harmonic oscillator, z = z₀e<sup>iωt</sup>: still a perfect
+    circle, now with a radius that never changes. Neither of these has any mechanism to self-correct — nudge them
+    and they stay nudged.</p>
+
+    <p>Real oscillators settle back to a fixed rhythm after a disturbance. That takes a nonlinearity — and here's
+    the part that isn't just narrative convenience. When the paper derives Stuart–Landau's cubic term from first
+    principles (normal-form reduction near a Hopf bifurcation), it doesn't start by assuming the equation should
+    respect circular symmetry. It starts from a <em>generic</em> nonlinear correction to the harmonic oscillator
+    and asks which terms survive the reduction. Almost everything cancels. The one term that can't be removed is
+    −(γ+iβ)|z|²z — and that term happens to be exactly the one that respects the same rotational symmetry the bare
+    circle already had.</p>
+
+    <div class="diagram-box">
+      <svg viewBox="0 0 620 190" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="110" cy="80" r="40" fill="none" stroke="#c7cfe4" stroke-width="1.6" stroke-dasharray="3 4"/>
+        <line x1="110" y1="80" x2="110" y2="40" stroke="#002878" stroke-width="2.2"/>
+        <circle cx="110" cy="40" r="5" fill="#002878"/>
+        <text x="110" y="148" text-anchor="middle" font-size="10.5" fill="#666" font-family="sans-serif">phase only</text>
+        <text x="110" y="161" text-anchor="middle" font-size="10.5" fill="#666" font-family="sans-serif">(Kuramoto)</text>
+
+        <circle cx="310" cy="80" r="40" fill="none" stroke="#002878" stroke-width="2.2"/>
+        <line x1="310" y1="80" x2="310" y2="40" stroke="#FF6657" stroke-width="2.2"/>
+        <circle cx="310" cy="40" r="5" fill="#FF6657"/>
+        <text x="330" y="62" font-size="10" fill="#8a8fa3" font-family="sans-serif" font-style="italic">r</text>
+        <text x="310" y="148" text-anchor="middle" font-size="10.5" fill="#666" font-family="sans-serif">circle + amplitude</text>
+        <text x="310" y="161" text-anchor="middle" font-size="10.5" fill="#666" font-family="sans-serif">(HO)</text>
+
+        <circle cx="510" cy="80" r="40" fill="none" stroke="#002878" stroke-width="2.4"/>
+        <circle cx="546" cy="52" r="5" fill="#FF6657"/>
+        <path d="M543,57 C534,66 525,72 517,75" fill="none" stroke="#FF6657" stroke-width="1.6" stroke-dasharray="2 3" marker-end="url(#arrowOsc2)"/>
+        <defs>
+          <marker id="arrowOsc2" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <path d="M0,0 L7,3.5 L0,7 Z" fill="#FF6657"/>
+          </marker>
+        </defs>
+        <text x="510" y="148" text-anchor="middle" font-size="10.5" fill="#666" font-family="sans-serif">self-correcting circle</text>
+        <text x="510" y="161" text-anchor="middle" font-size="10.5" fill="#666" font-family="sans-serif">(Stuart–Landau)</text>
+      </svg>
+      <div class="diagram-caption">Three rungs, one shape. Phase-only traces a bare circle; the harmonic
+      oscillator adds a radius that never changes; Stuart–Landau adds the one nonlinear term that survives
+      normal-form reduction — the term that pulls a perturbed trajectory (dashed) back onto the ring.</div>
+    </div>
+
+    <p>The circle isn't decoration on top of these models. It's the one piece of structure the math can't remove
+    — which is exactly why it shows up again, in some more detailed costume, at every single rung above it.</p>
+  </section>
+
+  <div class="cta-row">
+    <a class="btn-primary" href="map.html">See the model ladder →</a>
+    <a class="btn-outline" href="tutorial.html">Back to the intro →</a>
+  </div>
+
+</main>
+
+<footer>
+  Built for NE × BCOM · Castaldo et al. · GitHub Pages
+</footer>
+
+</body>
+</html>
