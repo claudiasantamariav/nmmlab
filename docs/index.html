@@ -86,6 +86,14 @@
   .intro a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--card-border); }
   .intro a:hover { border-bottom-color: var(--blue); }
 
+  .page-note {
+    max-width: 560px; margin: 2rem auto 0; padding-top: 1.5rem;
+    border-top: 1px solid var(--card-border);
+    font-size: 0.9rem; color: var(--muted); line-height: 1.7;
+  }
+  .page-note a { color: var(--blue); text-decoration: underline; }
+  .page-note a:hover { color: var(--coral); }
+
   main { max-width: 1180px; margin: 0 auto; padding: 0 1.5rem 4rem; }
 
   .start-here {
@@ -210,6 +218,8 @@
   }
   .paper-card p { font-size: 0.9rem; color: var(--muted); line-height: 1.7; }
   .paper-card strong { color: var(--blue); }
+  .paper-card a { color: var(--blue); font-weight: 600; text-decoration: none; }
+  .paper-card a:hover { text-decoration: underline; }
 
   footer {
     text-align: center; font-size: 0.78rem; color: var(--faint);
@@ -223,7 +233,6 @@
   <div class="brand">Rosetta Stone of Neural Mass Models</div>
   <div class="links">
     <a href="index.html" class="active">Home</a>
-    <a href="about.html">About</a>
     <a href="tutorial.html">Intro</a>
     <a href="map.html">The Ladder</a>
     <a href="explorer.html" class="demos-link">Demos</a>
@@ -240,9 +249,10 @@
   </div>
   <p class="intro">
     Six models that look nothing alike on paper turn out to be the same idea, each one adding a bit more detail than the last. This site is the interactive companion to
-    <em><a href="about.html">"Rosetta Stone of Neural Mass Models"</a></em> — pick a model below to build intuition for how brain rhythms emerge,
+    <em><a href="https://arxiv.org/abs/2512.10982" target="_blank" rel="noopener">"Rosetta Stone of Neural Mass Models"</a></em> — pick a model below to build intuition for how brain rhythms emerge,
     from a bare phase all the way to a full neural mass model.
   </p>
+  <p class="page-note">About this page: created by Lucia Ruffini and Claudia Santamaria, with help from Francesca Castaldo and Giulio Ruffini. Contact <a href="mailto:francesca.castaldo@bcom.one">francesca.castaldo@bcom.one</a> for questions or comments.</p>
 </header>
 
 <main>
@@ -322,7 +332,7 @@
     <h3>About this companion</h3>
     <p>
       <strong>Castaldo, F., de Palma Aristides, R., Clusella, P., Garcia-Ojalvo, J., &amp; Ruffini, G. (2025).</strong>
-      <em>Rosetta Stone of Neural Mass Models.</em>
+      <em><a href="https://arxiv.org/abs/2512.10982" target="_blank" rel="noopener">Rosetta Stone of Neural Mass Models.</a></em>
       Shows that five widely-used models in computational neuroscience are not separate inventions but rungs on a
       single mathematical ladder. This website lets you interact with each model, tune its parameters,
       and see exactly what changes at each step up the ladder — and adds the Kuramoto phase-oscillator model as an
