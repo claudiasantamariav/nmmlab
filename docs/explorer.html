@@ -2001,6 +2001,8 @@ function renderInfoPanel(){
   const info=MODEL_INFO[activeModel];
   const panel=document.getElementById('infoPanel');
   if(!info){ panel.innerHTML=''; return; }
+  const modelOrder=Object.keys(MODELS);
+  const nextModelId=modelOrder[modelOrder.indexOf(activeModel)+1];
   panel.innerHTML=`
     <h2>${info.title}</h2>
     <div class="tagline">${info.tagline}</div>
@@ -2043,6 +2045,7 @@ function renderInfoPanel(){
     <div class="info-footer-links">
       <a href="tutorial.html">Read the shared concepts →</a>
       <a href="map.html">How do they connect →</a>
+      ${nextModelId ? `<a href="#" onclick="selectModel('${nextModelId}');return false;">Next: ${MODELS[nextModelId].label} →</a>` : ''}
     </div>`;
 }
 
