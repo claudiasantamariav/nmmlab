@@ -1,0 +1,147 @@
+Dynamical systems that undergo a bifurcation of the same type—for example, a Hopf bifurcation—show similar behavior near that transition.
+This similarity is captured by normal forms, which are simplified, canonical models to which many different systems can be smoothly transformed.
+The center manifold theorem explains why this reduction is possible even for high-dimensional systems: near the bifurcation, the essential dynamics depend only on the variables involved in the stability change, and these variables span the center manifold.
+By reducing the system to this low-dimensional manifold, we can describe its behavior using the corresponding normal form.
+Here we summarize the main steps to map, close to a Hopf bifurcation, the Wilson-Cowan model
+\begin{equation}
+    \begin{aligned}
+  \tau_x \dot{x}+x &= \gamma_x\,\sigma_x\!\bigl(\kappa_{xx}x - \kappa_{xy}y + P_x\bigr),\\
+  \tau_y \dot{y}+y &= \gamma_y\,\sigma_y\!\bigl(\kappa_{yx}x - \kappa_{yy}y\bigr),
+\end{aligned}
+\end{equation}
+to the Stuart-Landau model,
+\begin{equation}\label{eq:SLappendix}
+\dot{z} \;=\; (\alpha + i\,\omega)\,z \;-\; (\gamma + i\,\beta)\,\lvert z\rvert^{2}z.
+\end{equation}
+This derivation follows chapter 3.4 from \cite{kuznetsov2023elements}, which contains detailed proofs and explanations.
+
+
+Let's assume $(x_0,y_0)$ is a fixed point of the Wilson-Cowan model undergoing
+a Hopf bifurcation at $P_x=P_c$, letting all the other parameters fixed.
+The first step towards the normal form consist of applying
+the change of variables $X=x-x_0$ and $Y=y-y_0$, in order to set the
+steady state at the origin. Also, we reparametrize $\alpha = P_x-P_c$,
+hence
+\begin{equation}
+    \begin{aligned}
+  \tau_x \dot{X}+X+x_0 &= \gamma_x\,\sigma_x\!\bigl(\kappa_{xx}(X+x_0) - \kappa_{xy}(Y+y_0) + P_c + \alpha \bigr),\\
+  \tau_y \dot{Y}+Y+y_0 &= \gamma_y\,\sigma_y\!\bigl(\kappa_{yx}(X+x_0) - \kappa_{yy}(Y+y_0)\bigr).
+\end{aligned}
+\end{equation}
+Let 
+\begin{equation}
+    \begin{aligned}
+    I_x &= \kappa_{xx}x_0 - \kappa_{xy}y_0 + P_c + \alpha \quad\text{and}\\
+    I_y &= \kappa_{yx}x_0 - \kappa_{yy}y_0. \\
+    \end{aligned}
+\end{equation}
+Then, the Taylor expansion of the velocity fields at the fixed point $(X,Y)=(0,0)$ up to third order reads
+\begin{equation}\label{eq:taylor}
+    \begin{aligned}
+  \frac{\tau_x}{\gamma_x} \dot{X} \approx \;&
+  \sigma_x'\!\bigl(I_x \bigr)\left[\kappa_{xx}X - \kappa_{xy}Y\right] + 
+  \sigma_x''\!\bigl(I_x \bigr)\left[\frac{\kappa_{xx}^2}{2}X^2 - \kappa_{xx}\kappa_{xy}XY + \frac{\kappa_{xy}^2}{2} Y^2\right] \\
+  +\; & \sigma_x'''\!\bigl(I_x \bigr)
+  \left[
+  \frac{\kappa_{xx}^3}{6}X^3-
+  \frac{\kappa_{xx}^2\kappa_{xy}}{2}X^2Y+
+  \frac{\kappa_{xx}\kappa{xy}^2}{2}XY^2-
+  \frac{\kappa_{xy}^3}{6}Y^3
+  \right],\\
+  \frac{\tau_y}{\gamma_y} \dot{Y} \approx \;&
+  \sigma_y'\!\bigl(I_y \bigr)\left[\kappa_{yx}X - \kappa_{yy}Y\right] + 
+  \sigma_y''\!\bigl(I_y \bigr)\left[\frac{\kappa_{yx}^2}{2}X^2 - \kappa_{yx}\kappa_{yy}XY + \frac{\kappa_{yy}^2}{2} Y^2\right] \\
+  +\; & \sigma_y'''\!\bigl(I_y \bigr)
+  \left[
+  \frac{\kappa_{yx}^3}{6}X^3-
+  \frac{\kappa_{yx}^2\kappa_{xy}}{2}X^2Y+
+  \frac{\kappa_{yx}\kappa{xy}^2}{2}XY^2-
+  \frac{\kappa_{yy}^3}{6}Y^3
+  \right].
+\end{aligned}
+\end{equation}
+Let's define three generic vectors in $\mathbb{R}^2$: $v_1 = (X_1,Y_2)^T$, $v_2=(X_2,Y_2)^T$, and $v_3=(X_3,Y_3)^T$ 
+Now, from the previous Taylor development, we define the Jacobian at the fixed point, $A$, and the multilinear functions $B(v_1,v_2)$ and $C(v_1,v_2,v_3)$ capturing the quadratic and cubic terms of the expansion:
+\begin{equation}
+A = 
+    \begin{pmatrix}
+    \sigma_x'\!\bigl(I_x \bigr)\frac{\kappa_{xx}\gamma_x}{\tau_x} & - \sigma_x'\!\bigl(I_x \bigr)\frac{\kappa_{xy}\gamma_y}{\tau_x}\\[5pt]
+    \sigma_y'\!\bigl(I_y \bigr)\frac{\kappa_{yx}\gamma_y}{\tau_y}   & - \sigma_x'\!\bigl(I_x \bigr)\frac{\kappa_{yy}\gamma_y}{\tau_y}
+    \end{pmatrix},\quad
+B(v_1,v_2) =
+    \begin{pmatrix}
+    B_x(v_1,v_2)\\[5pt]
+    B_y(v_1,v_2)
+    \end{pmatrix}
+    ,\quad
+C(v_1,v_2,v_3) =
+    \begin{pmatrix}
+    C_x(v_1,v_2)\\[5pt]
+    C_y(v_1,v_2)
+    \end{pmatrix}
+\end{equation}
+where
+\begin{equation}
+\begin{aligned}
+B_x(v_1,v_2) &= \frac{\gamma_x}{\tau_x}\sigma_x''(I_x)\Big[
+\kappa_{xx}^2\,X_1X_2
+- \kappa_{xx}\kappa_{xy}\,(X_1Y_2+X_2Y_1)
++ \kappa_{xy}^2\,Y_1Y_2
+\Big],\\[6pt]
+B_y(v_1,v_2) &=  \frac{\gamma_y}{\tau_y}\sigma_y''(I_y)\Big[
+\kappa_{yx}^2\,X_1X_2
+- \kappa_{yx}\kappa_{yy}\,(X_1Y_2+X_2Y_1)
++ \kappa_{yy}^2\,Y_1Y_2
+\Big].
+\end{aligned}
+\end{equation}
+and
+\begin{equation}
+\begin{aligned}
+C_x(v_1,v_2,v_3) &= 
+\frac{\gamma_x}{\tau_x}\sigma_x'''(I_x)\Big[
+\kappa_{xx}^3\,X_1X_2X_3
+- \kappa_{xx}^2\kappa_{xy}\,(X_1X_2Y_3+X_1X_3Y_2+X_2X_3Y_1)\\
+&\qquad
++ \kappa_{xx}\kappa_{xy}^2\,(X_1Y_2Y_3+X_2Y_1Y_3+X_3Y_1Y_2)
+- \kappa_{xy}^3\,Y_1Y_2Y_3
+\Big],\\[6pt]
+C_y(v_1,v_2,v_3) &= 
+\frac{\gamma_y}{\tau_y}\sigma_y'''(I_y)\Big[
+\kappa_{yx}^3\,X_1X_2X_3
+- \kappa_{yx}^2\kappa_{yy}\,(X_1X_2Y_3+X_1X_3Y_2+X_2X_3Y_1)\\
+&\qquad
++ \kappa_{yx}\kappa_{yy}^2\,(X_1Y_2Y_3+X_2Y_1Y_3+X_3Y_1Y_2)
+- \kappa_{yy}^3\,Y_1Y_2Y_3
+\Big].
+\end{aligned}
+\end{equation}
+Notice that Eq. \eqref{eq:taylor} can be expressed as
+\begin{equation}
+    \dot v = Av + \frac{1}{2}B(v,v) + \frac{1}{6}C(v,v,v)
+\end{equation}
+where $v=(X,Y)^T$.
+
+With these definitions applying the necessary transformations is relatively straightforward. 
+Let
+$\lambda_\pm = \mu\pm i\omega$ be the eigenvalues of $A$ near the bifurcation ($\alpha\approx 0$), i.e.,
+\begin{equation}
+\mu =\frac{\mathrm{tr}(A)}{2}\quad\text{and}\quad\omega =\frac{1}{2} \sqrt{4\det(A) - \mathrm{tr}^2(A)}.
+\end{equation}
+These are the values of the linear term in the Stuart-Landau model \eqref{eq:SLappendix}.
+
+To obtain the nonlinear parameters $\gamma$ and $\beta$ we need to explicitly compute the left and right eigenvectors associated to $\lambda_+$ and $\overline{\lambda_+}$. Let's name these vectors $p$ and $q$ respectively,
+that is $A^T p = \overline{\lambda_+}p$ and $Aq = \lambda_+ q$, with the normalization $\langle p,q \rangle = 1$.
+Then, the complex variable for the Hopf normal form is $z = \langle p,v \rangle$,
+and its dynamics is given by Eq. \eqref{eq:SLappendix} with 
+\begin{equation}
+    \gamma + i\beta  = -\frac{g_{20}g_{11}(2\lambda + \bar{\lambda})}{2|\lambda|^2} - \frac{|g_{11}|^2}{\lambda} - \frac{|g_{02}|^2}{2(2\lambda - \bar{\lambda})} - \frac{g_{21}}{2}
+\end{equation}
+where
+\begin{equation}
+    g_{20} = \langle p,B(q , q) \rangle, \quad
+    g_{11} = \langle p, B(q , \overline{q})\rangle, \quad
+    g_{02} = \langle p, B(\overline{q} , \overline{q})\rangle,\quad \text{and}\quad
+    g_{21} = \langle p, C(q,q,\overline{q})\rangle.
+\end{equation}
+
