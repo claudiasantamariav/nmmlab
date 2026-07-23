@@ -2045,7 +2045,7 @@ function renderInfoPanel(){
     <div class="info-footer-links">
       <a href="tutorial.html">Read the shared concepts →</a>
       <a href="map.html">How do they connect →</a>
-      ${nextModelId ? `<a href="#" onclick="selectModel('${nextModelId}');return false;">Next: ${MODELS[nextModelId].label} →</a>` : ''}
+      ${nextModelId ? `<a href="#" onclick="selectModel('${nextModelId}');window.scrollTo(0,0);return false;">Next: ${MODELS[nextModelId].label} →</a>` : ''}
     </div>`;
 }
 
