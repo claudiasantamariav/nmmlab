@@ -1,0 +1,257 @@
+%=========================================
+% Table 1: Uncoupled Neural Mass Models
+% (One table per page, using lndscape)
+%=========================================
+\begin{landscape}
+\begin{table}[p]
+    \centering
+    \scriptsize
+    \renewcommand{\arraystretch}{1.3}
+    \caption{Equations for \textbf{uncoupled} neural‐mass/oscillator models (external forcing $F(t)\equiv0$ except where indicated for Wilson–Cowan models$^{\ddagger}$).}
+    \label{tab:uncoupled_models}
+    \begin{tabular}{@{}l  l  l  l@{}}
+        \toprule
+        \textbf{Model} & \textbf{Polar} & \textbf{Cartesian} & \textbf{Complex} \\ 
+        \midrule
+
+        \addlinespace[2ex]
+        \textbf{1. Phase‐only harmonic} 
+        & $\displaystyle \dot{\theta} = \omega,\quad \dot{r} = 0$
+        & $\displaystyle \dot{x} = -\omega\,y,\quad \dot{y} = \omega\,x$
+        & $\displaystyle \dot{z} = i\,\omega\,z$
+        \\[2ex]
+
+        \addlinespace[2ex]
+        \textbf{2. Damped harmonic} 
+        & $\displaystyle \dot{r} = \alpha\,r,\quad \dot{\theta} = \omega$
+        & $\displaystyle \dot{x} =  \alpha\,x -\omega\,y\quad \dot{y} =  \alpha\,y + \omega\,x$
+        & $\displaystyle \dot{z} = (\alpha + i\,\omega)\,z$
+        \\[2ex]
+
+        \addlinespace[2ex]
+        \textbf{3. Stuart–Landau} 
+        & $\displaystyle \dot{r} = \alpha\,r - \gamma\,r^{3},\quad \dot{\theta} = \omega - \beta\,r^{2}$
+        & $\displaystyle
+          \begin{aligned}
+            \dot{x} &= \alpha\,x -\omega\,y 
+                    - \gamma\,(x^{2}+y^{2})\,x
+                    + \beta\,(x^{2}+y^{2})\,y,\\
+            \dot{y} &= \alpha\,y + \omega\,x 
+                    - \gamma\,(x^{2}+y^{2})\,y
+                    - \beta\,(x^{2}+y^{2})\,x
+          \end{aligned}$
+        & $\displaystyle \dot{z} = (\alpha + i\,\omega)\,z 
+          - (\gamma + i\,\beta)\,\lvert z\rvert^{2}z$
+        \\[2ex]
+
+        \addlinespace[2ex]
+        \textbf{4. Wilson Cowan}$^{\dagger}$ 
+        & --- 
+        & $\displaystyle
+         \begin{aligned}
+          \dot{x} &= -\alpha\,x + S_x\bigl(w_{xx}\,x - w_{xy}\,y + P_x\bigr), \\ 
+          \dot{y} &= -\alpha\,y + S_y\bigl(w_{yx}\,x \bigr)
+          \end{aligned}$
+          
+          & --- 
+        \\[2ex]
+
+       % \addlinespace[2ex]
+       % \textbf{5. Wilson \& Cowan} 
+        %& --- 
+       % & $\displaystyle
+         % \begin{aligned}
+           % \tau_x\,\dot{x} &= -\,x + K_x\,S_x\bigl(w_{xx}\,x - w_{xy}\,y + F_x(t)\bigr),\\
+           % \tau_y\,\dot{y} &= -\,y + K_y\,S_y\bigl(w_{yx}\,x - %w_{yy}\,y + F_y(t)\bigr)
+         % \end{aligned}$
+        %& --- 
+       % \\[2ex]
+
+
+        \addlinespace[2ex]
+        \textbf{5. Neural Mass Model 1 (NMM1)} \cite{molaee-ardekani_computational_2010}
+        & --- 
+        & $\displaystyle
+          \begin{aligned}
+            \frac{1}{\alpha}\,\ddot{x} + 2\,\dot{x}
+              &= - \alpha x + S_x\bigl( - w_{xy}\,y + P_x\bigr) \\
+            \frac{1}{\alpha}\,\ddot{y} + 2\,\dot{y}
+              &= - \alpha y + S_y\bigl(w_{yx}\,x \bigr) 
+          \end{aligned}$
+        & --- 
+        \\[2ex]
+
+        %\addlinespace[2ex]
+        %\textbf{7. NMM2} 
+        %& --- 
+       % & $\displaystyle \dot{x}_1 = f_1(x_1,x_2),\quad \dot{x}_2 = f_2(x_1,x_2)$
+        %& --- 
+       % \\
+       % \bottomrule
+    \end{tabular}
+
+    \vspace{1ex}
+    \parbox{\textwidth}{\footnotesize
+    %\addlinespace[2ex]
+    $^{\dagger}$ We assume $\tau_x = \tau_y \equiv \tau$, so that $\alpha = 1/\tau$, and that our sigmoids $S_x, S_y$ include synaptic gain and coupling strength.
+    $^{\ddagger}$ External inputs $F_x(t),F_y(t)$ enter inside the sigmoid's $S(\cdot)$ in the Wilson–Cowan models and must exceed a critical threshold to induce a limit cycle (else $F\equiv0$).}
+\end{table}
+\end{landscape}
+
+%=========================================
+% Table 2: Uncoupled with forcing
+%=========================================
+\begin{landscape}
+\begin{table}[p]
+    \centering
+    \scriptsize
+    \renewcommand{\arraystretch}{1.3}
+    \caption{Equations for \textbf{uncoupled} neural-mass/oscillator models including external forcing $F(t)$ in Cartesian form.}
+    \label{tab:forced_models_cartesian}
+    \begin{tabular}{@{}l  l@{}}
+        \toprule
+        \textbf{Model} & \textbf{Cartesian form with forcing} \\ 
+        \midrule
+        
+        \addlinespace[2ex]
+        \textbf{1. Phase-only harmonic} & $\displaystyle \dot{x} = -\omega y + F_x,\quad \dot{y} = \omega x + F_y$ \\[2ex]
+
+        \addlinespace[2ex]
+        \textbf{2. Damped harmonic} & $\displaystyle \dot{x} = -\omega y + \alpha x + F_x,\quad \dot{y} = \omega x + \alpha y + F_y$ \\[2ex]
+
+        \addlinespace[2ex]
+        \textbf{3. Stuart–Landau} & $\displaystyle
+          \begin{aligned}
+            \dot{x} &= -\omega y + \alpha x - \gamma(x^{2}+y^{2}) x + \beta(x^{2}+y^{2}) y + F_x,\\
+            \dot{y} &= \omega x + \alpha y - \gamma(x^{2}+y^{2}) y - \beta(x^{2}+y^{2}) x + F_y
+          \end{aligned}$ \\[2ex]
+
+      % \addlinespace[2ex]
+       % \textbf{4. Simplified Wilson–Cowan} & $\displaystyle
+       %  \begin{aligned}
+        %  \dot{x} &= -\alpha x + S_x\bigl(w_{xx} x - w_{xy} y + F_x(t)\bigr), \\ 
+        %  \dot{y} &= -\alpha y + S_y\bigl(w_{yx} x - w_{yy} y + F_y(t)\bigr)
+        %  \end{aligned}$ \\[2ex]
+
+       \addlinespace[2ex]
+        \textbf{4. Wilson \& Cowan} & $\displaystyle
+          \begin{aligned}
+            \tau_x \dot{x} + x  &=  K_x S_x\bigl(w_{xx} x - w_{xy} y + I_x + F_x\bigr),\\
+            \tau_y \dot{y} + y  &= K_y S_y\bigl(w_{yx} x - w_{yy} y \bigr)
+          \end{aligned}$ \\[2ex]
+
+       \addlinespace[2ex]
+        \textbf{5. Neural Mass Model 1 (NMM1)} \cite{molaee-ardekani_computational_2010} & $\displaystyle
+          \begin{aligned}
+            \tau_x^{2} \ddot{x} + 2\tau_x \dot{x} + x
+              &= K_x S_x\bigl(w_{xx} x - w_{xy} y + P_x + F_x\bigr) ,\\
+            \tau_y^{2} \ddot{y} + 2\tau_y \dot{y} + y
+              &=  K_y S_y\bigl(w_{yx} x - w_{yy} y \bigr) 
+          \end{aligned}$ \\[2ex]
+
+\addlinespace[2ex]
+      \textbf{6. NMM2} & $\displaystyle
+        \begin{aligned}[t]
+        &\tau_x^2\,\ddot x + 2\,\tau_x\,\dot x + x = S_x,\;\;\;
+        \tau_y^2\,\ddot y + 2\,\tau_y\,\dot y + y = S_y, \\[6pt]
+        &\dot S_x = D_x + 2\,v_x\,S_x,\;\;\;
+        \dot S_y = D_y + 2\,v_y\,S_y, \\[6pt]
+        &\dot v_x = v_x^2 + w_{xx}\,x - w_{xy}\,y + F_x - (\pi\,S_x)^2, \\[6pt]
+        &\dot v_y = v_y^2 + w_{yx}\,x - w_{yy}\,y + F_y - (\pi\,S_y)^2
+        \end{aligned}$
+
+\\
+        \bottomrule
+    \end{tabular}
+\end{table}
+\end{landscape}
+
+
+
+%=========================================
+% Table 3: Coupled Neural Mass Models
+% (One table per page, using lndscape, no Cartesian column)
+%=========================================
+\begin{landscape}
+\begin{table}[p]
+  \centering
+  \caption{Coupled neural–mass/oscillator models (complex / Cartesian form).  
+           Inter-node coupling terms are highlighted in \textbf{bold}.}
+  \label{tab:coupled_models_complex_final}
+
+  % -----------------------
+  \tiny                          % ← further reduced from \scriptsize
+  \setlength{\tabcolsep}{4pt}
+  \renewcommand{\arraystretch}{0.9}
+  \resizebox{\linewidth}{!}{%
+  \begin{tabular}{@{}l l@{}}
+    \toprule
+    \textbf{Model} & \textbf{Coupled equations} \\
+    \midrule
+    \addlinespace[0.4ex]
+
+    \textbf{1. Undamped oscillator (Kuramoto / phase-only)} &
+    $\displaystyle
+      \dot z_{i}= i\,\omega_{i}\,z_{i}
+      +\frac{\mathbf{K}}{2}\bigl(Z-Z^{*}z_{i}^{2}\bigr),
+      \qquad
+      Z=\tfrac{1}{N}\sum_{j=1}^{N} z_{j}$
+    \\[1.4ex]
+    \addlinespace[0.4ex]
+
+    \textbf{2. Damped oscillator} &
+    $\displaystyle
+      \dot z_{i}= (\alpha+i\,\omega_{i})\,z_{i}
+      +\frac{\mathbf{K}}{N}\sum_{j=1}^{N}(z_{j}-z_{i})$
+    \\[1.4ex]
+    \addlinespace[0.4ex]
+
+    \textbf{3. Stuart–Landau} &
+    $\displaystyle
+      \dot{z}_{i}= (\alpha+i\,\omega_{i})\,z_{i}
+      -(\gamma+i\,\beta)\,\lvert z_{i}\rvert^{2}z_{i}
+      +\frac{\mathbf{K}}{N}\sum_{j=1}^{N}(z_{j}-z_{i})$
+    \\[1.8ex]
+    \addlinespace[0.4ex]
+
+    \textbf{4. Wilson \& Cowan} &
+    $\displaystyle
+      \begin{aligned}
+        \tau_x\,\dot{x}_i + x_i &=
+            K_x\,S_x\!\Bigl(
+               w_{xx}\,x_i
+             - w_{xy}\,y_i
+             +\,\mathbf{G}\sum_{j=1}^{N} C_{ij}\,x_j
+             + P_{x,i}
+            
+             \Bigr),\\[2pt]
+        \tau_y\,\dot{y}_i + y_i &=
+            K_y\,S_y\!\bigl(
+               w_{yx}\,x_i
+             - w_{yy}\,y_i
+             \bigr)
+      \end{aligned}$
+    \\[2.2ex]
+    \addlinespace[0.4ex]
+
+    \textbf{5. NMM1 } &
+    $\displaystyle
+      \begin{aligned}
+        \hat L_{m\leftarrow n}\!\big[u_{m\leftarrow n}\big] &=
+            \mathbf{C}_{m\leftarrow n}\,r_{n}, \\[4pt]
+        v_{m} &= \lambda\,E
+            +\!\!\sum_{\,n:\,\mathbf{C}_{m\leftarrow n}\neq 0}\!u_{m\leftarrow n}, \\[4pt]
+        r_{m} &= S_{m}\!\bigl(v_{m}\bigr)
+      \end{aligned}$
+    \\[1.6ex]
+
+    \bottomrule
+  \end{tabular}}%
+  % -----------------------
+
+  \normalsize
+  \setlength{\tabcolsep}{6pt}
+  \renewcommand{\arraystretch}{1.0}
+\end{table}
+\end{landscape}
+
