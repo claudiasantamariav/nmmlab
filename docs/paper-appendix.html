@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rosetta Stone of Neural Models — Appendix</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #002878;
+    --coral: #FF6657;
+    --light-blue: #e8edf7;
+    --bg: #fafafa;
+    --card-bg: #ffffff;
+    --card-border: #e2e6f0;
+    --text: #1a1a2e;
+    --muted: #666;
+    --faint: #8a8fa3;
+  }
+  body { font-family: sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  nav.topnav {
+    background: var(--blue); color: white;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.8rem 1.4rem;
+  }
+  nav.topnav .brand { font-weight: 700; font-size: 0.95rem; }
+  nav.topnav .links a {
+    color: #a0b4e0; text-decoration: none; margin-left: 1.4rem; font-size: 0.88rem;
+    padding-bottom: 3px; border-bottom: 2px solid transparent; transition: color .15s;
+  }
+  nav.topnav .links a:hover { color: white; }
+  nav.topnav .links a.demos-link { color: var(--coral); }
+  nav.topnav .links a.demos-link:hover { color: var(--coral); }
+
+  header.paper-header { text-align: center; padding: 3rem 1.5rem 2rem; max-width: 820px; margin: 0 auto; }
+  header.paper-header .label { font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--faint); margin-bottom: 1rem; }
+  header.paper-header h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); font-weight: 700; line-height: 1.25; margin-bottom: 1rem; color: var(--blue); }
+  header.paper-header .authors { font-size: 0.95rem; color: var(--muted); line-height: 1.6; }
+
+  main.paper-main { max-width: 820px; margin: 0 auto; padding: 0 1.5rem 5rem; }
+
+  .paper-toc { background: var(--light-blue); border-radius: 12px; padding: 1.2rem 1.5rem; margin: 0 0 2.6rem; }
+  .paper-toc h2 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--blue); margin-bottom: 0.7rem; }
+  .paper-toc-list { list-style: none; padding: 0; font-size: 0.88rem; line-height: 1.9; columns: 1; }
+  .paper-toc-list a { color: var(--blue); text-decoration: none; }
+  .paper-toc-list a:hover { text-decoration: underline; }
+
+  .paper-abstract { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 1.4rem 1.6rem; margin-bottom: 2.6rem; }
+  .abstract-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--coral); font-weight: 700; margin-bottom: 0.7rem; }
+  .paper-abstract p { font-size: 0.95rem; line-height: 1.75; color: #333; margin-bottom: 0.9rem; }
+  .paper-abstract p:last-child { margin-bottom: 0; }
+
+  h2.paper-heading { font-size: 1.5rem; color: var(--blue); margin: 3rem 0 1.1rem; scroll-margin-top: 1.3rem; }
+  h3.paper-heading { font-size: 1.2rem; color: var(--blue); margin: 2.2rem 0 0.9rem; scroll-margin-top: 1.3rem; }
+  h4.paper-heading { font-size: 1.02rem; color: var(--blue); margin: 1.7rem 0 0.7rem; scroll-margin-top: 1.3rem; }
+  .sec-num { color: var(--coral); font-weight: 700; margin-right: 0.4rem; }
+
+  p.runin-heading { margin: 1.3rem 0 0.4rem; }
+
+  main.paper-main p { font-size: 0.95rem; line-height: 1.75; color: #333; margin-bottom: 1rem; }
+  main.paper-main strong { color: var(--blue); }
+  main.paper-main ul, main.paper-main ol { font-size: 0.95rem; line-height: 1.75; color: #333; margin: 0 0 1rem 1.4rem; }
+  main.paper-main li { margin-bottom: 0.4rem; }
+  main.paper-main dl { margin: 0 0 1rem; font-size: 0.95rem; line-height: 1.7; color: #333; }
+  main.paper-main dt { font-weight: 700; color: var(--blue); margin-top: 0.7rem; }
+  main.paper-main dd { margin-left: 1.2rem; }
+
+  .eq-block {
+    position: relative; margin: 1.3rem 0; padding: 0.9rem 3.4rem 0.9rem 1.1rem;
+    background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px;
+    overflow-x: auto; scroll-margin-top: 1.3rem; transition: background .6s ease, box-shadow .6s ease;
+  }
+  .eq-block.eq-unnumbered { padding-right: 1.1rem; }
+  .eq-number { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.85rem; }
+  .katex-display { display: block; }
+
+  figure.paper-figure { margin: 1.6rem 0; text-align: center; scroll-margin-top: 1.3rem; }
+  figure.paper-figure img { max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--card-border); }
+  figure.paper-figure figcaption { font-size: 0.82rem; color: var(--muted); margin-top: 0.6rem; line-height: 1.5; text-align: left; }
+  .fig-number { color: var(--coral); font-weight: 700; }
+
+  .paper-table-wrap { margin: 1.6rem 0; scroll-margin-top: 1.3rem; }
+  table.paper-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; overflow: hidden; }
+  table.paper-table td { border: 1px solid var(--card-border); padding: 0.5rem 0.7rem; vertical-align: top; }
+  .table-caption { font-size: 0.82rem; color: var(--muted); margin-top: 0.6rem; line-height: 1.5; }
+
+  .paper-box { background: #f7f8fc; border: 1px solid var(--card-border); border-left: 3px solid var(--blue); border-radius: 8px; margin: 1.4rem 0; padding: 0.2rem 1.2rem 1rem; }
+  .box-title { font-weight: 700; color: var(--blue); font-size: 0.9rem; margin: 0.9rem 0 0.6rem; }
+  .box-body p:first-child { margin-top: 0.2rem; }
+
+  blockquote.paper-quote { border-left: 3px solid var(--coral); margin: 1.6rem 0; padding: 0.4rem 0 0.4rem 1.2rem; font-style: italic; color: var(--muted); }
+
+  .cite-link, .ref-link { color: var(--blue); text-decoration: none; font-weight: 600; }
+  .cite-link:hover, .ref-link:hover { text-decoration: underline; }
+  .ref-broken { color: var(--coral); }
+
+  .footnote-ref a { color: var(--coral); text-decoration: none; }
+  section.paper-footnotes, section.paper-references { margin-top: 3.5rem; padding-top: 1.6rem; border-top: 1px solid var(--card-border); }
+  section.paper-footnotes h2, section.paper-references h2 { font-size: 1.2rem; color: var(--blue); margin-bottom: 1rem; }
+  section.paper-footnotes ol, section.paper-references ol { font-size: 0.85rem; line-height: 1.7; color: #333; padding-left: 1.4rem; }
+  section.paper-footnotes li, section.paper-references li { margin-bottom: 0.5rem; }
+  .fn-back { color: var(--coral); text-decoration: none; margin-left: 0.3rem; }
+  .ref-list { columns: 1; }
+
+  @keyframes flashHighlight {
+    0% { background: #fff3cd; box-shadow: 0 0 0 3px #ffe08a; }
+    100% { background: var(--card-bg); box-shadow: none; }
+  }
+  .flash-highlight { animation: flashHighlight 2.2s ease; }
+
+  footer.site-footer { text-align: center; font-size: 0.78rem; color: var(--faint); padding: 2rem; border-top: 1px solid var(--card-border); }
+
+  .paper-split-nav { text-align: center; font-size: 0.85rem; margin: 0 0 2rem; }
+  .paper-split-nav a { color: var(--muted); text-decoration: none; font-weight: 600; }
+  .paper-split-nav a:hover { color: var(--coral); text-decoration: underline; }
+  .paper-split-nav.bottom { margin: 3rem 0 0; }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="brand">Rosetta Stone of Neural Mass Models</div>
+  <div class="links">
+    <a href="index.html">Home</a>
+    <a href="tutorial.html">Intro</a>
+    <a href="map.html">The Ladder</a>
+    <a href="explorer.html" class="demos-link">Demos</a>
+    <a href="compare.html">Compare</a>
+  </div>
+</nav>
+
+<header class="paper-header">
+  <div class="label">Appendix</div>
+  <h1>Rosetta Stone of Neural Mass Models — Appendix</h1>
+  <div class="authors">Francesca Castaldo, Raul de Palma Aristides, Pau Clusella, Jordi Garcia-Ojalvo, Giulio Ruffini</div>
+</header>
+
+<main class="paper-main">
+  <p class="paper-split-nav"><a href="paper.html">←</a> Back to main paper</p>
+
+<h2 id="auto-h-terminology-and-scope-of-aggregate-neuronal-models-27" class="paper-heading"><span class="sec-num">A</span> Terminology and Scope of Aggregate Neuronal Models</h2>
+<p>Under the umbrella of <em>aggregate neuronal modeling</em> (also called <em>neural mass</em>, <em>population</em>, or <em>lumped</em> models), we encompass a spectrum of formalisms that trade biological detail for analytical or computational simplicity.  This hierarchy can be traversed in both directions—adding realism to derive more mechanistic descriptions or stripping back complexity to reveal core dynamical principles:</p>
+<ul>
+<li><p><strong>Phase oscillator:</strong> describes the evolution of a single phase variable <span class="katex-inline" data-tex="\theta(t)"></span>, capturing limit‐cycle interactions at the most abstract level.</p></li>
+<li><p><strong>Damped oscillator:</strong> introduces amplitude relaxation, e.g., a second‐order linear system with friction.</p></li>
+<li><p><strong>Stuart–Landau (SL) normal form:</strong> a generic nonlinear oscillator near a Hopf bifurcation, used phenomenologically to model neural rhythms.</p></li>
+<li><p><strong>Wilson–Cowan (WILCO):</strong> the prototypical two‐population rate (population/lumped/neural‐mass) model, describing mean excitatory and inhibitory firing with coupled ODEs.</p></li>
+<li><p><strong>Neural Mass Model 1 (NMM1):</strong> adds biophysical filtering of post‐synaptic potentials (PSPs) and explicit conversion from mean membrane potentials to firing rates.</p></li>
+<li><p><strong>Neural Mass Model 2 (NMM2 or MPR):</strong> extends NMM1 by incorporating dynamics in the transfer function.</p></li>
+</ul>
+<p>When we take the limit of infinitely many, infinitesimally small populations (or let the spatial coupling kernel become continuous), this lumped description generalizes to integro‐differential or partial‐differential equations known as <em>neural field models</em>.</p>
+<p>Aggregate neuronal models (phase oscillators, SL, WILCO, NMM1, NMM2, etc.) are fundamentally <em>statistical constructs</em> that provide macro‐level, effective descriptions of complex networks of many neurons.  All share these core features:</p>
+<ol>
+<li><p><em>Mean variables:</em> each model tracks ensemble averages—phase and amplitude (phase oscillator, SL), firing rate (WILCO), membrane potential and PSP (NMM1), plus synchronization metrics (NMM2).</p></li>
+<li><p><em>Aggregation by type:</em> neurons are grouped into populations based on anatomical and functional characteristics, each treated as a single &ldquo;lumped&rdquo; unit.</p></li>
+<li><p><em>Effective parameters:</em> time‐constants, gains and connectivities summarize average behavior; they do not map one‑to‑one onto single‑cell properties.</p></li>
+<li><p><em>Scale invariance:</em> the dynamical equations predict the same trajectories regardless of neuron count, provided effective parameters (e.g. mean synapses per neuron) remain fixed.</p></li>
+<li><p><em>Bridge to measurements:</em> to relate outputs (phase, rate, or voltage) to LFP, current‐source density, or BOLD signals, morphological and density‐based scaling factors must be applied post‐hoc.</p></li>
+</ol>
+<h2 id="sec:appendix_coord" class="paper-heading"><span class="sec-num">B</span> Coordinate Transformations</h2>
+<p>This appendix provides the full mathematical derivations of how one obtains Cartesian and complex representations from polar form (and vice versa) for both the undamped and damped oscillators.</p>
+<h3 id="auto-h-undamped-oscillator-polar-longleftrightarrow-cartesian-longleftrightarrow-complex-28" class="paper-heading"><span class="sec-num">B.1</span> Undamped Oscillator: Polar <span class="katex-inline" data-tex="\longleftrightarrow"></span> Cartesian <span class="katex-inline" data-tex="\longleftrightarrow"></span> Complex</h3>
+<p class="runin-heading"><strong>Polar to Cartesian.</strong></p>
+<p>Starting from the polar equations</p>
+<div class="eq-block" id="eq:A_undamped_polar_theta"><span id="eq:A_undamped_polar_theta"></span><span id="eq-B-1"></span><span class="katex-display" data-tex="\begin{aligned}\dot{\theta} &amp;= \omega,\end{aligned}"></span><span class="eq-number">(B.1)</span></div>
+<div class="eq-block" id="eq:A_undamped_polar_r"><span id="eq:A_undamped_polar_r"></span><span id="eq-B-2"></span><span class="katex-display" data-tex="\begin{aligned}\dot{r}      &amp;= 0,\end{aligned}"></span><span class="eq-number">(B.2)</span></div>
+<p>define</p>
+<div class="eq-block" id="eq:A_xy_def"><span id="eq:A_xy_def"></span><span id="eq-B-3"></span><span class="katex-display" data-tex="x = r \cos\theta, 
+    \qquad
+    y = r \sin\theta."></span><span class="eq-number">(B.3)</span></div>
+<p>Differentiate <span class="katex-inline" data-tex="x"></span> and <span class="katex-inline" data-tex="y"></span> with respect to time.  Since <span class="katex-inline" data-tex="r=r_{0}"></span> is constant,</p>
+<div class="eq-block" id="auto-eq-dot-x-fra-29"><span class="katex-display" data-tex="\begin{aligned}\dot{x} 
+    &amp;= \frac{d}{dt}\bigl(r\cos\theta\bigr) 
+     = -\,r\,\sin\theta \;\dot{\theta} 
+     = -\,r\,\sin\theta\,(\omega) 
+     = -\,\omega\,(r\sin\theta) 
+     = -\,\omega\,y,\end{aligned}"></span></div>
+<div class="eq-block" id="auto-eq-6pt-dot-y-30"><span class="katex-display" data-tex="\begin{aligned}[6pt]
+    \dot{y} 
+    &amp;= \frac{d}{dt}\bigl(r\sin\theta\bigr) 
+     = r\,\cos\theta \;\dot{\theta} 
+     = r\,\cos\theta\,(\omega) 
+     = \omega\,(r\cos\theta) 
+     = \omega\,x.\end{aligned}"></span></div>
+<p>Hence,</p>
+<div class="eq-block" id="eq:A_undamped_cart"><span id="eq:A_undamped_cart"></span><span id="eq-B-4"></span><span class="katex-display" data-tex="\dot{x} = -\,\omega\,y,
+    \qquad
+    \dot{y} = \omega\,x,"></span><span class="eq-number">(B.4)</span></div>
+<p>which recovers the undamped Cartesian form&nbsp;<a href="paper.html#eq:undamped_cart_x" class="ref-link">(2.1)</a>–<a href="paper.html#eq:undamped_cart_y" class="ref-link">(2.2)</a>.</p>
+<p class="runin-heading"><strong>Cartesian to Complex.</strong></p>
+<p>Given <span class="katex-inline" data-tex="x(t)"></span> and <span class="katex-inline" data-tex="y(t)"></span> satisfying&nbsp;<a href="#eq:A_undamped_cart" class="ref-link">(B.4)</a>, set</p>
+<div class="eq-block" id="eq:A_z_def"><span id="eq:A_z_def"></span><span id="eq-B-5"></span><span class="katex-display" data-tex="z = x + i\,y."></span><span class="eq-number">(B.5)</span></div>
+<p>Then</p>
+<div class="eq-block" id="auto-eq-dot-z-dot-31"><span class="katex-display" data-tex="\dot{z} 
+    = \dot{x} + i\,\dot{y} 
+    = (-\,\omega\,y) + i\,(\omega\,x) 
+    = i\,\omega\,(x + i\,y) 
+    = i\,\omega\,z,"></span></div>
+<p>recovering the undamped complex form&nbsp;<a href="paper.html#eq:undamped_complex" class="ref-link">(2.8)</a>.</p>
+<p>Conversely, writing <span class="katex-inline" data-tex="z = r\,e^{\,i\,\theta}"></span> and differentiating yields</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot{z} 
+    = \dot{r}\,e^{\,i\,\theta} \;+\; r\,e^{\,i\,\theta}\,i\,\dot{\theta}
+    = (\dot{r} + i\,r\,\dot{\theta})\,e^{\,i\,\theta}."></span></div>
+<p>By matching <span class="katex-inline" data-tex="\dot{z} = i\,\omega\,z = i\,\omega\,r\,e^{\,i\,\theta}"></span>, one finds</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot{r} = 0, 
+    \qquad
+    \dot{\theta} = \omega,"></span></div>
+<p>which recovers&nbsp;<a href="#eq:A_undamped_polar_r" class="ref-link">(B.2)</a>–<a href="#eq:A_undamped_polar_theta" class="ref-link">(B.1)</a>.</p>
+<h3 id="auto-h-damped-oscillator-polar-longleftrightarrow-cartesian-longleftrightarrow-complex-32" class="paper-heading"><span class="sec-num">B.2</span> Damped Oscillator: Polar <span class="katex-inline" data-tex="\longleftrightarrow"></span> Cartesian <span class="katex-inline" data-tex="\longleftrightarrow"></span> Complex</h3>
+<p class="runin-heading"><strong>Polar to Cartesian.</strong></p>
+<p>Begin with the damped polar equations:</p>
+<div class="eq-block" id="eq:A_damped_polar_r"><span id="eq:A_damped_polar_r"></span><span id="eq-B-6"></span><span class="katex-display" data-tex="\begin{aligned}\dot{r}      &amp;= \alpha\,r \;+\; F_{r}(t),\end{aligned}"></span><span class="eq-number">(B.6)</span></div>
+<div class="eq-block" id="eq:A_damped_polar_theta"><span id="eq:A_damped_polar_theta"></span><span id="eq-B-7"></span><span class="katex-display" data-tex="\begin{aligned}\dot{\theta} &amp;= \omega \;+\; \frac{F_{\theta}(t)}{r}.\end{aligned}"></span><span class="eq-number">(B.7)</span></div>
+<p>Define</p>
+<div class="eq-block" id="eq:A_damped_xy"><span id="eq:A_damped_xy"></span><span id="eq-B-8"></span><span class="katex-display" data-tex="x = r \cos\theta, 
+    \qquad
+    y = r \sin\theta,"></span><span class="eq-number">(B.8)</span></div>
+<p>and differentiate:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot{x} 
+    = \dot{r}\,\cos\theta \;-\; r\,\sin\theta\,\dot{\theta},
+    \qquad
+    \dot{y} 
+    = \dot{r}\,\sin\theta \;+\; r\,\cos\theta\,\dot{\theta}."></span></div>
+<p>Substitute <span class="katex-inline" data-tex="\dot{r}"></span> and <span class="katex-inline" data-tex="\dot{\theta}"></span> from&nbsp;<a href="#eq:A_damped_polar_r" class="ref-link">(B.6)</a>–<a href="#eq:A_damped_polar_theta" class="ref-link">(B.7)</a>:</p>
+<div class="eq-block" id="auto-eq-dot-x-big-33"><span class="katex-display" data-tex="\begin{aligned}\dot{x} 
+    &amp;= \bigl(\alpha\,r + F_{r}(t)\bigr)\cos\theta 
+       \;-\; r\,\sin\theta \Bigl(\omega + \tfrac{F_{\theta}(t)}{r}\Bigr)\end{aligned}"></span></div>
+<div class="eq-block" id="auto-eq-4pt-alpha-34"><span class="katex-display" data-tex="\begin{aligned}[4pt]
+    &amp;= \alpha\,(r\cos\theta) \;+\; F_{r}(t)\cos\theta 
+       \;-\; \omega\,(r\sin\theta) \;-\; \sin\theta\,F_{\theta}(t)\end{aligned}"></span></div>
+<div class="eq-block" id="auto-eq-6pt-alpha-35"><span class="katex-display" data-tex="\begin{aligned}[6pt]
+    &amp;= \alpha\,x \;-\; \omega\,y \;+\; \bigl[F_{r}(t)\cos\theta - F_{\theta}(t)\sin\theta\bigr].\end{aligned}"></span></div>
+<p>Similarly,</p>
+<div class="eq-block" id="auto-eq-dot-y-big-36"><span class="katex-display" data-tex="\begin{aligned}\dot{y} 
+    &amp;= \bigl(\alpha\,r + F_{r}(t)\bigr)\sin\theta 
+       \;+\; r\,\cos\theta \Bigl(\omega + \tfrac{F_{\theta}(t)}{r}\Bigr)\end{aligned}"></span></div>
+<div class="eq-block" id="auto-eq-4pt-alpha-37"><span class="katex-display" data-tex="\begin{aligned}[4pt]
+    &amp;= \alpha\,(r\sin\theta) \;+\; F_{r}(t)\sin\theta 
+       \;+\; \omega\,(r\cos\theta) \;+\; \cos\theta\,F_{\theta}(t)\end{aligned}"></span></div>
+<div class="eq-block" id="auto-eq-6pt-alpha-38"><span class="katex-display" data-tex="\begin{aligned}[6pt]
+    &amp;= \alpha\,y \;+\; \omega\,x \;+\; \bigl[F_{r}(t)\sin\theta + F_{\theta}(t)\cos\theta\bigr].\end{aligned}"></span></div>
+<p>Define</p>
+<div class="eq-block" id="eq:A_forcing_rel"><span id="eq:A_forcing_rel"></span><span id="eq-B-9"></span><span class="katex-display" data-tex="I_{x}(t) \;=\; F_{r}(t)\,\cos\theta \;-\; F_{\theta}(t)\,\sin\theta,
+    \qquad
+    I_{y}(t) \;=\; F_{r}(t)\,\sin\theta \;+\; F_{\theta}(t)\,\cos\theta."></span><span class="eq-number">(B.9)</span></div>
+<p>Then</p>
+<div class="eq-block" id="eq:A_damped_cart_x"><span id="eq:A_damped_cart_x"></span><span id="eq-B-10"></span><span class="katex-display" data-tex="\begin{aligned}\dot{x} &amp;= -\,\omega\,y \;+\; \alpha\,x \;+\; I_{x}(t),\end{aligned}"></span><span class="eq-number">(B.10)</span></div>
+<div class="eq-block" id="eq:A_damped_cart_y"><span id="eq:A_damped_cart_y"></span><span id="eq-B-11"></span><span class="katex-display" data-tex="\begin{aligned}\dot{y} &amp;= \;\,\omega\,x \;+\; \alpha\,y \;+\; I_{y}(t),\end{aligned}"></span><span class="eq-number">(B.11)</span></div>
+<p>which recover the damped Cartesian form&nbsp;<a href="paper.html#eq:damped_cart_x" class="ref-link">(2.24)</a>–<a href="paper.html#eq:damped_cart_y" class="ref-link">(2.25)</a>.</p>
+<p class="runin-heading"><strong>Cartesian to Complex.</strong></p>
+<p>From&nbsp;<a href="#eq:A_damped_cart_x" class="ref-link">(B.10)</a>–<a href="#eq:A_damped_cart_y" class="ref-link">(B.11)</a>, let <span class="katex-inline" data-tex="z = x + i\,y"></span> and <span class="katex-inline" data-tex="I_{z}(t) = I_{x}(t) + i\,I_{y}(t)"></span>.  Then</p>
+<div class="eq-block" id="auto-eq-dot-z-dot-39"><span class="katex-display" data-tex="\begin{aligned}\dot{z} 
+    &amp;= \dot{x} + i\,\dot{y}\end{aligned}"></span></div>
+<div class="eq-block" id="auto-eq-bigl-omega-40"><span class="katex-display" data-tex="\begin{aligned}&amp;= \bigl(-\,\omega\,y + \alpha\,x + I_{x}(t)\bigr) 
+       + i\,\bigl(\omega\,x + \alpha\,y + I_{y}(t)\bigr)\end{aligned}"></span></div>
+<div class="eq-block" id="auto-eq-4pt-alpha-41"><span class="katex-display" data-tex="\begin{aligned}[4pt]
+    &amp;= \alpha\,(x + i\,y) \;+\; i\,\omega\,(x + i\,y) \;+\; (I_{x} + i\,I_{y})\end{aligned}"></span></div>
+<div class="eq-block" id="auto-eq-4pt-alpha-42"><span class="katex-display" data-tex="\begin{aligned}[4pt]
+    &amp;= (\alpha + i\,\omega)\,z \;+\; I_{z}(t),\end{aligned}"></span></div>
+<p>yielding the damped‐and‐forced complex form&nbsp;<a href="paper.html#eq:damped_complex" class="ref-link">(2.26)</a>.</p>
+<p>Conversely, writing <span class="katex-inline" data-tex="z = r\,e^{\,i\,\theta}"></span>,</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot{z} 
+    = \dot{r}\,e^{\,i\,\theta} + i\,r\,\dot{\theta}\,e^{\,i\,\theta} 
+    = \bigl(\dot{r} + i\,r\,\dot{\theta}\bigr)\,e^{\,i\,\theta}."></span></div>
+<p>Matching <span class="katex-inline" data-tex="\dot{z} = (\alpha + i\,\omega)\,z + I_{z}(t) = (\alpha + i\,\omega)\,r\,e^{\,i\,\theta} + I_{z}(t)"></span>, one identifies</p>
+<div class="eq-block" id="auto-eq-dot-r-43"><span class="katex-display" data-tex="\begin{aligned}\dot{r}         &amp;= \alpha\,r \;+\; \Re\bigl(e^{-\,i\,\theta} I_{z}(t)\bigr),\end{aligned}"></span></div>
+<div class="eq-block" id="auto-eq-4pt-r-dot-t-44"><span class="katex-display" data-tex="\begin{aligned}[4pt]
+    r\,\dot{\theta} &amp;= \omega\,r \;+\; \Im\bigl(e^{-\,i\,\theta} I_{z}(t)\bigr),\end{aligned}"></span></div>
+<p>so that, by defining <span class="katex-inline" data-tex="F_{r}(t) = \Re(e^{-\,i\,\theta} I_{z}(t))"></span> and <span class="katex-inline" data-tex="F_{\theta}(t) = \Im(e^{-\,i\,\theta} I_{z}(t))"></span>, one recovers the polar form&nbsp;<a href="#eq:A_damped_polar_r" class="ref-link">(B.6)</a>–<a href="#eq:A_damped_polar_theta" class="ref-link">(B.7)</a>.</p>
+<p><strong>Notation and Labels in Appendix:</strong></p>
+<ul>
+<li><p>The external inputs <span class="katex-inline" data-tex="I_{x}(t),I_{y}(t)"></span> in Cartesian form are related to radial/tangential forcings <span class="katex-inline" data-tex="F_{r}(t),F_{\theta}(t)"></span> via&nbsp;<a href="#eq:A_forcing_rel" class="ref-link">(B.9)</a>.</p></li>
+<li><p>The complex input <span class="katex-inline" data-tex="I_{z}(t)"></span> is <span class="katex-inline" data-tex="I_{x}(t) + i\,I_{y}(t)"></span>.</p></li>
+</ul>
+<h3 id="auto-h-wilco-and-second-order-equations-45" class="paper-heading"><span class="sec-num">B.3</span> WILCO and second order equations</h3>
+<p>Unlike phase–amplitude models that admit a natural polar form, the Wilson-Cowan system 
+is most naturally expressed in a 2D <span class="katex-inline" data-tex="(x,y)"></span> phase plane. We can interpret</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\mathbf{X} \;=\; \begin{pmatrix} x \\[4pt] y \end{pmatrix},
+\quad
+\dot{\mathbf{X}}
+\;=\;
+\begin{pmatrix}
+\dot{x}\\[4pt]
+\dot{y}
+\end{pmatrix},"></span></div>
+<p>and rewrite the Wilson-Cowan equations in vector form:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\begin{pmatrix}
+\tau_x\,\dot{x}\\[2pt]
+\tau_y\,\dot{y}
+\end{pmatrix}
+=
+\begin{pmatrix}
+-\,x + S_{x}(w_{xx}\,x - w_{xy}\,y + I_x)\\[4pt]
+-\,y + S_{y}(w_{yx}\,x - w_{yy}\,y + I_y)
+\end{pmatrix}."></span></div>
+<p>Phase‐plane analysis (nullclines, fixed points, and limit cycles) is used to study 
+how <span class="katex-inline" data-tex="\mathbf{X}"></span> evolves in <span class="katex-inline" data-tex="\mathbb{R}^2"></span>.</p>
+<p class="runin-heading"><strong>Second order equations.</strong></p>
+<p>Because each equation is second-order, one can rewrite them as pairs of first&ndash;order
+ODEs. For instance, let <span class="katex-inline" data-tex="x_1 = x"></span> and <span class="katex-inline" data-tex="x_2 = \dot{x}"></span>. Then:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\begin{cases}
+\dot{x}_1 = x_2,\\[6pt]
+\dot{x}_2 = \displaystyle \frac{1}{\tau_x^2}\Bigl[
+-\,2\tau_x\,x_2 \;+\; K_{x}\,S_{x}\bigl(\cdots\bigr) \;-\; x_1
+\Bigr].
+\end{cases}"></span></div>
+<p>Similarly for <span class="katex-inline" data-tex="(y_1,y_2)"></span>. Alternatively, one may keep the original form and 
+perform phase&ndash;space analysis in four dimensions <span class="katex-inline" data-tex="(x,\dot{x},y,\dot{y})"></span>.
+The <span class="katex-inline" data-tex="-\,x"></span> and <span class="katex-inline" data-tex="-\,y"></span> terms (right&ndash;hand side) act as a linear decay, while
+the second&ndash;order operator allows for resonant or damped oscillatory responses 
+that are further modulated by the nonlinear saturations <span class="katex-inline" data-tex="S_{x}"></span> and <span class="katex-inline" data-tex="S_{y}"></span>.</p>
+<h2 id="sec:bifurcations" class="paper-heading"><span class="sec-num">C</span> Linear Stability and Bifurcation Analysis</h2>
+<h3 id="auto-h-bifurcation-diagrams-46" class="paper-heading"><span class="sec-num">C.1</span> Bifurcation diagrams</h3>
+<p>Bifurcation diagrams provide a powerful way to visualize how the qualitative behavior of a dynamical system changes as key parameters vary, and they are widely used to study the emergence of oscillatory dynamics. In this section, we discuss the common bifurcations observed in neural mass models by examining their bifurcation diagrams. We emphasize that these diagrams depend strongly on the chosen parameter values, and this section is not intended to serve as an exhaustive catalogue of all possible dynamical regimes. For comprehensive analyses of each model, we will refer the reader to the dedicated literature.</p>
+<p>We focus on one-parameter bifurcation diagrams, which we compute using the AUTO-07p software package. This tool allows us to identify fixed points and limit cycles, along with their stability properties. The scripts used to generate all bifurcation diagrams presented here, along with a complete list of parameters, are available at [<a href="paper.html#ref-273" class="cite-link">273</a>].</p>
+<h4 id="auto-h-stuart-landau-47" class="paper-heading">Stuart-Landau</h4>
+<p>We begin with the Stuart-Landau (SL) model, which is given by</p>
+<div class="eq-block" id="eq:sl_cart_x2"><span id="eq:sl_cart_x2"></span><span id="eq-C-1"></span><span class="katex-display" data-tex="\begin{aligned}\dot{x} &amp;= \alpha\,x - \omega\,y
+           - \gamma\,(x^{2}+y^{2})\,x
+           + \beta\,(x^{2}+y^{2})\,y,\end{aligned}"></span><span class="eq-number">(C.1)</span></div>
+<div class="eq-block" id="eq-C-2"><span id="eq-C-2"></span><span class="katex-display" data-tex="\begin{aligned}\dot{y} &amp;= \alpha\,y + \omega\,x
+           - \gamma\,(x^{2}+y^{2})\,y
+           - \beta\,(x^{2}+y^{2})\,x,\end{aligned}"></span><span class="eq-number">(C.2)</span></div>
+<p>Setting <span class="katex-inline" data-tex="\gamma = 1"></span> and <span class="katex-inline" data-tex="\beta = 0"></span>, we get</p>
+<div class="eq-block" id="eq-C-3"><span id="eq-C-3"></span><span class="katex-display" data-tex="\begin{aligned}\dot{x} &amp;= \alpha\,x - \omega\,y
+           - (x^{2}+y^{2})\,x
+           ,\end{aligned}"></span><span class="eq-number">(C.3)</span></div>
+<div class="eq-block" id="eq-C-4"><span id="eq-C-4"></span><span class="katex-display" data-tex="\begin{aligned}\dot{y} &amp;= \alpha\,y + \omega\,x
+           - (x^{2}+y^{2})\,y\end{aligned}"></span><span class="eq-number">(C.4)</span></div>
+<p>The bifurcation diagram of the later, using <span class="katex-inline" data-tex="\alpha"></span> as the bifurcation parameter, is shown in Fig. <a href="paper.html#fig:SL_bif" class="ref-link">Fig. 3.3</a>. The dark (light) gray line represents the stable (unstable) fixed points. For <span class="katex-inline" data-tex="\alpha &lt; 0"></span>, the system has complex eigenvalues with negative real parts, meaning that trajectories spiral towards the fixed point (damped oscillations). For <span class="katex-inline" data-tex="\alpha &gt; 0"></span>, the real parts of the eigenvalues are positive, so trajectories are repelled from the fixed point and attracted to the stable limit cycle, with amplitude represented in blue. This transition, in which a fixed point changes its stability while a stable (or unstable) limit cycle emerges, is known as a supercritical (or subcritical) Hopf bifurcation, here referred to as HB<span class="katex-inline" data-tex="^{+(-)}"></span>.</p>
+<p>The bifurcation diagrams for the Wilson&ndash;Cowan and NMM1 (Jansen&ndash;Rit, Wendling, LaNMM) models, previously included here, have been moved into the main body of the paper&mdash;see&nbsp;§<a href="paper.html#sec:WILCO" class="ref-link">§5</a> and&nbsp;§<a href="paper.html#sec:NMM1" class="ref-link">§6</a>. The diagrams below cover the remaining models in the cross-walk, namely the next-generation NMM2 ING and PING motifs.</p>
+<h4 id="auto-h-ing-48" class="paper-heading">ING</h4>
+<p>Our analysis now shifts to NMM2 models. We start with the ING model with second-order synapses, whose dynamics are governed by the following system of equations:</p>
+<div class="eq-block" id="eq-C-5"><span id="eq-C-5"></span><span class="katex-display" data-tex="\begin{aligned}
+\tau_i \dot{v} &amp;= \eta - \left( \pi r \tau_m \right)^2 + v^2 - \tau_i \left( J_{ii} s \right) + I \\
+\tau_i \dot{r} &amp;= \Delta + 2 r v \\
+\tau_g \dot{s} &amp;= z \\
+\tau_g \dot{z} &amp;= r - 2z - s
+\end{aligned}"></span><span class="eq-number">(C.5)</span></div>
+<p>The bifurcation diagram for the NMM2 model of interneuron-gamma (ING) oscillations is shown in Fig.&nbsp;<a href="paper.html#fig:ING_bif" class="ref-link">Fig. 7.12</a>. It illustrates the steady-state firing rate <span class="katex-inline" data-tex="r"></span> as a function of the external input <span class="katex-inline" data-tex="I"></span>. As in the previous models, increasing the external input induces a transition from a stable fixed point to oscillatory activity via a supercritical Hopf bifurcation (HB<span class="katex-inline" data-tex="^{+}"></span>). The resulting limit-cycle oscillations persist over a range of input values and are terminated at a second HB<span class="katex-inline" data-tex="^{+}"></span>, with both bifurcation points indicated by the vertical dashed lines.</p>
+<h4 id="auto-h-ping-49" class="paper-heading">PING</h4>
+<p>We continue our analysis of the NMM2 family by shifting our attention to the PING model, which can be viewed as a natural extension of the ING framework. The governing equations of the PING system are given by</p>
+<div class="eq-block" id="eq-C-6"><span id="eq-C-6"></span><span class="katex-display" data-tex="\begin{aligned}
+\tau_e \dot{v}_e &amp;= \eta_e - \left( \pi r_e \tau_e \right)^2 + v_e^2 + \tau_e \left( J_{ee} s_e - J_{ei} s_i \right) + I \\
+\tau_e \dot{r}_e &amp;= \Delta_e + 2 r_e v_e \\
+\tau_a \dot{s}_e &amp;= z_e \\
+\tau_a \dot{z}_e &amp;= r_e - 2z_e - s_e \\
+\tau_i \dot{v}_i &amp;= \eta_i - \left( \pi r_i \tau_i \right)^2 + v_i^2 + \tau_i \left( J_{ie} s_e - J_{ii} s_i \right) + I \\
+\tau_i \dot{r}_i &amp;= \Delta_i + 2 r_i v_i \\
+\tau_g \dot{s}_i &amp;= z_i \\
+\tau_g \dot{z}_i &amp;= r_i - 2z_i - s_i
+\end{aligned}"></span><span class="eq-number">(C.6)</span></div>
+<p>The bifurcation diagram of the PING model is shown in Fig.&nbsp;<a href="paper.html#fig:PING_bif" class="ref-link">Fig. 7.13</a>. It depicts the steady-state firing rate as a function of the external input (<span class="katex-inline" data-tex="I"></span>). 
+From left to right, as the external input increases, the system first undergoes a pair of saddle-node (SN) bifurcations, indicating the creation and annihilation of fixed points. Following these, the system experiences a supercritical Hopf bifurcation (HB<span class="katex-inline" data-tex="^{+}"></span>), giving rise to stable oscillatory dynamics. The resulting limit-cycle oscillations persist over a range of input values until the system passes through another HB<span class="katex-inline" data-tex="^{+}"></span> bifurcation, at which the oscillations disappear and the system returns to a stable fixed point.</p>
+<p>To summarize, bifurcation diagrams are particularly valuable for neural mass models because they:</p>
+<ul>
+<li><p><strong>Reveal the onset of oscillations and other dynamical regimes.</strong>
+    They identify where fixed points lose stability and give rise to limit cycles, as well as where bistability or other qualitative transitions occur, providing a clear picture of the model’s possible behaviors.</p></li>
+<li><p><strong>Guide parameter selection and sensitivity analysis.</strong>
+    By showing how solutions depend on parameters such as coupling strengths or synaptic gains, bifurcation diagrams help identify which parameters critically shape the dynamics and which regimes are physiologically plausible.</p></li>
+<li><p><strong>Inform control and intervention strategies.</strong>
+    In applications ranging from neuromodulation to pharmacology, knowing how small parameter changes can shift the system between regimes is essential. Bifurcation diagrams make these transitions explicit by highlighting where stability changes occur.</p></li>
+</ul>
+<div class="paper-table-wrap" id="tab:bif-params"><table class="paper-table">
+<tr><td><strong>Fig.</strong></td><td><strong>Panel</strong></td><td><strong>Swept parameter</strong></td><td><strong>Fixed parameters</strong></td></tr>
+<tr><td><em>Table&nbsp;<a href="#tab:bif-params" class="ref-link">Table C.4</a> continued</em></td></tr>
+<tr><td><strong>Fig.</strong></td><td><strong>Panel</strong></td><td><strong>Swept parameter</strong></td><td><strong>Fixed parameters</strong></td></tr>
+<tr><td><em>continued on next page</em></td></tr>
+<tr><td><em>Stuart&ndash;Landau</em></td></tr>
+<tr><td>Fig.&nbsp;<a href="paper.html#fig:SL_bif" class="ref-link">Fig. 3.3</a></td><td>&mdash;</td><td><span class="katex-inline" data-tex="\alpha\in[-10,10]"></span></td><td><span class="katex-inline" data-tex="\omega=1"></span></td></tr>
+<tr><td><em>Wilson&ndash;Cowan</em></td></tr>
+<tr><td>Fig.&nbsp;<a href="paper.html#fig:wilco_two_personalities" class="ref-link">Fig. 5.6</a></td><td>(a)</td><td><span class="katex-inline" data-tex="P_x\in[-5,5]"></span></td><td><span class="katex-inline" data-tex="\kappa_{xx}"></span> = <span class="katex-inline" data-tex="\kappa_{xy}=\kappa_{yx}=12"></span>, <span class="katex-inline" data-tex="\kappa_{yy}=2"></span>, <span class="katex-inline" data-tex="\tau_x = \tau_y = 1"></span>, <span class="katex-inline" data-tex="\rho=1"></span>, <span class="katex-inline" data-tex="\theta_x = \theta_y = 0"></span>, <span class="katex-inline" data-tex="e_0 = 1"></span>, <span class="katex-inline" data-tex="P_y=-6"></span></td></tr>
+<tr><td></td><td>(b)</td><td><span class="katex-inline" data-tex="P_y\in[-10,0]"></span>  &amp; same as (a) except for <span class="katex-inline" data-tex="I_x=0"></span></td><td></td></tr>
+<tr><td><em>Jansen&ndash;Rit</em></td></tr>
+<tr><td>Fig.&nbsp;<a href="paper.html#fig:JR_bif" class="ref-link">Fig. 6.8</a></td><td>&mdash;</td><td><span class="katex-inline" data-tex="P\in[-80,350]"></span></td><td>Same parameters as in [<a href="paper.html#ref-274" class="cite-link">274</a>] and [<a href="paper.html#ref-178" class="cite-link">178</a>]</td></tr>
+<tr><td><em>Wendling</em></td></tr>
+<tr><td>Fig.&nbsp;<a href="paper.html#fig:Wend_bif" class="ref-link">Fig. 6.9</a></td><td>&mdash;</td><td><span class="katex-inline" data-tex="P\in[0,1700]"></span></td><td>Same parameters as in [<a href="paper.html#ref-121" class="cite-link">121</a>]</td></tr>
+<tr><td><em>LaNMM</em></td></tr>
+<tr><td>Fig.&nbsp;<a href="paper.html#fig:LaNMM_bif" class="ref-link">Fig. 6.10</a></td><td>&mdash;</td><td><span class="katex-inline" data-tex="P\in[-100,500]"></span></td><td>Same parameters as in [<a href="paper.html#ref-8" class="cite-link">8</a>] and [<a href="paper.html#ref-188" class="cite-link">188</a>]</td></tr>
+<tr><td><em>NMM2-ING</em></td></tr>
+<tr><td>Fig.&nbsp;<a href="paper.html#fig:ING_bif" class="ref-link">Fig. 7.12</a></td><td>&mdash;</td><td><span class="katex-inline" data-tex="I\in[-20,100]"></span></td><td><span class="katex-inline" data-tex="\eta=0"></span>, <span class="katex-inline" data-tex="J_{ii}=20"></span>, <span class="katex-inline" data-tex="\tau_i=7.5"></span>, <span class="katex-inline" data-tex="\tau_g = 2"></span>, <span class="katex-inline" data-tex="\Delta=1"></span></td></tr>
+<tr><td><em>NMM2-PING</em></td></tr>
+<tr><td>Fig.&nbsp;<a href="paper.html#fig:PING_bif" class="ref-link">Fig. 7.13</a></td><td>&mdash;</td><td><span class="katex-inline" data-tex="I\in[-20,75]"></span></td><td><span class="katex-inline" data-tex="\eta_e=\eta_i=0"></span>, <span class="katex-inline" data-tex="J_{ee}=J_{ei}=J_{ie}=1"></span>, <span class="katex-inline" data-tex="J_{ii}=2"></span>,  <span class="katex-inline" data-tex="\tau_e = 15, \tau_a=10"></span>, <span class="katex-inline" data-tex="\tau_i = 7.5, \tau_g = 2.5"></span>, <span class="katex-inline" data-tex="\Delta_e=\Delta_i=1"></span></td></tr>
+</table><div class="table-caption">Table C.4. Parameters used for the bifurcation diagram in
+  this paper. The code to reproduce the diagrams using <code>AUTO-07P</code> is available at https://github.com/pclus/auto-tutorial.</div></div>
+<h2 id="app:kuramoto" class="paper-heading"><span class="sec-num">D</span> Phase dynamics and Kuramoto model</h2>
+<p>In the main text, we begin with a pure phase oscillator model and gradually introduce increasing mathematical complexity.
+Nonetheless, coupled phase oscillator models, particularly the Kuramoto model, were originally derived from arbitrary oscillator 
+systems subject to weak perturbations by employing rigorous mathematical techniques.
+Such approach, usually known as <em>phase reduction</em>, was pioneered by Winfree and Kuramoto,
+ and has been widely applied in mathematical neuroscience to capture the phase dynamics of both single-neuron and neural population models. For a comprehensive treatment of these methods, readers may refer to&nbsp;[<a href="paper.html#ref-34" class="cite-link">34</a>,<a href="paper.html#ref-42" class="cite-link">42</a>,<a href="paper.html#ref-275" class="cite-link">275</a>,<a href="paper.html#ref-23" class="cite-link">23</a>].
+ Drawing on this literature, in this Appendix we provide a concise introduction to the phase reduction technique in a general setting, and then illustrate it using the Stuart–Landau oscillator, which naturally leads to the Kuramoto model.</p>
+<h3 id="app:phase_of_perturbed_oscillator" class="paper-heading"><span class="sec-num">D.1</span> Phase of a perturbed oscillator</h3>
+<p>Let us consider an <span class="katex-inline" data-tex="m"></span>-dimensional variable <span class="katex-inline" data-tex="\bs{x}\in\mathbb{R}^m"></span>, whose time evolution is ruled by the differential equation</p>
+<div class="eq-block" id="introeq:system"><span id="introeq:system"></span><span id="eq-D-1"></span><span class="katex-display" data-tex="\dot{\bs{x}}=\bs{\mathcal {F}}(\bs{x})"></span><span class="eq-number">(D.1)</span></div>
+<p>where <span class="katex-inline" data-tex="\bs{\mathcal{F}}"></span> is a smooth function. Let us assume that equation&nbsp;(<a href="#introeq:system" class="ref-link">D.1</a>)
+has an attracting limit-cycle with period <span class="katex-inline" data-tex="T"></span>, <span class="katex-inline" data-tex="\bs {x}_{\text{LC}}(t)=\bs {x}_{\text{LC}}(t+T)"></span>.
+Thus, the curve <span class="katex-inline" data-tex="\bs{x}"></span> is, by definition, parameterized by time, <span class="katex-inline" data-tex="t\in[0,T)"></span>.
+We define the <em>phase</em> of a point <span class="katex-inline" data-tex="\bs{x}(t)"></span> of <span class="katex-inline" data-tex="\bs x_{\text{LC}}"></span> as</p>
+<div class="eq-block" id="eq-D-2"><span id="eq-D-2"></span><span class="katex-display" data-tex="\phi(\bs x(t)):=t\frac{2\pi}{T}\in[0,2\pi)."></span><span class="eq-number">(D.2)</span></div>
+<p>For simplicity, we denote <span class="katex-inline" data-tex="\omega:=\frac{2\pi}{T}"></span>.<br></p>
+<p>The concept of phase is well defined for any point lying exactly on the limit cycle.
+Nevertheless, the phase reduction approach is based on extending the notion of phase to a neighborhood <span class="katex-inline" data-tex="G\subset \mathbb{R}^m"></span> of <span class="katex-inline" data-tex="\bs x_{\text{LC}}(t)"></span>.
+Let <span class="katex-inline" data-tex="\bs y_0=\bs y(0)\in\mathbb{R}^m"></span> be a point in the state space close to, but not exactly on the periodic attractor <span class="katex-inline" data-tex="\bs x_{\text{LC}}"></span>.
+Since the limit cycle is stable, the trajectory <span class="katex-inline" data-tex="\bs y(t)"></span> will end up arbitrarily close to <span class="katex-inline" data-tex="\bs x_{\text{LC}}"></span> as <span class="katex-inline" data-tex="t\to\infty"></span>,
+thus will have a well defined phase, <span class="katex-inline" data-tex="\phi(\bs y(t))"></span>.
+Therefore, even if <span class="katex-inline" data-tex="\bs y_0"></span> is not on the invariant manifold,
+one can find a point, <span class="katex-inline" data-tex="\bs x_0\in \bs x_{\text{LC}}"></span> such that, at long-term,
+<span class="katex-inline" data-tex="\phi(\bs y(t))=\phi(\bs x(t))"></span>.
+One can then define the phase of <span class="katex-inline" data-tex="\bs y_0"></span> as <span class="katex-inline" data-tex="\phi(\bs y_0)=\phi(\bs x_0)"></span>.
+All the points in the neighborhood of <span class="katex-inline" data-tex="\bs x_{\text{LC}}"></span> associated to the same phase form a <em>isochrone curve</em>,
+i.e., the isochrones are the level curves of the function <span class="katex-inline" data-tex="\phi"></span>.
+<br></p>
+<p>This extension of the notion of phase to the vicinity of the periodic orbit preserves a constant time evolution:</p>
+<div class="eq-block" id="introeq:phaseoscillator"><span id="introeq:phaseoscillator"></span><span id="eq-D-3"></span><span class="katex-display" data-tex="\dot \phi(\bs x)=\omega\;, \qquad \bs x \in G."></span><span class="eq-number">(D.3)</span></div>
+<p>Applying the chain rule and using Eq.&nbsp;<a href="#introeq:system" class="ref-link">D.1</a>, one obtains</p>
+<div class="eq-block" id="eq-D-4"><span id="eq-D-4"></span><span class="katex-display" data-tex="\dot \phi(\bs x)=\grad_{\bs x} \phi \cdot \bs{\mathcal{F}}(\bs x)."></span><span class="eq-number">(D.4)</span></div>
+<p>Combining the two previous equations provides</p>
+<div class="eq-block" id="introeq:phaseequality"><span id="introeq:phaseequality"></span><span id="eq-D-5"></span><span class="katex-display" data-tex="\grad_{\bs x} \phi \cdot \bs{\mathcal{F}}(\bs x)=\omega\;."></span><span class="eq-number">(D.5)</span></div>
+<p>This equation expresses then, that the variation of the phase under the effect of the field <span class="katex-inline" data-tex="\bs{\mathcal{F}}"></span>
+is constant.</p>
+<p>We want to study oscillatory systems that are interacting with a certain environment, so, usually,
+equation&nbsp;(<a href="#introeq:system" class="ref-link">D.1</a>) is not enough for our purposes. One needs to
+account for the effect that external perturbations have on the system.
+Let us assume a perturbation on the evolution of <span class="katex-inline" data-tex="\bs x"></span>, <span class="katex-inline" data-tex="\bs p(t)"></span>, with a small amplitude parameter <span class="katex-inline" data-tex=" 0&lt;\varepsilon \ll 1"></span>,</p>
+<div class="eq-block" id="eq-D-6"><span id="eq-D-6"></span><span class="katex-display" data-tex="\dot{\bs{x}}=\bs{\mathcal {F}}(\bs{x})+\varepsilon \bs{p}(t)."></span><span class="eq-number">(D.6)</span></div>
+<p>In order to keep arguing in terms of phases, one needs to find which is the impact of
+such perturbation on the phase of the oscillator.
+Applying again the chain rule to the time evolution of <span class="katex-inline" data-tex="\phi"></span>, and using Eq.&nbsp;(<a href="#introeq:phaseequality" class="ref-link">D.5</a>) one obtains</p>
+<div class="eq-block" id="eq-D-7"><span id="eq-D-7"></span><span class="katex-display" data-tex="\begin{aligned}\dot \phi(\bs x)
+&amp;=\grad_{\bs x}\phi \cdot \left(\bs{\mathcal{F}}(\bs x)+\varepsilon \bs p(t)\right)\end{aligned}"></span><span class="eq-number">(D.7)</span></div>
+<div class="eq-block" id="introeq:winfree"><span id="introeq:winfree"></span><span id="eq-D-8"></span><span class="katex-display" data-tex="\begin{aligned}&amp;=\omega+\varepsilon \grad_{\bs x}\phi\cdot \bs p(t)\end{aligned}"></span><span class="eq-number">(D.8)</span></div>
+<p>Thus, as one would expect, the linear response of the phase <span class="katex-inline" data-tex="\phi"></span> to a perturbation of the trajectory is given by its gradient.
+For this reason, the gradient of the phase along a certain unitary direction <span class="katex-inline" data-tex="\bs{\delta x}"></span> is usually referred to as the <em>Phase Response Curve</em> (PRC), <span class="katex-inline" data-tex="Z(\phi):=\grad_{\bs { x}}\phi \cdot \bs {\delta x}"></span>.
+Following the definition of gradient, given a infinitesimal  perturbation <span class="katex-inline" data-tex="\varepsilon \bs{\delta x}"></span> of a point on the limit cycle <span class="katex-inline" data-tex="\bs x"></span>,
+ one can effectively compute the phase response curve as the normalized difference between the phase of <span class="katex-inline" data-tex="\bs {x}"></span>,
+ and that of <span class="katex-inline" data-tex="\bs{x}+\varepsilon \bs{\delta x}"></span>,</p>
+<div class="eq-block" id="eq-D-9"><span id="eq-D-9"></span><span class="katex-display" data-tex="Z(\phi)=\frac{ \phi(\bs x)-\phi(\bs{ x}+\varepsilon\bs{\delta x}) }{\varepsilon  }\;."></span><span class="eq-number">(D.9)</span></div>
+<p>Thus, a positive (resp. negative) PRC indicates that the perturbation has the effect of advancing (resp. delaying) the phase of the oscillator.
+A zero PRC means that the perturbed point lies exactly on the isochrone of the original point.
+For simplicity, on the following we assume that the perturbation <span class="katex-inline" data-tex="\bs p(t)"></span> has direction <span class="katex-inline" data-tex="\bs {\delta x}"></span> and modulus <span class="katex-inline" data-tex="p(t)"></span> so that
+<span class="katex-inline" data-tex="\grad_{\bs x}\phi\cdot \bs p(t)=Z(\phi) p(t)"></span>. Thus, Eq&nbsp;(<a href="#introeq:winfree" class="ref-link">D.8</a>) now reads</p>
+<div class="eq-block" id="introeq:winfree2"><span id="introeq:winfree2"></span><span id="eq-D-10"></span><span class="katex-display" data-tex="\dot \phi(\bs x)=\omega + \varepsilon Z(\phi)p(t)\;."></span><span class="eq-number">(D.10)</span></div>
+<p>Systems with this form are known as <em>Winfree-type models</em> of phase oscillators&nbsp;[<a href="paper.html#ref-34" class="cite-link">34</a>],
+where the PRC, <span class="katex-inline" data-tex="Z(\phi)"></span>, and the shape of the forcing <span class="katex-inline" data-tex="\bs p(t)"></span> are defined independently one from the other.</p>
+<h3 id="auto-h-from-winfree-to-kuramoto-50" class="paper-heading"><span class="sec-num">D.2</span> From Winfree to Kuramoto</h3>
+<p>Let&rsquo;s assume now the phase dynamics of two interacting oscillators of Winfree type:</p>
+<div class="eq-block" id="introeq:winfree3"><span id="introeq:winfree3"></span><span id="eq-D-11"></span><span class="katex-display" data-tex="\begin{aligned}\dot \phi_1 &amp;= \omega_1 + \varepsilon Z(\phi_1)g(\phi_2)\end{aligned}"></span><span class="eq-number">(D.11)</span></div>
+<div class="eq-block" id="eq-D-12"><span id="eq-D-12"></span><span class="katex-display" data-tex="\begin{aligned}\dot \phi_2 &amp;= \omega_2 + \varepsilon Z(\phi_2)g(\phi_1)\;.\end{aligned}"></span><span class="eq-number">(D.12)</span></div>
+<p>Notice that now the forcing term <span class="katex-inline" data-tex="p(t)"></span> has been replaced by a <span class="katex-inline" data-tex="2\pi"></span>-periodic interaction function <span class="katex-inline" data-tex="g(\phi)"></span>.
+It is possible to further simplify this system by separating time scales on the dynamics of the phase model.
+Since <span class="katex-inline" data-tex="\varepsilon\ll 1"></span> in Eq.&nbsp;(<a href="#introeq:winfree3" class="ref-link">D.11</a>), one expects that the changes
+in the evolution of <span class="katex-inline" data-tex="\phi_j"></span> mostly happen at a slow time scale, since the fast dynamics is
+driven by the natural frequency of oscillation <span class="katex-inline" data-tex="\omega_j"></span>.
+Let&rsquo;s study then the time evolution of the slow variables <span class="katex-inline" data-tex="\varphi_j=\phi_j-\omega_j t"></span>.
+With this change of variables, equation&nbsp;(<a href="#introeq:winfree3" class="ref-link">D.11</a>) now reads</p>
+<div class="eq-block" id="eq-D-13"><span id="eq-D-13"></span><span class="katex-display" data-tex="\dot \varphi_j=   \varepsilon Z(\varphi_j-\omega_j t)g(\varphi_k-\omega_k t)\;."></span><span class="eq-number">(D.13)</span></div>
+<p>In order to retain the terms relevant for the evolution of <span class="katex-inline" data-tex="\varphi_j"></span> one can expand
+the previous equation in Fourier series,</p>
+<div class="eq-block" id="introeq:tokuramoto"><span id="introeq:tokuramoto"></span><span id="eq-D-14"></span><span class="katex-display" data-tex="\begin{aligned}\dot \varphi_j=   \varepsilon  Z(\varphi_j-\omega_j t)g(\varphi_k-\omega_k t)
+        &amp;=\frac{\varepsilon}{4\pi^2}\sum_{m,n}\tilde Z(m)\tilde p(n)e^{-i[m(\varphi_j-\omega_j t) +n(\varphi_k-\omega_k t)]}\end{aligned}"></span><span class="eq-number">(D.14)</span></div>
+<div class="eq-block" id="eq-D-15"><span id="eq-D-15"></span><span class="katex-display" data-tex="\begin{aligned}&amp;=\frac{\varepsilon}{4\pi^2}\sum_{m,n}\tilde Z(m)\tilde p(n)e^{-im(\varphi_j-\varphi_k)}e^{i(m\omega_j + n\omega_k)t}\;.\end{aligned}"></span><span class="eq-number">(D.15)</span></div>
+<p>The last expression provides a separation of the fast and slow terms in the series:
+the terms with</p>
+<div class="eq-block" id="eq-D-16"><span id="eq-D-16"></span><span class="katex-display" data-tex="m\omega_j +n \omega_k \simeq 0"></span><span class="eq-number">(D.16)</span></div>
+<p>are resonant, and, therefore, lead to slow dynamics.
+The other terms, instead, have explicit dependence on <span class="katex-inline" data-tex="t"></span>, and, therefore, lead to rapid changes.
+Thus, in order to keep only the relevant dynamics of the system, one can average out
+the non-resonant terms.
+Under the assumption that the natural frequencies of the two oscillator are comparable, <em>i.e.</em>, <span class="katex-inline" data-tex="\omega_j\simeq \omega_k"></span>,
+the terms of Eq.&nbsp;(<a href="#introeq:tokuramoto" class="ref-link">D.14</a>) relevant for the dynamics are those with
+<span class="katex-inline" data-tex="m=-n"></span>.
+This leads to</p>
+<div class="eq-block" id="eq-D-17"><span id="eq-D-17"></span><span class="katex-display" data-tex="\dot \varphi_j=   
+         =\frac{\varepsilon}{4\pi^2}\sum_{n=-\infty}^\infty\tilde Z(-n)\tilde p(n)e^{-in(\varphi_k-\varphi_j)}=H(\varphi_j-\varphi_k)"></span><span class="eq-number">(D.17)</span></div>
+<p>where the <em>coupling function</em> <span class="katex-inline" data-tex="H"></span> can be computed as</p>
+<div class="eq-block" id="eq-D-18"><span id="eq-D-18"></span><span class="katex-display" data-tex="H(\psi):=\frac{1}{4\pi^2}\sum_{n=-\infty}^\infty \tilde Z(-n)\tilde p(-n)e^{-in \psi}
+=\frac{1}{2\pi}\int_0^{2\pi} Z(t)p(t+\psi) dt."></span><span class="eq-number">(D.18)</span></div>
+<p>Writing now system&nbsp;(<a href="#introeq:winfree3" class="ref-link">D.11</a>) into the original variables, we finally obtain:</p>
+<div class="eq-block" id="introeq:phasemodel"><span id="introeq:phasemodel"></span><span id="eq-D-19"></span><span class="katex-display" data-tex="\begin{aligned}\dot \phi_1&amp;=\omega_1+\varepsilon H(\phi_2 -\phi_1)\end{aligned}"></span><span class="eq-number">(D.19)</span></div>
+<div class="eq-block" id="eq-D-20"><span id="eq-D-20"></span><span class="katex-display" data-tex="\begin{aligned}\dot \phi_2&amp;=\omega_2+\varepsilon H(\phi_1 -\phi_2)\;.\end{aligned}"></span><span class="eq-number">(D.20)</span></div>
+<p>Phase oscillators ruled by equations of this type are known as <em>Kuramoto-Daido type</em> models.
+Despite their simplicity, such systems provide a good framework
+to study emerging phenomena on networks of oscillators.
+The simplest of these models corresponds to <span class="katex-inline" data-tex="H"></span> being composed of a single harmonic, i.e.,
+<span class="katex-inline" data-tex=""></span>H() = (-),<span class="katex-inline" data-tex=""></span>
+leading to the famous Kuramoto-Sakaguchi model. 
+Nonetheless, the phase reduction of most nonlinear oscillators contain more harmonics in their 
+coupling function, which usually also increase the complexity of the model dynamics.</p>
+<p>Here, we provided a simple intuitive arguments on how the time-scale separation is being performed.
+Formally, the coupling function <span class="katex-inline" data-tex="H"></span> emerges from applying averaging theory to system <a href="#introeq:winfree3" class="ref-link">(D.11)</a>.</p>
+<p>These rigorous derivations also allow to extend this approach to more complex situations, including
+an arbitrary number of oscillators, 
+cases in which the interaction function <span class="katex-inline" data-tex="g"></span> depends on both, pre and post-synaptic units, <span class="katex-inline" data-tex="g(\phi_1,\phi_2)"></span>,
+and cases with other resonant relation between the units. 
+Nonetheless, here we want to emphasize the two main assumptions that allow to obtain Kuramoto-Daido models
+from arbitrary limit cycles: weak coupling (<span class="katex-inline" data-tex="\varepsilon\ll 1"></span>), and weak frequency heterogeneities (<span class="katex-inline" data-tex="\omega_1\approx \omega_2"></span>).</p>
+<h3 id="auto-h-phase-reduction-of-a-stuart-landau-system-51" class="paper-heading"><span class="sec-num">D.3</span> Phase reduction of a Stuart-Landau system</h3>
+<p>In general, performing the phase reduction of a nonlinear oscillator requires a numerical approach.
+Due to its simplicity and symmetry properties, the Stuart-Landau oscillator is a notable exception.
+Here we reproduce a well-known result that a system of coupled Stuart-Landau oscillators
+leads to the Kuramoto-Sakaguchi model:</p>
+<div class="eq-block" id="eq-D-21"><span id="eq-D-21"></span><span class="katex-display" data-tex="\dot{z}_{i} = (\alpha + i\,\omega_{i})\,z_{i}
+             - (\gamma + i\,\beta)\,\lvert z_{i}\rvert^{2}z_{i}
+             + \frac{\varepsilon}{N}\sum_{j=1}^{N}\bigl(z_{j}-z_{i}\bigr)\;."></span><span class="eq-number">(D.21)</span></div>
+<p>Let&rsquo;s first determine the phase variable of an uncoupled oscillator.
+We work using the polar representation:</p>
+<div class="eq-block" id="eq-D-22"><span id="eq-D-22"></span><span class="katex-display" data-tex="\begin{aligned}\dot{r}      &amp;= \alpha\,r \;-\; \gamma\,r^{3},\end{aligned}"></span><span class="eq-number">(D.22)</span></div>
+<div class="eq-block" id="eq-D-23"><span id="eq-D-23"></span><span class="katex-display" data-tex="\begin{aligned}\dot{\theta} &amp;= \omega \;-\; \beta\,r^{2}.\end{aligned}"></span><span class="eq-number">(D.23)</span></div>
+<p>The system contains an (unstable) fixed point at <span class="katex-inline" data-tex="r=0"></span>.
+For any other initial condition, <span class="katex-inline" data-tex="r(0)=r_0\neq 0"></span> and <span class="katex-inline" data-tex="\theta(0)=\theta_0"></span>, the solution of the system reads:</p>
+<div class="eq-block" id="eq-D-24"><span id="eq-D-24"></span><span class="katex-display" data-tex="r(t) = \sqrt{\frac{\alpha}{\gamma + \left(\frac{\alpha}{r_0^2}-\gamma\right)e^{-2\alpha t}}}
+    \qquad
+    \theta(t) = \omega - \frac{\alpha\beta}{\gamma} +\theta_0 
+    - \frac{\beta}{2\gamma} \ln\left[ \frac{\gamma}{\alpha} r_0^2 + e^{-2\alpha t}\left(1-\frac{\gamma}{\alpha}r_0^2 \right)\right]\;."></span><span class="eq-number">(D.24)</span></div>
+<p>As <span class="katex-inline" data-tex="t\to\infty"></span> the equation evolves towards a limit cycle with amplitude <span class="katex-inline" data-tex="r_* = \sqrt{\alpha/\gamma}"></span> and frequency 
+<span class="katex-inline" data-tex="\Omega = \omega - \frac{\alpha\beta}{\gamma}"></span>.
+If  the system is initialized exactly at the limit-cycle, then the phase is simply <span class="katex-inline" data-tex="\phi(r,\theta) = \theta"></span>.
+For initial conditions outside the invariant manifold, the system converges to the limit cycle with phase
+<span class="katex-inline" data-tex=""></span>(r,) =  - 2( r_0^2 ).<span class="katex-inline" data-tex=""></span>
+From this explicit expression we can observe the isochrones of the Stuart-Landau oscillator are given by
+setting <span class="katex-inline" data-tex="\phi = k"></span>, where <span class="katex-inline" data-tex="k\in[0,2\pi)"></span> is constant.
+We can also check that this definition of phase produces a uniform rotation from Eq.&nbsp;<a href="#introeq:phaseequality" class="ref-link">(D.5)</a>:
+ <span class="katex-inline" data-tex=""></span> (r,) <span class="katex-inline" data-tex="\boldsymbol{\mathcal{F}}"></span> =  -   .<span class="katex-inline" data-tex=""></span></p>
+<p>Let&rsquo;s consider now the perturbed system:</p>
+<div class="eq-block" id="eq-D-25"><span id="eq-D-25"></span><span class="katex-display" data-tex="\dot{z}_{i} = (\alpha + i\,\omega_{i})\,z_{i}
+             - (\gamma + i\,\beta)\,\lvert z_{i}\rvert^{2}z_{i}
+             + {\varepsilon} \delta z."></span><span class="eq-number">(D.25)</span></div>
+<p>As explained before, the PRC of the system can be computed as the phase gradient at a given perturbation direction,
+in this case
+<span class="katex-inline" data-tex=""></span>Z()=_ z  z.<span class="katex-inline" data-tex=""></span>
+For simplicity, we proceed in Cartesian coordinates:</p>
+<div class="eq-block" id="eq-D-26"><span id="eq-D-26"></span><span class="katex-display" data-tex="\phi(x,y) = \arctan\left(\frac{y}{x}\right) - \frac{\beta}{2\gamma}\ln\left(\frac{\gamma}{\alpha} (x^2+y^2) \right)"></span><span class="eq-number">(D.26)</span></div>
+<p>thus</p>
+<div class="eq-block" id="eq-D-27"><span id="eq-D-27"></span><span class="katex-display" data-tex="\begin{aligned}\grad_{\bs z}\phi &amp;= \left( \frac{-1}{x^2+y^2}\left(\frac{\beta}{\gamma}x+y\right), \frac{1}{x^2+y^2}\left(x-\frac{\beta}{\gamma}y\right)\right)\end{aligned}"></span><span class="eq-number">(D.27)</span></div>
+<div class="eq-block" id="eq-D-28"><span id="eq-D-28"></span><span class="katex-display" data-tex="\begin{aligned}&amp;= \frac{1}{\sqrt{\alpha}} \left( - \beta\cos(\phi)-\gamma\sin(\phi), \gamma \cos(\phi)-\beta \sin(\phi) \right).\end{aligned}"></span><span class="eq-number">(D.28)</span></div>
+<p>Therefore, the phase dynamics of a single, weakly perturbed Stuart-Landau oscillator
+are given by
+<span class="katex-inline" data-tex=""></span>  =  + 
+[ 
+( - ()-()) x
+( ()- () ) y
+] <span class="katex-inline" data-tex=""></span>
+where <span class="katex-inline" data-tex="\delta z = (\delta x,\delta y)"></span>.
+In the coupled system, the perturbation comes from the other oscillators of the network, and thus chages in time.
+In particular</p>
+<div class="eq-block" id="eq-D-29"><span id="eq-D-29"></span><span class="katex-display" data-tex="\begin{aligned}\delta x_i &amp;= \frac{1}{N}\sum_{j=1}^N (x_j-x_i) = \frac{1}{N}\sqrt{\frac{\alpha}{\gamma}}\sum_{j=1}^N (\cos(\phi_j)-\cos(\phi_i))\end{aligned}"></span><span class="eq-number">(D.29)</span></div>
+<div class="eq-block" id="eq-D-30"><span id="eq-D-30"></span><span class="katex-display" data-tex="\begin{aligned}\delta y_i &amp;= \frac{1}{N}\sum_{j=1}^N (y_j-y_i) = \frac{1}{N}\sqrt{\frac{\alpha}{\gamma}}\sum_{j=1}^N (\sin(\phi_j)-\sin(\phi_i)) .\end{aligned}"></span><span class="eq-number">(D.30)</span></div>
+<p>Inserting these expressions into the PRC and simplifying the terms using trigonometric identities, we finally obtain</p>
+<div class="eq-block" id="eq-D-31"><span id="eq-D-31"></span><span class="katex-display" data-tex="\phi_i = \Omega_i + \varepsilon K \frac{\beta}{\gamma}  + \varepsilon \frac{K}{N}\sum_{j=1}^N \sin(\phi_j-\phi_i-\alpha)"></span><span class="eq-number">(D.31)</span></div>
+<p>where 
+<span class="katex-inline" data-tex=""></span>_i =  _i -   , K = 1+^2^2,and=( ).<span class="katex-inline" data-tex=""></span>
+In this case, no averaging is needed to obtain a Kuramoto-Daido type of model,
+since we have already obtained a coupling function that depends only on the phase differences.
+Moreover, the coupling is given by a single harmonic, thus ultimately providing a Kuramoto-Sakaguchi model. 
+We emphasize, again, that this is specific for the Stuart-Landau oscillator, and other models can lead to 
+coupling functions with several harmonics.</p>
+<h2 id="sec:coupled-oscillators" class="paper-heading"><span class="sec-num">E</span> System of Linear Coupled Complex Oscillators</h2>
+<p>We consider a network of <span class="katex-inline" data-tex="N"></span> linearly coupled complex oscillators governed by</p>
+<div class="eq-block" id="eq:linear-network"><span id="eq:linear-network"></span><span id="eq-E-1"></span><span class="katex-display" data-tex="\dot z_i \;=\; (a + i\omega)\,z_i \;+\; \sum_{j=1}^N c_{ij}\,z_j
+\,,\qquad i=1,\dots,N,"></span><span class="eq-number">(E.1)</span></div>
+<p>where <span class="katex-inline" data-tex="a\in\mathbb R"></span> is the self–damping coefficient, <span class="katex-inline" data-tex="\omega\in\mathbb R"></span> the intrinsic frequency, and <span class="katex-inline" data-tex="C = [c_{ij}]\in\mathbb C^{N\times N}"></span> the coupling matrix.</p>
+<p>In vector form this reads</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot z = \bigl(aI + i\omega I + C\bigr)\,z."></span></div>
+<p>If <span class="katex-inline" data-tex="C"></span> is diagonalizable with eigenpairs <span class="katex-inline" data-tex="\{(\lambda_k,v_k)\}_{k=1}^N"></span>, the change of variables <span class="katex-inline" data-tex="z = Vw"></span> decouples into modes</p>
+<div class="eq-block" id="eq-E-2"><span id="eq-E-2"></span><span class="katex-display" data-tex="\dot w_k = \bigl(a + \lambda_k + i\omega\bigr)\,w_k,
+\qquad k=1,\dots,N."></span><span class="eq-number">(E.2)</span></div>
+<p>Asymptotic stability (synchronization to <span class="katex-inline" data-tex="z=0"></span>) requires</p>
+<div class="eq-block" id="eq:stability-condition"><span id="eq:stability-condition"></span><span id="eq-E-3"></span><span class="katex-display" data-tex="\max_{k}\Re\bigl(a + \lambda_k(C)\bigr)\;&lt;\;0."></span><span class="eq-number">(E.3)</span></div>
+<p>In particular, if <span class="katex-inline" data-tex="C"></span> is real symmetric with largest eigenvalue <span class="katex-inline" data-tex="\lambda_{\max}"></span>, the simple sufficient condition is</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="a &lt; -\,\lambda_{\max}."></span></div>
+<p>More generally, the Master Stability Function (MSF) formalism [<a href="paper.html#ref-276" class="cite-link">276</a>] characterizes the region in the complex plane <span class="katex-inline" data-tex="\alpha = a + \lambda"></span> where perturbations decay.  Early Lyapunov–matrix approaches appear in [<a href="paper.html#ref-277" class="cite-link">277</a>], and applications to small-world and complex topologies were developed in [<a href="paper.html#ref-278" class="cite-link">278</a>].</p>
+<p><strong>Key Stability Criterion.</strong></p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\boxed{\;
+\max_{k}\Re\bigl(a + \lambda_k(C)\bigr)\;&lt;\;0
+\;\Longleftrightarrow\;
+\text{all trajectories decay to }0.
+}"></span></div>
+<p>Although the Master Stability Function (MSF) framework of Pecora &amp; Carroll [<a href="paper.html#ref-276" class="cite-link">276</a>] treats coupled dynamics in full generality, the purely linear network</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot z_i = (a + i\omega)\,z_i + \sum_{j}c_{ij}\,z_j"></span></div>
+<p>has also been studied in its own right:</p>
+<ul>
+<li><p><strong>Large random systems.</strong>  
+    May analyzed the eigenvalue spectrum of <span class="katex-inline" data-tex="aI + C"></span> for large random <span class="katex-inline" data-tex="C"></span>, showing a sharp transition to instability when <span class="katex-inline" data-tex="\sqrt{N}\,\sigma &gt; |a|"></span> [<a href="paper.html#ref-279" class="cite-link">279</a>].</p></li>
+<li><p><strong>Amplitude death.</strong>  
+    Early stability analyses of coupled Stuart–Landau oscillators derive exactly the same linear condition against the trivial fixed point [<a href="paper.html#ref-280" class="cite-link">280</a>,<a href="paper.html#ref-281" class="cite-link">281</a>].</p></li>
+<li><p><strong>Hopf‐normal‐form variational equation.</strong>  
+    When linearizing two or more Hopf normal‐form oscillators (Stuart–Landau) around the zero solution, one recovers the model above [<a href="paper.html#ref-282" class="cite-link">282</a>].</p></li>
+</ul>
+<p>In each case, asymptotic decay to zero reduces to</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\max_{k}\Re\bigl(a + \lambda_k(C)\bigr) &lt; 0."></span></div>
+<h3 id="subsec:constant-forcing" class="paper-heading"><span class="sec-num">E.1</span> Constant Forcing and the Affine Shift</h3>
+<p>Adding constant terms <span class="katex-inline" data-tex="b_i"></span> does not alter the spectral–stability condition; it simply translates the asymptotic resting state from the origin to <span class="katex-inline" data-tex="z^{\!*}=-A^{-1}b"></span>.  All transient decay (or growth) rates are exactly those of the original linear network.</p>
+<p>Consider appending a constant complex bias <span class="katex-inline" data-tex="b_i"></span> to every node in&nbsp;<a href="#eq:linear-network" class="ref-link">(E.1)</a>:</p>
+<div class="eq-block" id="eq:network-affine"><span id="eq:network-affine"></span><span id="eq-E-4"></span><span class="katex-display" data-tex="\boxed{
+	\dot z_i \;=\; (a+i\omega)\,z_i \;+\; b_i, \;+\; \sum_{j=1}^{N} c_{ij}\,z_j 
+	\qquad i=1,\dots,N.
+	
+    }"></span><span class="eq-number">(E.4)</span></div>
+<p>Collecting the states <span class="katex-inline" data-tex="z=(z_1,\dots,z_N)^{\top}"></span> and biases <span class="katex-inline" data-tex="b=(b_1,\dots,b_N)^{\top}"></span> gives the affine system</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot z \;=\; A z + b,
+	\qquad 
+	A \;\equiv\; aI + i\omega I + C."></span></div>
+<p class="runin-heading"><strong>Equilibrium.</strong></p>
+<p>If <span class="katex-inline" data-tex="A"></span> is nonsingular—equivalently <span class="katex-inline" data-tex="0\notin\sigma(A)"></span>—there is a unique fixed point</p>
+<div class="eq-block" id="eq:affine-fixed-point"><span id="eq:affine-fixed-point"></span><span id="eq-E-5"></span><span class="katex-display" data-tex="z^{\!*} = -\,A^{-1}b."></span><span class="eq-number">(E.5)</span></div>
+<p>When <span class="katex-inline" data-tex="A"></span> is singular, a constant input may generate a line (or plane) of equilibria
+or even unbounded drift along <span class="katex-inline" data-tex="\ker A"></span> when <span class="katex-inline" data-tex="b\notin\operatorname{Im}A"></span>.</p>
+<p class="runin-heading"><strong>Shift–of–origin reduction.</strong></p>
+<p>Define the deviation <span class="katex-inline" data-tex="w = z - z^{\!*}"></span>.  Substituting&nbsp;<a href="#eq:affine-fixed-point" class="ref-link">(E.5)</a> into&nbsp;<a href="#eq:network-affine" class="ref-link">(E.4)</a> yields the homogeneous system</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot w = A w ,"></span></div>
+<p>showing that constant forcing merely <em>translates</em> the flow; all eigenvalues,
+Jordan blocks, and Master‑Stability‑Function curves coincide with those of the
+original network.  Hence the stability criterion</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\boxed{\;
+	\max_{k}\Re\bigl(a+\lambda_k(C)\bigr) &lt; 0
+	\;}"></span></div>
+<p>continues to be necessary and sufficient—now guaranteeing exponential
+convergence toward <span class="katex-inline" data-tex="z^{\!*}"></span> instead of the origin.</p>
+<p class="runin-heading"><strong>Dynamical consequences.</strong></p>
+<ul>
+<li><p><em>Stable spectrum</em> (<span class="katex-inline" data-tex="\Re\lambda_k&lt;0\;\forall k"></span>): every trajectory decays at the
+	      same rates as before but settles on the static pattern&nbsp;<a href="#eq:affine-fixed-point" class="ref-link">(E.5)</a>.</p></li>
+<li><p><em>Marginal spectrum</em> (<span class="katex-inline" data-tex="\Re\lambda_k=0"></span> for some <span class="katex-inline" data-tex="k"></span>): the constant drive excites those neutral modes, producing bounded oscillations (purely imaginary eigenvalues) or linear growth (<span class="katex-inline" data-tex="\lambda_k=0"></span>).</p></li>
+<li><p><em>Unstable spectrum</em>: divergence persists; <span class="katex-inline" data-tex="b"></span> only offsets the blow‑up.</p></li>
+</ul>
+<h3 id="app:linear_to_kuramoto" class="paper-heading"><span class="sec-num">E.2</span> From linear complex networks to Kuramoto phases</h3>
+<p>Starting from the undamped linear network</p>
+<div class="eq-block" id="eq:linear_undamped_network_app"><span id="eq:linear_undamped_network_app"></span><span id="eq-E-6"></span><span class="katex-display" data-tex="\dot{z}_i(t)
+=
+  i\,\omega_i\,z_i(t)
+\;+\;
+ \sum_{j\neq i}^{N} C_{ij} z_j(t),
+\qquad i=1,\dots,N,"></span><span class="eq-number">(E.6)</span></div>
+<p>we introduce polar coordinates</p>
+<div class="eq-block" id="eq-E-7"><span id="eq-E-7"></span><span class="katex-display" data-tex="z_i(t) = r_i(t)\,e^{i\theta_i(t)}, 
+    \qquad r_i(t)\ge 0,\;\theta_i(t)\in\mathbb{R}."></span><span class="eq-number">(E.7)</span></div>
+<p>Substituting into&nbsp;<a href="#eq:linear_undamped_network_app" class="ref-link">(E.6)</a>, multiplying by <span class="katex-inline" data-tex="e^{-i\theta_i}"></span>, and separating real and imaginary parts gives</p>
+<div class="eq-block" id="eq:amp_from_linear_app"><span id="eq:amp_from_linear_app"></span><span id="eq-E-8"></span><span class="katex-display" data-tex="\begin{aligned}\dot r_i
+    &amp;= 
+    \Re\!\left[
+      \sum_{j\neq i} C_{ij}\,r_j\,e^{\,i(\theta_j-\theta_i)}
+    \right],\end{aligned}"></span><span class="eq-number">(E.8)</span></div>
+<div class="eq-block" id="eq:phase_from_linear_app"><span id="eq:phase_from_linear_app"></span><span id="eq-E-9"></span><span class="katex-display" data-tex="\begin{aligned}[4pt]
+    r_i\,\dot\theta_i
+    &amp;= 
+    \omega_i\,r_i
+    +
+    \Im\!\left[
+      \sum_{j\neq i} C_{ij}\,r_j\,e^{\,i(\theta_j-\theta_i)}
+    \right].\end{aligned}"></span><span class="eq-number">(E.9)</span></div>
+<p>Writing <span class="katex-inline" data-tex="C_{ij} = K_{ij} e^{i\alpha_{ij}}"></span> with <span class="katex-inline" data-tex="K_{ij}\ge 0"></span> yields</p>
+<div class="eq-block" id="eq:phase_from_linear_app2"><span id="eq:phase_from_linear_app2"></span><span id="eq-E-10"></span><span class="katex-display" data-tex="\dot\theta_i
+    =
+    \omega_i
+    +
+    \frac{1}{r_i}
+    \sum_{j\neq i}
+      K_{ij}\,r_j\,
+      \sin\!\bigl(\theta_j-\theta_i+\alpha_{ij}\bigr),"></span><span class="eq-number">(E.10)</span></div>
+<p>a Kuramoto–Sakaguchi–type equation with time–dependent amplitudes.</p>
+<p>To understand how a true phase model emerges, it is useful to rewrite&nbsp;<a href="#eq:linear_undamped_network_app" class="ref-link">(E.6)</a> in vector form and add a uniform decay term,</p>
+<div class="eq-block" id="eq:linear_A_gamma_app"><span id="eq:linear_A_gamma_app"></span><span id="eq-E-11"></span><span class="katex-display" data-tex="\dot{\mathbf z} = (A - \gamma I)\,\mathbf z,
+    \qquad
+    A_{ij} = i\omega_i\,\delta_{ij} + C_{ij},"></span><span class="eq-number">(E.11)</span></div>
+<p>as in the linear reformulations of Kuramoto&nbsp;[<a href="paper.html#ref-40" class="cite-link">40</a>,<a href="paper.html#ref-41" class="cite-link">41</a>]. The dynamics are then determined by the eigenvalues <span class="katex-inline" data-tex="\lambda_k"></span> and eigenvectors <span class="katex-inline" data-tex="\mathbf v^{(k)}"></span> of <span class="katex-inline" data-tex="A-\gamma I"></span>. For a critical value of <span class="katex-inline" data-tex="\gamma"></span>, one can arrange that</p>
+<div class="eq-block" id="eq-E-12"><span id="eq-E-12"></span><span class="katex-display" data-tex="\Re\,\lambda_1 = 0,
+    \qquad
+    \Re\,\lambda_k &lt; 0 \;\; (k\ge 2),"></span><span class="eq-number">(E.12)</span></div>
+<p>so that all but one mode decay. Decomposing the initial condition as</p>
+<div class="eq-block" id="eq-E-13"><span id="eq-E-13"></span><span class="katex-display" data-tex="\mathbf z(0) = \sum_{k} a_k\,\mathbf v^{(k)},"></span><span class="eq-number">(E.13)</span></div>
+<p>the solution is</p>
+<div class="eq-block" id="eq-E-14"><span id="eq-E-14"></span><span class="katex-display" data-tex="\mathbf z(t) = \sum_{k} a_k\,\mathbf v^{(k)} e^{\lambda_k t}
+    \;\xrightarrow[t\to\infty]{}\;
+    a_1\,\mathbf v^{(1)} e^{\lambda_1 t},"></span><span class="eq-number">(E.14)</span></div>
+<p>provided <span class="katex-inline" data-tex="a_1\neq 0"></span>. Writing <span class="katex-inline" data-tex="\lambda_1 = i\Omega_{\mathrm{coll}}"></span> and <span class="katex-inline" data-tex="\mathbf v^{(1)} = (v_1,\dots,v_N)^\top"></span>, we obtain</p>
+<div class="eq-block" id="eq-E-15"><span id="eq-E-15"></span><span class="katex-display" data-tex="z_i(t) \sim a_1\,v_i\,e^{i\Omega_{\mathrm{coll}} t}
+    \quad\Rightarrow\quad
+    r_i(t) \xrightarrow[t\to\infty]{} r_i^\ast := |a_1 v_i|,
+    \;\;\;
+    \theta_i(t) \approx \Omega_{\mathrm{coll}} t + \arg(a_1 v_i)."></span><span class="eq-number">(E.15)</span></div>
+<p>In the synchronized or collective–oscillation regime of the linear system, the amplitudes therefore do <em>not</em> decay to zero; rather, they converge to a fixed spatial profile <span class="katex-inline" data-tex="r_i^\ast&gt;0"></span> determined by the dominant eigenvector. All other directions in state space are exponentially damped.</p>
+<p class="runin-heading"><strong>Role of <span class="katex-inline" data-tex="U(1)"></span> symmetry and collapse onto a reduced manifold.</strong></p>
+<p>The network&nbsp;<a href="#eq:linear_A_gamma_app" class="ref-link">(E.11)</a> is equivariant under global phase rotations,</p>
+<div class="eq-block" id="eq-E-16"><span id="eq-E-16"></span><span class="katex-display" data-tex="z_i \mapsto e^{i\phi} z_i \quad \forall i,\qquad \phi \in \mathbb{R}/2\pi\mathbb{Z},"></span><span class="eq-number">(E.16)</span></div>
+<p>i.e. if <span class="katex-inline" data-tex="\mathbf z(t)"></span> is a solution then so is <span class="katex-inline" data-tex="e^{i\phi}\mathbf z(t)"></span>. This defines a smooth action of the compact Lie group <span class="katex-inline" data-tex="U(1)"></span> on the phase space <span class="katex-inline" data-tex="\mathbb{C}^N"></span>, and the dynamics commute with that action. In general, such a continuous symmetry partitions the solution set into group orbits: each trajectory has a whole <span class="katex-inline" data-tex="U(1)"></span> family of symmetry–related copies. Under standard uniqueness assumptions, this induces a conserved “group label” (a map from phase space to the group or its Lie algebra that is constant along trajectories), providing a direct link between continuous symmetries, conserved quantities and reduced manifolds&nbsp;[<a href="paper.html#ref-283" class="cite-link">283</a>]. In local canonical coordinates, the conserved quantities appear as cyclic variables that do not enter the equations of motion except through their derivatives; trajectories then lie in a lower–dimensional manifold parameterized by these invariants&nbsp;[<a href="paper.html#ref-283" class="cite-link">283</a>].</p>
+<p>From the linear–systems side, the spectral picture above says that the state space <span class="katex-inline" data-tex="\mathbb{R}^{2N}\cong\mathbb{C}^N"></span> decomposes into a one–complex–dimensional <em>center</em> eigenspace (spanned by <span class="katex-inline" data-tex="\mathbf v^{(1)}"></span>) with <span class="katex-inline" data-tex="\Re\lambda_1=0"></span> and a <span class="katex-inline" data-tex="(2N-2)"></span>–dimensional stable subspace with <span class="katex-inline" data-tex="\Re\lambda_k&lt;0"></span>. Center manifold theory then guarantees the existence of a locally invariant center manifold <span class="katex-inline" data-tex="W^c"></span> tangent to the center eigenspace at the origin, such that all nearby trajectories are exponentially attracted to <span class="katex-inline" data-tex="W^c"></span> and the reduced dynamics on <span class="katex-inline" data-tex="W^c"></span> capture the long–time behavior of the full system&nbsp;[<a href="paper.html#ref-284" class="cite-link">284</a>,<a href="paper.html#ref-285" class="cite-link">285</a>]. In our case, <span class="katex-inline" data-tex="W^c"></span> is generated by the center eigenvector and the <span class="katex-inline" data-tex="U(1)"></span> action: up to small nonlinear corrections (e.g. saturating terms that fix the overall amplitude), the manifold is the set</p>
+<div class="eq-block" id="eq-E-17"><span id="eq-E-17"></span><span class="katex-display" data-tex="W^c \approx \left\{ a\,\mathbf v^{(1)} e^{i\phi} \;:\; a\in\mathbb{R}_+,\,\phi\in[0,2\pi) \right\}."></span><span class="eq-number">(E.17)</span></div>
+<p>Dissipation collapses all transverse directions onto this family, while the <span class="katex-inline" data-tex="U(1)"></span> symmetry guarantees a neutrally stable direction along the global phase. If a weak nonlinearity or normalization fixes the amplitude <span class="katex-inline" data-tex="a"></span> (or if we quotient out the trivial overall scaling), the effective attractor becomes a one–dimensional invariant circle <span class="katex-inline" data-tex="S^1"></span> generated by global phase rotations. This is the precise sense in which the combination of (i) <span class="katex-inline" data-tex="U(1)"></span> symmetry and (ii) a spectral gap (all other eigenvalues with negative real part) leads to a collapse of the dynamics onto a reduced manifold, as emphasized in symmetry–based analyses of reduced manifolds in neural dynamics&nbsp;[<a href="paper.html#ref-286" class="cite-link">286</a>,<a href="paper.html#ref-287" class="cite-link">287</a>,<a href="paper.html#ref-283" class="cite-link">283</a>].</p>
+<p>Projecting onto this neutrally stable manifold and parametrizing the state by phases alone, the frozen amplitudes <span class="katex-inline" data-tex="r_i^\ast"></span> render the couplings in&nbsp;<a href="#eq:phase_from_linear_app2" class="ref-link">(E.10)</a> effectively constant,</p>
+<div class="eq-block" id="eq:kuramoto_from_linear_app"><span id="eq:kuramoto_from_linear_app"></span><span id="eq-E-18"></span><span class="katex-display" data-tex="\dot\theta_i
+    =
+    \omega_i
+    +
+    \sum_{j\neq i}
+      \tilde K_{ij}\,
+      \sin\!\bigl(\theta_j-\theta_i+\alpha_{ij}\bigr),
+    \qquad
+    \tilde K_{ij} = K_{ij}\,\frac{r_j^\ast}{r_i^\ast},"></span><span class="eq-number">(E.18)</span></div>
+<p>which is of Kuramoto–Sakaguchi type&nbsp;[<a href="paper.html#ref-40" class="cite-link">40</a>,<a href="paper.html#ref-41" class="cite-link">41</a>]. The reduced phase model describes the dynamics on (or very close to) the <span class="katex-inline" data-tex="U(1)"></span>–generated center manifold where all non–symmetric directions have been damped out.</p>
+<p>This construction should be viewed as one <em>realization</em> of Kuramoto dynamics, rather than an equivalence in the opposite direction. The effective couplings <span class="katex-inline" data-tex="\tilde K_{ij}"></span> in&nbsp;<a href="#eq:kuramoto_from_linear_app" class="ref-link">(E.18)</a> are constrained by the spectrum of <span class="katex-inline" data-tex="A"></span> and the associated eigenvector profile <span class="katex-inline" data-tex="r_i^\ast"></span>. In contrast, the Kuramoto model is typically introduced as a phenomenological phase reduction for weakly coupled limit–cycle oscillators with <span class="katex-inline" data-tex="U(1)"></span> symmetry&nbsp;[<a href="paper.html#ref-42" class="cite-link">42</a>,<a href="paper.html#ref-43" class="cite-link">43</a>,<a href="paper.html#ref-44" class="cite-link">44</a>,<a href="paper.html#ref-286" class="cite-link">286</a>], in which the coupling matrix and phase coupling function can be chosen more freely (allowing, e.g., partial synchrony, clustering, or chimera–like states not tied to a single linear eigenmode).</p>
+<h2 id="auto-h-from-wilson-cowan-to-the-damped-harmonic-oscillator-52" class="paper-heading"><span class="sec-num">F</span> From Wilson-Cowan to the Damped Harmonic Oscillator</h2>
+<p>How do WILCO parameters map to harmonic oscillator parameters in the linearized regime (damping and oscillatory frequency)? 
+Let <span class="katex-inline" data-tex="(x_0,y_0)"></span> be a fixed point under constant inputs <span class="katex-inline" data-tex="I_{x_0},I_{y_0}"></span>. Define</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="u_x = x - x_0,\quad
+u_y = y - y_0,\quad
+\delta I_x = I_x - I_{x_0},\quad
+\delta I_y = I_y - I_{y_0}."></span></div>
+<p>Also set</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="h_{x_0} = w_{xx}\,x_0 + w_{xy}\,y_0 + I_{x_0}, 
+\qquad
+h_{y_0} = w_{yx}\,x_0 + w_{yy}\,y_0 + I_{y_0},"></span></div>
+<p>so that</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="x_0 = S(h_{x_0}), 
+\qquad
+y_0 = S(h_{y_0})."></span></div>
+<p>The Wilson–Cowan equations read</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\begin{cases}
+\tau_x\,\dot x = -\,x + S\bigl(w_{xx}x + w_{xy}y + I_x\bigr),\\
+\tau_y\,\dot y = -\,y + S\bigl(w_{yx}x + w_{yy}y + I_y\bigr).
+\end{cases}"></span></div>
+<p>We expand each sigmoid around its equilibrium argument.  For the <span class="katex-inline" data-tex="x"></span>–population:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\begin{aligned}
+S\bigl(w_{xx}x + w_{xy}y + I_x\bigr)
+&amp;= S\bigl(h_{x_0} + \Delta h_x\bigr), 
+\quad
+\Delta h_x = w_{xx}\,u_x + w_{xy}\,u_y + \delta I_x,\\
+&amp;= S(h_{x_0})
++ S&#x27;(h_{x_0})\,\Delta h_x
++ \tfrac{1}{2}\,S&#x27;&#x27;(h_{x_0})\,(\Delta h_x)^2
++ \mathcal{O}\bigl(\lVert\Delta h_x\rVert^3\bigr).
+\end{aligned}"></span></div>
+<p>To make the truncation explicit, we adopt the asymptotic ordering <span class="katex-inline" data-tex="u_x, u_y = \mathcal{O}(\varepsilon)"></span> and <span class="katex-inline" data-tex="\delta I_x, \delta I_y = \mathcal{O}(\varepsilon^{1/2})"></span>, the natural ordering when <span class="katex-inline" data-tex="\delta I"></span> is an externally controlled drive and <span class="katex-inline" data-tex="u"></span> is the system&rsquo;s response. Under this scaling the second-order terms in the expansion of <span class="katex-inline" data-tex="(\Delta h_x)^2"></span> scale as <span class="katex-inline" data-tex="u_x^2,\,u_x u_y,\,u_y^2 = \mathcal{O}(\varepsilon^2)"></span>; <span class="katex-inline" data-tex="u_x \delta I_x,\,u_y \delta I_x = \mathcal{O}(\varepsilon^{3/2})"></span>; and <span class="katex-inline" data-tex="\delta I_x^2 = \mathcal{O}(\varepsilon)"></span>. The mixed cross-terms therefore dominate the pure-state quadratic terms by a factor <span class="katex-inline" data-tex="\varepsilon^{1/2}"></span>, justifying their retention. The pure-input term <span class="katex-inline" data-tex="\delta I_x^2"></span> contributes a slowly varying input-only shift that we absorb into the redefinition of the operating point and do not display below. This ordering grounds the FM-modulation interpretation developed in the latter half of this appendix.</p>
+<p>Since <span class="katex-inline" data-tex="\Delta h_x"></span> is small, keep only terms that are (i) linear in <span class="katex-inline" data-tex="\{u_x,u_y,\delta I_x\}"></span> and (ii) the mixed cross‐terms <span class="katex-inline" data-tex="u_x\,\delta I_x"></span> or <span class="katex-inline" data-tex="u_y\,\delta I_x"></span>.  Expand</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="(\Delta h_x)^2 
+= \bigl(w_{xx}u_x + w_{xy}u_y + \delta I_x\bigr)^2
+= (w_{xx}u_x + w_{xy}u_y)^2 
+\;+\; 2\,(w_{xx}u_x + w_{xy}u_y)\,\delta I_x 
+\;+\; (\delta I_x)^2."></span></div>
+<p>Discard <span class="katex-inline" data-tex="\mathcal{O}(u_x^2,u_y^2,u_xu_y,\,\delta I_x^2)"></span>, but keep the cross‐term <span class="katex-inline" data-tex="2\,(w_{xx}u_x + w_{xy}u_y)\,\delta I_x"></span>.  Hence</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\begin{aligned}
+S\bigl(w_{xx}x + w_{xy}y + I_x\bigr)
+&amp;\approx
+S(h_{x_0})
++ S&#x27;(h_{x_0})\bigl[w_{xx}u_x + w_{xy}u_y + \delta I_x\bigr]\\
+&amp;\quad
++ \tfrac12\,S&#x27;&#x27;(h_{x_0})\cdot 2\,(w_{xx}u_x + w_{xy}u_y)\,\delta I_x\\
+&amp;=
+S(h_{x_0})
++ S&#x27;(h_{x_0})\bigl[w_{xx}u_x + w_{xy}u_y + \delta I_x\bigr]
++ S&#x27;&#x27;(h_{x_0})\,(w_{xx}u_x + w_{xy}u_y)\,\delta I_x.
+\end{aligned}"></span></div>
+<p>Since <span class="katex-inline" data-tex="S(h_{x_0}) = x_0"></span>, substitute into 
+<span class="katex-inline" data-tex="\tau_x\,\dot x = -\,x + S(\cdots)"></span> and subtract the equilibrium relation <span class="katex-inline" data-tex="\;0 = -\,x_0 + S(h_{x_0})\;"></span>.  We get</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\begin{aligned}
+\tau_x\,\dot u_x
+&amp;= \tau_x\,\dot x 
+- 0 
+= \bigl[-\,x + S(\cdots)\bigr] 
+- \bigl[-\,x_0 + S(h_{x_0})\bigr]
+= -\bigl(x - x_0\bigr) \\
++ \Bigl\{S(h_{x_0})
+ &amp;+ S&#x27;(h_{x_0})\bigl[w_{xx}u_x + w_{xy}u_y + \delta I_x\bigr]
++ S&#x27;&#x27;(h_{x_0})\,(w_{xx}u_x + w_{xy}u_y)\,\delta I_x\Bigr\} \\
+- S(h_{x_0}) \\
+&amp;= -\,u_x 
++ S&#x27;(h_{x_0})\bigl[w_{xx}u_x + w_{xy}u_y + \delta I_x\bigr]
++ S&#x27;&#x27;(h_{x_0})\,(w_{xx}u_x + w_{xy}u_y)\,\delta I_x.
+\end{aligned}"></span></div>
+<p>Analogously for the <span class="katex-inline" data-tex="y"></span>–population:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\begin{aligned}
+S\bigl(w_{yx}x + w_{yy}y + I_y\bigr)
+&amp;= S\bigl(h_{y_0} + \Delta h_y\bigr),
+\quad
+\Delta h_y = w_{yx}u_x + w_{yy}u_y + \delta I_y,\\
+&amp;\approx
+S(h_{y_0})
++ S&#x27;(h_{y_0})\bigl[w_{yx}u_x + w_{yy}u_y + \delta I_y\bigr]
++ \tfrac12\,S&#x27;&#x27;(h_{y_0})\cdot 2\,(w_{yx}u_x + w_{yy}u_y)\,\delta I_y,\\
+&amp;= S(h_{y_0})
++ S&#x27;(h_{y_0})\bigl[w_{yx}u_x + w_{yy}u_y + \delta I_y\bigr]
++ S&#x27;&#x27;(h_{y_0})\,(w_{yx}u_x + w_{yy}u_y)\,\delta I_y.
+\end{aligned}"></span></div>
+<p>Subtracting the equilibrium yields</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\tau_y\,\dot u_y 
+= -\,u_y
++ S&#x27;(h_{y_0})\bigl[w_{yx}u_x + w_{yy}u_y + \delta I_y\bigr]
++ S&#x27;&#x27;(h_{y_0})\,(w_{yx}u_x + w_{yy}u_y)\,\delta I_y."></span></div>
+<p>Hence the first‐order system—including the cross‐terms where input multiplies state deviations—is</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\boxed{
+\begin{aligned}
+\tau_x\,\dot u_x 
+&amp;= -\,u_x 
++ S&#x27;(h_{x_0})\bigl[w_{xx}u_x + w_{xy}u_y + \delta I_x\bigr]
++ S&#x27;&#x27;(h_{x_0})\,(w_{xx}u_x + w_{xy}u_y)\,\delta I_x,\\[0.7em]
+\tau_y\,\dot u_y 
+&amp;= -\,u_y 
++ S&#x27;(h_{y_0})\bigl[w_{yx}u_x + w_{yy}u_y + \delta I_y\bigr]
++ S&#x27;&#x27;(h_{y_0})\,(w_{yx}u_x + w_{yy}u_y)\,\delta I_y.
+\end{aligned}
+}"></span></div>
+<p>Here we see that the self-coupling in the sigmoid affects, to first order, the frequency and also the time constant of the L-operator. To make this more explicit, we move the self-terms to the LHS, to provide a modified L-operator:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\boxed{
+\begin{aligned}
+\tau_x\,\dot u_x + \bigl[1 -S&#x27;(h_{x_0}) w_{xx} - S&#x27;&#x27;(h_{x_0})\,w_{xx} \,\delta I_x\bigr]u_x
+&amp;= 
+\bigl[S&#x27;(h_{x_0}) + S&#x27;&#x27;(h_{x_0})\,\delta I_x  \bigr]w_{xy}\, u_y + S&#x27;(h_{x_0})\delta I_x, \\[0.7em]
+\tau_y\,\dot u_y 
++  \bigl[\,1 - S&#x27;(h_{y_0})\,w_{yy} - S&#x27;&#x27;(h_{y_0})\,w_{yy}\,\delta I_y \bigr]\,u_y
+&amp;=
+\bigl[S&#x27;(h_{y_0}) + S&#x27;&#x27;(h_{y_0})\,\delta I_y\bigr]\,w_{yx}\,u_x 
++ S&#x27;(h_{y_0})\,\delta I_y.
+\end{aligned}
+}"></span></div>
+<p>We now define two nonlinear differential operators <span class="katex-inline" data-tex="L_x"></span> and <span class="katex-inline" data-tex="L_y"></span> by grouping all &ldquo;self‐terms&rdquo; on the left.  Specifically:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\begin{aligned}
+L_x\bigl[u_x\bigr]
+&amp;:= \tau_x\,\dot u_x 
+\;+\; \underbrace{\bigl[\,1 - S&#x27;(h_{x_0})\,w_{xx} \;-\; S&#x27;&#x27;(h_{x_0})\,w_{xx}\,\delta I_x \bigr]}_{a_x},\\[0.6em]
+L_y\bigl[u_y\bigr]
+&amp;:= \tau_y\,\dot u_y 
+\;+\; \underbrace{\bigl[\,1 - S&#x27;(h_{y_0})\,w_{yy} \;-\; S&#x27;&#x27;(h_{y_0})\,w_{yy}\,\delta I_y \bigr]}_{a_y}\,u_y.
+\end{aligned}"></span></div>
+<p>Next, define the &ldquo;instantaneous coupling‐(frequency)’’ coefficients and forcing terms:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\begin{aligned}
+\Omega_{xy}(t) 
+&amp;:= -\,\bigl[S&#x27;(h_{x_0}) + S&#x27;&#x27;(h_{x_0})\,\delta I_x(t)\bigr]\,w_{xy}, 
+&amp;\quad 
+F_x(t) &amp;:= S&#x27;(h_{x_0})\,\delta I_x(t),\\[0.5em]
+\Omega_{yx}(t)
+&amp;:= \phantom{-}\bigl[S&#x27;(h_{y_0}) + S&#x27;&#x27;(h_{y_0})\,\delta I_y(t)\bigr]\,w_{yx},
+&amp;\quad 
+F_y(t) &amp;:= S&#x27;(h_{y_0})\,\delta I_y(t).
+\end{aligned}"></span></div>
+<p>With these definitions, each equation can be written in the familiar &ldquo;<span class="katex-inline" data-tex="\,L[\cdot] = \pm\,\Omega\,(\text{other}) + F"></span>&rdquo; form:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\boxed{
+\begin{aligned}
+L_x\bigl[u_x\bigr] 
+&amp;= -\,\Omega_{xy}(t)\,u_y \;+\; F_x(t),\\[0.7em]
+L_y\bigl[u_y\bigr] 
+&amp;= +\,\Omega_{yx}(t)\,u_x \;+\; F_y(t).
+\end{aligned}
+}"></span></div>
+<p>Here:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\begin{aligned}
+L_x[u_x] 
+&amp;= \tau_x\,\dot u_x 
+\;+\; \bigl[\,1 - S&#x27;(h_{x_0})\,w_{xx} - S&#x27;&#x27;(h_{x_0})\,w_{xx}\,\delta I_x \bigr]\,u_x,\\
+L_y[u_y] 
+&amp;= \tau_y\,\dot u_y 
+\;+\; \bigl[\,1 - S&#x27;(h_{y_0})\,w_{yy} - S&#x27;&#x27;(h_{y_0})\,w_{yy}\,\delta I_y \bigr]\,u_y,\\
+\Omega_{xy}(t) 
+&amp;= -\,\bigl[S&#x27;(h_{x_0}) + S&#x27;&#x27;(h_{x_0})\,\delta I_x(t)\bigr]\,w_{xy},
+\quad F_x(t) = S&#x27;(h_{x_0})\,\delta I_x(t),\\
+\Omega_{yx}(t)
+&amp;= \bigl[S&#x27;(h_{y_0}) + S&#x27;&#x27;(h_{y_0})\,\delta I_y(t)\bigr]\,w_{yx},
+\quad F_y(t) = S&#x27;(h_{y_0})\,\delta I_y(t).
+\end{aligned}"></span></div>
+<p>In this packed form, <span class="katex-inline" data-tex="L_x"></span> and <span class="katex-inline" data-tex="L_y"></span> absorb all self‐interactions (including the <span class="katex-inline" data-tex="\delta I"></span>-dependent shifts in effective gain), while the right‐hand side <span class="katex-inline" data-tex="\pm\,\Omega(t)\cdot(\text{other variable}) + F(t)"></span> isolates the cross‐coupling—i.e. a time‐varying &ldquo;frequency&rdquo; <span class="katex-inline" data-tex="\Omega_{xy},\Omega_{yx}"></span>—plus direct input forcing.</p>
+<p>In summary, the sigmoid nonlinearity is not merely a saturating link; its first and second derivatives convert small input changes into dynamic adjustments of both damping and oscillatory frequency &mdash; because <span class="katex-inline" data-tex="S&#x27;"></span> rescales all coupling strengths and <span class="katex-inline" data-tex="S&#x27;&#x27;\,\delta I"></span> provides a direct input-dependent correction.</p>
+<p class="runin-heading"><strong>Functional Implications: Sigmoidal Frequency Modulation and Information Broadcast.</strong></p>
+<p>The linearized equations
+reveal that each population’s deviation <span class="katex-inline" data-tex="u_i"></span> is not merely driven additively by inputs; the second derivative of the sigmoid, <span class="katex-inline" data-tex="S&#x27;&#x27;(h_{i0})"></span>, multiplies the product of state deviations and input perturbations.  In other words, the term</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="S&#x27;&#x27;(h_{x0})\,\omega_{xy}\,u_y\,\delta I_x
+\quad\Longleftrightarrow\quad
+\text{(input to \(x\))} \times \text{(activity of \(y\))},"></span></div>
+<p>acts as a form of <em>frequency modulation</em> (FM): fluctuations in one population’s input <span class="katex-inline" data-tex="\delta I_x"></span> directly tune the effective coupling through <span class="katex-inline" data-tex="\omega_{xy}\,u_y"></span>.  Since coupling strengths determine the natural frequency of oscillatory interactions, a small change in <span class="katex-inline" data-tex="\delta I_x"></span> shifts the instantaneous frequency at which <span class="katex-inline" data-tex="x"></span> and <span class="katex-inline" data-tex="y"></span> exchange activity.</p>
+<p>Physiologically, this FM-like mechanism allows one &ldquo;mass&rdquo; (population <span class="katex-inline" data-tex="x"></span>) to broadcast information by modulating the oscillatory frequency of another &ldquo;mass&rdquo; (<span class="katex-inline" data-tex="y"></span>).  A receiving population that is most sensitive at a particular frequency will selectively respond when the sender drives the shared sigmoid nonlinearity into a regime where <span class="katex-inline" data-tex="S&#x27;&#x27;(h_{x0})\,\delta I_x"></span> shifts the downstream frequency into that band.  In effect:</p>
+<ul>
+<li><p><strong>Sender (population <span class="katex-inline" data-tex="x"></span>)</strong> selects a desired frequency by adjusting <span class="katex-inline" data-tex="\delta I_x"></span>.  Because <span class="katex-inline" data-tex="S&#x27;&#x27;(h_{x0})\,\delta I_x"></span> scales the coupling coefficient <span class="katex-inline" data-tex="\omega_{xy}\,u_y"></span>, the instantaneous &ldquo;spring constant&rdquo; of the <span class="katex-inline" data-tex="y"></span>–oscillator is tuned.</p></li>
+<li><p><strong>Receiver (population <span class="katex-inline" data-tex="y"></span>)</strong> is predisposed to respond when its own input <span class="katex-inline" data-tex="\delta I_y"></span> or baseline drive <span class="katex-inline" data-tex="h_{y0}"></span> places it near that modulated frequency.  Thus, only those populations whose resonance matches the sender’s modulation will effectively &ldquo;hear&rdquo; the broadcast.</p></li>
+</ul>
+<p>In summary, the presence of <span class="katex-inline" data-tex="S&#x27;&#x27;(\cdot)"></span> in the linearized dynamics gives rise to rich waveform‐shaping capabilities: a small change in one population’s input causes a proportional shift in the effective coupling to the other population, which in turn alters its oscillation frequency.  This FM‐style interaction can be exploited in networks to parcel information into distinct frequency channels, ensuring that only suitably tuned downstream circuits decode the message.</p>
+<h2 id="app:WILCO2SL" class="paper-heading"><span class="sec-num">G</span> From Wilson-Cowan to Stuart-Landau</h2>
+<p>The Wilson-Cowan equations describe the interaction between excitatory (<span class="katex-inline" data-tex="E"></span>) and inhibitory (<span class="katex-inline" data-tex="I"></span>) populations,</p>
+<div class="eq-block" id="eq-G-1"><span id="eq-G-1"></span><span class="katex-display" data-tex="\begin{aligned}\tau_E \dot{E} &amp;= -E + S_E(w_{EE}E - w_{EI}I + P_E),\end{aligned}"></span><span class="eq-number">(G.1)</span></div>
+<div class="eq-block" id="eq-G-2"><span id="eq-G-2"></span><span class="katex-display" data-tex="\begin{aligned}\tau_I \dot{I} &amp;= -I + S_I(w_{IE}E - w_{II}I + P_I),\end{aligned}"></span><span class="eq-number">(G.2)</span></div>
+<p>where <span class="katex-inline" data-tex="S_{E,I}"></span> are sigmoidal firing-rate functions and <span class="katex-inline" data-tex="P_{E,I}"></span> represent external inputs. 
+At equilibrium <span class="katex-inline" data-tex="(E^*, I^*)"></span>, small deviations <span class="katex-inline" data-tex="u = E - E^*"></span> and <span class="katex-inline" data-tex="v = I - I^*"></span> evolve according to</p>
+<div class="eq-block" id="eq-G-3"><span id="eq-G-3"></span><span class="katex-display" data-tex="\begin{aligned}\begin{pmatrix}\dot{u}\\[2pt]\dot{v}\end{pmatrix}
+= J \begin{pmatrix}u\\[2pt]v\end{pmatrix},
+\qquad
+J =
+\begin{pmatrix}
+\dfrac{-1 + S_E&#x27; w_{EE}}{\tau_E} &amp; \dfrac{- S_E&#x27; w_{EI}}{\tau_E}\\[6pt]
+\dfrac{S_I&#x27; w_{IE}}{\tau_I} &amp; \dfrac{-1 - S_I&#x27; w_{II}}{\tau_I}
+\end{pmatrix}.\end{aligned}"></span><span class="eq-number">(G.3)</span></div>
+<p>The trace <span class="katex-inline" data-tex="T=\mathrm{Tr}(J)"></span> and determinant <span class="katex-inline" data-tex="D=\det(J)"></span> determine stability.  
+A Hopf bifurcation occurs when</p>
+<div class="eq-block" id="eq-G-4"><span id="eq-G-4"></span><span class="katex-display" data-tex="T = 0, \qquad D &gt; 0,"></span><span class="eq-number">(G.4)</span></div>
+<p>so that the eigenvalues are purely imaginary, <span class="katex-inline" data-tex="\lambda_{\pm} = \pm i\omega_0"></span>, with</p>
+<div class="eq-block" id="eq-G-5"><span id="eq-G-5"></span><span class="katex-display" data-tex="\omega_0 =
+\sqrt{\frac{
+(-1 + S_E&#x27; w_{EE})(-1 - S_I&#x27; w_{II}) + S_E&#x27; S_I&#x27; w_{EI} w_{IE}
+}{\tau_E \tau_I}}."></span><span class="eq-number">(G.5)</span></div>
+<p>where <span class="katex-inline" data-tex="\omega_0"></span> marks the natural oscillation rate of the coupled E-I system. The linear analysis captures only the onset of oscillations. To understand how their amplitude stabilizes, one must include the curvature of the sigmoids. Because <span class="katex-inline" data-tex="S_{E,I}"></span> flatten at high input, their local expansion around the fixed point,</p>
+<div class="eq-block" id="eq-G-6"><span id="eq-G-6"></span><span class="katex-display" data-tex="S_E(x) \simeq S_E^* + S_E&#x27;(x-x^*) + \tfrac{1}{2}S_E&#x27;&#x27;(x-x^*)^2 + \tfrac{1}{6}S_E&#x27;&#x27;&#x27;(x-x^*)^3,"></span><span class="eq-number">(G.6)</span></div>
+<p>reveals that <span class="katex-inline" data-tex="S&#x27;&#x27;&#x27; &lt; 0"></span> produces a negative cubic nonlinearity.   As activity grows, the effective gain drops, providing nonlinear damping that prevents runaway oscillations.   This saturation is the key mechanism that limits amplitude after the Hopf bifurcation.</p>
+<p>Close to the bifurcation point, the two-dimensional dynamics can be expressed more simply by moving to a complex coordinate</p>
+<div class="eq-block" id="eq-G-7"><span id="eq-G-7"></span><span class="katex-display" data-tex="z = x + i y = M\begin{pmatrix}E - E^* \\ I - I^*\end{pmatrix},"></span><span class="eq-number">(G.7)</span></div>
+<p>where <span class="katex-inline" data-tex="M"></span> is formed from the eigenvectors of <span class="katex-inline" data-tex="J"></span>.  
+In these coordinates, the system reduces to the canonical Stuart-Landau form,</p>
+<div class="eq-block" id="eq-G-8"><span id="eq-G-8"></span><span class="katex-display" data-tex="\dot{z} = (\mu + i\omega_0)z - (a + ib)|z|^2z,"></span><span class="eq-number">(G.8)</span></div>
+<p>which captures the slow modulation of amplitude and phase near the Hopf point.  
+The parameter <span class="katex-inline" data-tex="\mu"></span> measures the distance from the bifurcation,</p>
+<div class="eq-block" id="eq-G-9"><span id="eq-G-9"></span><span class="katex-display" data-tex="\mu = \tfrac{1}{2}\left.\frac{dT}{dp}\right|_{p_c}(p - p_c),"></span><span class="eq-number">(G.9)</span></div>
+<p>for some control parameter <span class="katex-inline" data-tex="p"></span>, such as <span class="katex-inline" data-tex="P_E"></span>.  
+Here <span class="katex-inline" data-tex="\omega_0"></span> is the linear oscillation frequency, <span class="katex-inline" data-tex="a&gt;0"></span> arises from the negative curvature of the sigmoids (<span class="katex-inline" data-tex="S&#x27;&#x27;&#x27;&lt;0"></span>), and <span class="katex-inline" data-tex="b"></span> accounts for a weak amplitude-dependent frequency shift.</p>
+<p>Writing <span class="katex-inline" data-tex="z = r e^{i\phi}"></span> gives</p>
+<div class="eq-block" id="eq-G-10"><span id="eq-G-10"></span><span class="katex-display" data-tex="\begin{aligned}\dot{r} &amp;= \mu r - a r^3,\end{aligned}"></span><span class="eq-number">(G.10)</span></div>
+<div class="eq-block" id="eq-G-11"><span id="eq-G-11"></span><span class="katex-display" data-tex="\begin{aligned}\dot{\phi} &amp;= \omega_0 - b r^2.\end{aligned}"></span><span class="eq-number">(G.11)</span></div>
+<p>For small amplitudes, the linear term <span class="katex-inline" data-tex="\mu r"></span> drives growth; for large amplitudes, the cubic term <span class="katex-inline" data-tex="-a r^3"></span> dominates, stabilizing oscillations at</p>
+<div class="eq-block" id="eq-G-12"><span id="eq-G-12"></span><span class="katex-display" data-tex="r_{\mathrm{ss}} = \sqrt{\mu/a}."></span><span class="eq-number">(G.12)</span></div>
+<p>Thus, the cubic nonlinearity captures the biological self-limiting effect of population saturation: as excitation and inhibition rise, firing rates approach their ceiling, reducing effective gain and fixing the oscillation amplitude.</p>
+<p>In the real <span class="katex-inline" data-tex="(x,y)"></span> plane, the same dynamics can be written as</p>
+<div class="eq-block" id="eq-G-13"><span id="eq-G-13"></span><span class="katex-display" data-tex="\begin{aligned}\dot{x} &amp;= \mu x - \omega_0 y - a r^2 x + \eta_x,\end{aligned}"></span><span class="eq-number">(G.13)</span></div>
+<div class="eq-block" id="eq-G-14"><span id="eq-G-14"></span><span class="katex-display" data-tex="\begin{aligned}\dot{y} &amp;= \omega_0 x + \mu y - a r^2 y + \eta_y,\end{aligned}"></span><span class="eq-number">(G.14)</span></div>
+<p>where <span class="katex-inline" data-tex="(\eta_x, \eta_y)"></span> represent small fluctuations in the excitatory and inhibitory drives.
+Each term can be interpreted in the underlying E-I dynamics:</p>
+<p>center
+
+tabularx0.95lX
+
+<strong>Term</strong> &amp; <strong>Interpretation in E&ndash;I dynamics</strong><br>
+
+<span class="katex-inline" data-tex="(\mu x, \mu y)"></span> &amp; Bifurcation control: distance from Hopf; depends on gains, weights, or external drive.<br>
+<span class="katex-inline" data-tex="(-r^2x, -r^2y)"></span> &amp; Nonlinear saturation: reflects sigmoid flattening; prevents unbounded growth of activity.<br>
+<span class="katex-inline" data-tex="(-\omega_0 y, +\omega_0 x)"></span> &amp; Rotational coupling: captures the <span class="katex-inline" data-tex="90^\circ"></span> lag between excitation and inhibition (E drives I, I suppresses E).<br>
+<span class="katex-inline" data-tex="(\eta_x, \eta_y)"></span> &amp; Noise inputs: fluctuations in excitatory and inhibitory drives.<br>
+
+tabularx
+center</p>
+<p>In this reduced picture, the coordinates <span class="katex-inline" data-tex="x"></span> and <span class="katex-inline" data-tex="y"></span> correspond to rotated versions of the excitatory and inhibitory deviations. They form the two quadrature phases of the E-I oscillation: <span class="katex-inline" data-tex="x"></span> represents the excitatory component, while <span class="katex-inline" data-tex="y"></span> lags by roughly <span class="katex-inline" data-tex="90^\circ"></span> as the inhibitory counterpart.  
+The terms <span class="katex-inline" data-tex="-r^2x,r^2y"></span> summarize the saturation of the firing-rate nonlinearity, whereas the rotational term <span class="katex-inline" data-tex="(-\omega_0 y, \omega_0 x)"></span> embodies the mutual E-I feedback that sustains rhythmic exchange between excitation and inhibition.</p>
+<h2 id="auto-h-stuart-landau-oscillator-parameters-and-geometry-53" class="paper-heading"><span class="sec-num">H</span> Stuart–Landau Oscillator: Parameters and Geometry</h2>
+<p>Consider the Stuart–Landau normal form for a supercritical Hopf bifurcation:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot z \;=\; (\mu + i\,\omega)\,z \;-\; (g + i\,\beta)\,\lvert z\rvert^2\,z,
+\qquad z(t)\in\mathbb{C}."></span></div>
+<p>Below we summarize the role of each parameter and then clarify the geometric effect (or lack thereof) of <span class="katex-inline" data-tex="\beta"></span>. The parameters are:</p>
+<ul>
+<li><p><span class="katex-inline" data-tex="\mu"></span> (linear growth rate / distance from bifurcation).  
+    itemize</p></li>
+<li><p>If <span class="katex-inline" data-tex="\mu&lt;0"></span>, the fixed point <span class="katex-inline" data-tex="z=0"></span> is stable (all small perturbations decay).</p></li>
+<li><p>At <span class="katex-inline" data-tex="\mu=0"></span>, a Hopf bifurcation occurs.</p></li>
+<li><p>For <span class="katex-inline" data-tex="\mu&gt;0"></span>, the origin is unstable and a limit cycle of amplitude <span class="katex-inline" data-tex="r_{\infty}=\sqrt{\mu/g}"></span> emerges.</p></li>
+<li><p>Thus, <span class="katex-inline" data-tex="\mu"></span> measures how far one is past the Hopf threshold: <span class="katex-inline" data-tex="\lvert\mu\rvert"></span> is the distance in parameter space.
+    itemize</p></li>
+<li><p><span class="katex-inline" data-tex="\omega"></span> (linear frequency).  
+    itemize</p></li>
+<li><p>The term <span class="katex-inline" data-tex="i\,\omega\,z"></span> induces a rotation of small perturbations at angular speed <span class="katex-inline" data-tex="\omega"></span>.</p></li>
+<li><p>Even if <span class="katex-inline" data-tex="\mu&lt;0"></span>, any decaying oscillation spins at frequency <span class="katex-inline" data-tex="\omega"></span>.
+    itemize</p></li>
+<li><p><span class="katex-inline" data-tex="g"></span> (nonlinear damping / saturation).  
+    itemize</p></li>
+<li><p>Without saturation, <span class="katex-inline" data-tex="\mu\,z"></span>, <span class="katex-inline" data-tex="\mu&gt;0"></span>, would cause unbounded amplitude growth.  
+      The term <span class="katex-inline" data-tex="-\,g\,\lvert z\rvert^2\,z"></span> provides cubic damping in amplitude:
+      [
+       r = ,r - g,r^3, r =  z.
+      ]
+      For <span class="katex-inline" data-tex="g&gt;0"></span>, a stable limit cycle of radius 
+      <span class="katex-inline" data-tex="\displaystyle r_{\infty} = \sqrt{\frac{\mu}{\,g\,}}"></span> 
+      appears when <span class="katex-inline" data-tex="\mu&gt;0"></span>.
+    itemize</p></li>
+<li><p><span class="katex-inline" data-tex="\beta"></span> (nonlinear frequency shift / phase–amplitude coupling).  
+    itemize</p></li>
+<li><p>The term <span class="katex-inline" data-tex="-\,i\,\beta\,\lvert z\rvert^2\,z"></span> means that as <span class="katex-inline" data-tex="r=\lvert z\rvert"></span> grows, the instantaneous angular velocity becomes
+      [
+       =  ;-; ,r^2.
+      ]
+        On the limit cycle <span class="katex-inline" data-tex="r = r_{\infty} = \sqrt{\mu/g}"></span>, the asymptotic frequency is
+      <span class="katex-inline" data-tex="\displaystyle \omega_{\rm LC} = \omega - \beta\,{\mu}/{\,g\,}."></span>
+     Thus, <span class="katex-inline" data-tex="\beta"></span> governs how amplitude modulates the phase velocity (&ldquo;shear&rdquo; or &ldquo;twist&rdquo;), but does not directly affect the amplitude equation.
+    itemize</p></li>
+</ul>
+<h3 id="auto-h-geometry-54" class="paper-heading"><span class="sec-num">H.1</span> Geometry</h3>
+<p>The limit‐cycle solution for <span class="katex-inline" data-tex="\mu&gt;0,\;g&gt;0"></span> is</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="z_{\infty}(t)
+= r_{\infty}\,\exp\!\Bigl[i\bigl(\omega\,t + \phi_{0}\bigr)\Bigr]
+\;\exp\!\Bigl[-\,i\,\beta\,r_{\infty}^2\,t\Bigr]
+= r_{\infty}\,\exp\!\bigl[i\bigl(\omega - \beta\,r_{\infty}^2\bigr)\,t + i\phi_{0}\bigr],"></span></div>
+<p>with constant amplitude <span class="katex-inline" data-tex="r_{\infty}=\sqrt{\mu/g}"></span>.  In Cartesian form,</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="x(t) = \Re\bigl[z_{\infty}(t)\bigr] = r_{\infty}\cos\bigl((\omega - \beta\,r_{\infty}^2)\,t + \phi_{0}\bigr),
+\quad
+y(t) = \Im\bigl[z_{\infty}(t)\bigr] = r_{\infty}\sin\bigl((\omega - \beta\,r_{\infty}^2)\,t + \phi_{0}\bigr)."></span></div>
+<p>Hence</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="x(t)^2 + y(t)^2 \;=\; r_{\infty}^2 \quad\text{for all }t,"></span></div>
+<p>so the trajectory in the <span class="katex-inline" data-tex="(x,y)"></span>‐plane is a <em>perfect circle</em> of radius <span class="katex-inline" data-tex="r_{\infty}"></span>.  The parameter <span class="katex-inline" data-tex="\beta"></span> appears only in the phase:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot r = \mu\,r - g\,r^3, 
+\qquad
+\dot\theta = \omega - \beta\,r^2."></span></div>
+<p>Since <span class="katex-inline" data-tex="\beta"></span> does not enter <span class="katex-inline" data-tex="\dot r"></span>, the equilibrium amplitude <span class="katex-inline" data-tex="r_{\infty}"></span> is independent of <span class="katex-inline" data-tex="\beta"></span>.  Therefore, <span class="katex-inline" data-tex="\beta"></span> does <em>not</em> distort the circular shape into an ellipse.  Instead, <span class="katex-inline" data-tex="\beta"></span> shifts the frequency of rotation once the amplitude has saturated.  Concretely, a nonzero <span class="katex-inline" data-tex="\beta"></span> produces an <em>amplitude‐dependent</em> frequency: as <span class="katex-inline" data-tex="r"></span> grows, <span class="katex-inline" data-tex="\dot\theta"></span> decreases by <span class="katex-inline" data-tex="\beta\,r^2"></span>.  
+ On the limit cycle <span class="katex-inline" data-tex="r=r_{\infty}"></span>, the constant frequency is <span class="katex-inline" data-tex="\omega - \beta\,(\mu/g)"></span>. Finally, the <span class="katex-inline" data-tex="(x,y)"></span>‐trajectory remains a uniform circular orbit at this shifted frequency; there is no ellipticity.</p>
+<p>In conclusion, while <span class="katex-inline" data-tex="\mu"></span> sets the radius of the circle and <span class="katex-inline" data-tex="\omega"></span> (together with <span class="katex-inline" data-tex="\beta"></span>) fixes its angular speed, only the pair <span class="katex-inline" data-tex="(\mu,g)"></span> determines the geometric shape (the radius) of the limit cycle.  The parameter <span class="katex-inline" data-tex="\beta"></span> influences  when around the circle the oscillator moves (phase), but not  how it traces out space (shape).</p>
+<h3 id="auto-h-parameter-redundancy-and-scaling-in-the-stuart-landau-normal-form-55" class="paper-heading"><span class="sec-num">H.2</span> Parameter Redundancy and Scaling in the Stuart–Landau Normal Form</h3>
+<p>Must all four parameters appear, or can some be scaled away in the normal‐form reduction to simplify analysis of the dynamics?</p>
+<h4 id="auto-h-linear-part-mu-and-omega-56" class="paper-heading"><span class="sec-num">H.2.1</span> Linear part: <span class="katex-inline" data-tex="\mu"></span> and <span class="katex-inline" data-tex="\omega"></span></h4>
+<p>Near the Hopf bifurcation of a real dynamical system, one obtains a conjugate‐pair of eigenvalues 
+<span class="katex-inline" data-tex="\lambda_{1,2}(\nu) = \alpha(\nu) \pm i\,\Omega(\nu)"></span>, 
+where <span class="katex-inline" data-tex="\nu"></span> is the original system’s bifurcation parameter.  By definition, at the bifurcation point <span class="katex-inline" data-tex="\nu=\nu_c"></span>, <span class="katex-inline" data-tex="\alpha(\nu_c)=0"></span> and <span class="katex-inline" data-tex="\Omega(\nu_c)\neq0"></span>.  In the SL reduction  <span class="katex-inline" data-tex="\mu"></span> is chosen so that <span class="katex-inline" data-tex="\mu(\nu_c)=0"></span> and <span class="katex-inline" data-tex="\mu\approx \alpha&#x27;(\nu_c)\,(\nu-\nu_c)"></span> measures the distance from the Hopf point, and 
+ <span class="katex-inline" data-tex="\omega"></span> is (to leading order) the Hopf frequency <span class="katex-inline" data-tex="\Omega(\nu_c)"></span>.</p>
+<p>Because the <em>fixed‐time‐units</em> normal form must preserve the linear spectral center (i.e. the imaginary part at the bifurcation), both <span class="katex-inline" data-tex="\mu"></span> and <span class="katex-inline" data-tex="\omega"></span> are <em>in general</em> essential parameters.  However, one can make a <em>rotating‐frame</em> transformation</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="z(t) \;=\; u(t)\,e^{\,i\,\omega\,t}"></span></div>
+<p>to eliminate <span class="katex-inline" data-tex="\omega"></span> entirely if one is only interested in autonomous amplitude dynamics.  Under that change, 
+<span class="katex-inline" data-tex="\dot z = e^{i\omega t}(\dot u + i\,\omega\,u)"></span> 
+yields an equation for <span class="katex-inline" data-tex="u"></span> with linear part <span class="katex-inline" data-tex="(\mu + i\,\omega)u - i\,\omega\,u = \mu\,u"></span>.  In other words,</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot u 
+= \mu\,u \;-\; (g + i\,\beta)\,\lvert u\rvert^2\,u,"></span></div>
+<p>so <span class="katex-inline" data-tex="\omega"></span> <em>drops out</em>.  Of course, if one cares about the absolute phase or wants to study phase interactions with external forcing, it may be convenient to keep <span class="katex-inline" data-tex="\omega"></span>.</p>
+<h4 id="auto-h-nonlinear-part-g-and-beta-57" class="paper-heading"><span class="sec-num">H.2.2</span> Nonlinear part: <span class="katex-inline" data-tex="\,g"></span> and <span class="katex-inline" data-tex="\beta"></span></h4>
+<p>The cubic coefficient in the SL normal form appears as the complex constant <span class="katex-inline" data-tex="(g + i\,\beta)"></span>.  In principle, one can also nondimensionalize time and rescale <span class="katex-inline" data-tex="z"></span> to remove one additional parameter.  For example, define new units</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="t&#x27; = g\,t, 
+\qquad 
+u(t&#x27;) = \sqrt{\frac{g}{\mu_0}}\,z(t),"></span></div>
+<p>where <span class="katex-inline" data-tex="\mu_0"></span> is some reference scale (e.g. <span class="katex-inline" data-tex="\mu_0=1"></span>).  In these units, the equation becomes</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\frac{d u}{d t&#x27;} 
+= \frac{\dot z}{g} 
+= \frac{1}{g}\Bigl[(\mu + i\,\omega)\,z - (g + i\,\beta)\,\lvert z\rvert^2\,z\Bigr]."></span></div>
+<p>Writing <span class="katex-inline" data-tex="\mu = \tilde\mu\,g"></span> and <span class="katex-inline" data-tex="\omega = \tilde\omega\,g"></span>, and using <span class="katex-inline" data-tex="z = \sqrt{\mu_0/g}\,u"></span>, one finds</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\frac{d u}{d t&#x27;} 
+= \bigl(\tilde\mu + i\,\tilde\omega\bigr)\,u 
+\;-\; \Bigl(1 + i\,\tilde\beta\Bigr)\,\lvert u\rvert^2\,u,"></span></div>
+<p>where <span class="katex-inline" data-tex="\tilde\beta = \beta/g"></span>.  In this scaled form:</p>
+<ul>
+<li><p>The linear growth parameter becomes <span class="katex-inline" data-tex="\tilde\mu=\mu/g"></span></p></li>
+<li><p>The frequency becomes <span class="katex-inline" data-tex="\tilde\omega=\omega/g"></span></p></li>
+<li><p>The nonlinear amplitude coefficient is now unity.</p></li>
+<li><p>The phase‐amplitude coupling remains as the single ratio <span class="katex-inline" data-tex="\tilde\beta = \beta/g"></span>.</p></li>
+</ul>
+<p>Thus, by an appropriate choice of time and amplitude scaling, one <em>can</em> reduce the SL normal form to</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot u 
+= (\tilde\mu + i\,\tilde\omega)\,u 
+\;-\; (1 + i\,\tilde\beta)\,\lvert u\rvert^2\,u,"></span></div>
+<p>with only three <em>essential</em> real parameters <span class="katex-inline" data-tex="\tilde\mu,\;\tilde\omega,\;\tilde\beta"></span>.  In many analyses, using the transformation described above, one chooses the rotating frame to set <span class="katex-inline" data-tex="\tilde\omega=0"></span>, leaving</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot u 
+= \tilde\mu\,u - (1 + i\,\tilde\beta)\,\lvert u\rvert^2\,u,"></span></div>
+<p>with just two parameters <span class="katex-inline" data-tex="\tilde\mu"></span> and <span class="katex-inline" data-tex="\tilde\beta"></span>.  In that minimal form,  <span class="katex-inline" data-tex="\tilde\mu"></span> controls the distance from bifurcation (radial growth), while   
+ <span class="katex-inline" data-tex="\tilde\beta"></span> controls the amount of nonlinear frequency correction (phase–amplitude coupling).</p>
+<h4 id="auto-h-summary-which-parameters-are-necessary-58" class="paper-heading"><span class="sec-num">H.2.3</span> Summary: Which Parameters Are &ldquo;Necessary&rdquo;?</h4>
+<ul>
+<li><p>At the <em>level of the full, original SL equation</em>, one typically lists four real parameters <span class="katex-inline" data-tex="\mu,\;\omega,\;g,\;\beta"></span>.</p></li>
+<li><p><em>By scaling amplitude</em> (i.e. set <span class="katex-inline" data-tex="g=1"></span> in new units), the nonlinear damping coefficient is removed, leaving only the ratio <span class="katex-inline" data-tex="\beta/g"></span> as the relevant nonlinear parameter.</p></li>
+<li><p><em>By moving to a rotating frame</em>, the linear frequency <span class="katex-inline" data-tex="\omega"></span> can be subtracted off, so the form no longer explicitly contains <span class="katex-inline" data-tex="\omega"></span>.</p></li>
+<li><p>Consequently, the <em>minimal</em> normal form that still captures amplitude growth and phase–amplitude coupling has only <span class="katex-inline" data-tex="\tilde\mu"></span> and <span class="katex-inline" data-tex="\tilde\beta"></span>.</p></li>
+<li><p>If one wishes to retain <em>physical units</em> (time in seconds, amplitude in volts, etc.), then <span class="katex-inline" data-tex="\omega"></span> may remain as the observable oscillation frequency, and <span class="katex-inline" data-tex="g"></span> remains the precise cubic coefficient.  However, any analysis of scaling laws or bifurcation structure can be conducted in the reduced form with fewer parameters.</p></li>
+</ul>
+<p>Therefore, while the <em>generic derivation</em> of the SL normal form yields four parameters, <em>two of them can be eliminated</em> by choosing convenient time and amplitude scales (and, if desired, a rotating frame).  The remaining parameters for the unfolded Hopf–SL dynamics are the real bifurcation parameter (distance <span class="katex-inline" data-tex="\tilde\mu"></span>) and the dimensionless nonlinear frequency‐shift ratio (<span class="katex-inline" data-tex="\tilde\beta"></span>).</p>
+<h3 id="auto-h-alternative-form-emphasizing-the-limit-cycle-radius-59" class="paper-heading"><span class="sec-num">H.3</span> Alternative Form Emphasizing  the Limit‐Cycle Radius</h3>
+<p>Here we cast the Stuart-Landau equation as a damped harmonic oscillator with dynamical damping and frequency.
+The  equation</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot z \;=\; (\mu + i\,\omega)\,z \;-\; (g + i\,\beta)\,\lvert z\rvert^2\,z"></span></div>
+<p>can be rewritten to make explicit how <span class="katex-inline" data-tex="\lvert z\rvert^2"></span> is driven toward its steady‐state value <span class="katex-inline" data-tex="\mu/g"></span>.  Group the real and imaginary parts of the nonlinear coefficient:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot z 
+\;=\; \bigl[\mu - g\,\lvert z\rvert^2 \;\bigr]\,z 
+\;+\; i\,\bigl[\omega - \beta\,\lvert z\rvert^2 \;\bigr]\,z."></span></div>
+<p>Equivalently,</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\boxed{
+\dot z 
+= \bigl(\underbrace{\mu - g\,\lvert z\rvert^2}_{\text{real radial growth/damping}}\bigr)\,z 
+\;+\; i\,\bigl(\underbrace{\omega - \beta\,\lvert z\rvert^2}_{\text{instantaneous frequency}}\bigr)\,z
+}"></span></div>
+<p>or</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\boxed{
+\dot z 
+= \bigl(\underbrace{\mu - g\,r^2}_{\text{real radial growth/damping}}\bigr)\,z 
+\;+\; i\,\bigl(\underbrace{\omega - \beta\,r^2}_{\text{instantaneous frequency}}\bigr)\,z
+}"></span></div>
+<p>or
+<span class="katex-inline" data-tex=""></span>
+
+ z = ( (r)  + i (r) ), z
+<span class="katex-inline" data-tex=""></span>
+reminiscent of the <em>damped harmonic oscillator,</em> (Equation&nbsp;<a href="paper.html#eq:damped_complex" class="ref-link">2.26</a>) but with dynamical damping and frequency.</p>
+<p>The first term acts as a <strong>feedback controller</strong> of the amplitude, a dynamical damping term keeping it close to the limit cycle radius, where <span class="katex-inline" data-tex="a(r_\infty)=\mu - g\,r_\infty^2=0"></span>. It can be seen as an <strong>oscillatory homeostatic mechanism.</strong></p>
+<p>In this form:</p>
+<ul>
+<li><p>The <em>real part</em> <span class="katex-inline" data-tex="\,\mu - g\,\lvert z\rvert^2"></span> multiplies <span class="katex-inline" data-tex="z"></span>.  Writing <span class="katex-inline" data-tex="z = r\,e^{i\theta}"></span> yields the radial equation
+  [
+   r = ( - g,r^2),r,
+  ]
+  so that <span class="katex-inline" data-tex="\lvert z\rvert = r"></span> is driven toward 
+  [
+  r_ = ,g,(&gt;0).
+  ]
+  Thus one sees directly that <span class="katex-inline" data-tex="\lvert z\rvert^2\to \mu/g"></span> as <span class="katex-inline" data-tex="t\to\infty"></span>.</p></li>
+<li><p>The <em>imaginary part</em> <span class="katex-inline" data-tex="\,\omega - \beta\,\lvert z\rvert^2"></span> multiplies <span class="katex-inline" data-tex="i\,z"></span>.  In polar form this gives
+  [
+   =  ;-; ,r^2,
+  ]
+  so the instantaneous oscillator frequency is shifted by <span class="katex-inline" data-tex="\beta\,\lvert z\rvert^2"></span>.  On the limit cycle <span class="katex-inline" data-tex="r = r_{\infty}=\sqrt{\mu/g}"></span>, the asymptotic frequency is <span class="katex-inline" data-tex="\omega - \beta\,(\mu/g)"></span>.</p></li>
+</ul>
+<p>Because the term <span class="katex-inline" data-tex="\mu - g\,\lvert z\rvert^2"></span> vanishes exactly when <span class="katex-inline" data-tex="\lvert z\rvert^2 = \mu/g"></span>, it is immediately clear from this form that <span class="katex-inline" data-tex="\lvert z\rvert^2"></span> must approach <span class="katex-inline" data-tex="\mu/g"></span> in order for the radial growth <span class="katex-inline" data-tex="\dot r"></span> to vanish.  Hence the limit‐cycle amplitude emerges naturally as <span class="katex-inline" data-tex="\lvert z\rvert \to \sqrt{\mu/g}"></span>.</p>
+<h3 id="auto-h-stuart-landau-in-push-pull-form-60" class="paper-heading"><span class="sec-num">H.4</span> Stuart–Landau in Push/Pull Form</h3>
+<p>Starting from</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot z \;=\; (\mu + i\,\omega)\,z \;-\; (g + i\,\beta)\,\lvert z\rvert^2\,z,
+\qquad z = x + i\,y,\quad r^2 = x^2 + y^2,"></span></div>
+<p>the Cartesian form is</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\begin{cases}
+\dot x \;=\; \mu\,x \;-\;\omega\,y \;-\; g\,r^2\,x \;+\; \beta\,r^2\,y,\\[0.5em]
+\dot y \;=\; \mu\,y \;+\;\omega\,x \;-\; g\,r^2\,y \;-\; \beta\,r^2\,x.
+\end{cases}"></span></div>
+<p>Define the amplitude‐dependent coefficient <span class="katex-inline" data-tex="\alpha"></span>, a dynamic damping term, and <span class="katex-inline" data-tex="\Omega"></span>, a dynamic instantaneous frequency,</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\alpha(r) \;=\; -\,\mu \;+\; g\,r^2,
+\qquad
+\Omega(r) \;=\; \omega \;-\; \beta\,r^2."></span></div>
+<p>Introduce the nonlinear differential operator</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="L[f] \;:=\; \left[ \frac{d}{dt} \;+\; \alpha(r)\right] f 
+\;=\; \dot f \;-(\;\mu - g\,r^2)\,f,"></span></div>
+<p>where <span class="katex-inline" data-tex="r^2 = x^2 + y^2"></span>.  Then the Stuart–Landau equations can be compactly written as</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\boxed{
+\begin{aligned}
+L[x] &amp;= -\,\Omega(r)\,y,\\
+L[y] &amp;= +\,\Omega(r)\,x
+\end{aligned}
+}
+\quad"></span></div>
+<p>In this form, all growth (<span class="katex-inline" data-tex="\mu"></span>), saturation (<span class="katex-inline" data-tex="g\,r^2"></span>), and nonlinear phase effects (<span class="katex-inline" data-tex="\beta\,r^2"></span>) are absorbed into the operator <span class="katex-inline" data-tex="L"></span> as a dynamic damping constant, while the right‐hand side retains a &ldquo;pure&rdquo; rotation at instantaneous frequency <span class="katex-inline" data-tex="\Omega(r)"></span>.</p>
+<p>When the limit cycle is reached, <span class="katex-inline" data-tex="a=0"></span>,  we are back at the undamped harmonic oscillator.</p>
+<h3 id="app:shiftedoscillators" class="paper-heading"><span class="sec-num">H.5</span> DC-Shifted Formulation of the Oscillator</h3>
+<p>In modeling oscillatory neural dynamics, one often needs to account for a tonic bias or constant drive, or more generally constant or very slowly changing (compared to the natural timescale of the system) &ldquo;forcing". In fact, the signals generated by the model oftentimes need to be positive quantities (e.g., firing rates), or at least not centered at zero (membrane potential perturbations). 
+What is the natural way to do this in the HO and SL cases?</p>
+<p>Harmonic Oscillator case. Consider the damped, unforced oscillator in complex form:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot z = (a + i\omega)\,z, \qquad a\in\mathbb{R},\ \omega&gt;0."></span></div>
+<p>This equation gives solutions centered at zero, which is undesirable if we want to relate them with firing rate models or membrane potentials. E.g., a constant electric field produces a DC shift in membrane potential or firing rate in more realistic models. How can this simple model accommodate it?</p>
+<p>A simple additive term provides the desired solution behavior (a DC shift).
+With a bias <span class="katex-inline" data-tex="c"></span>, the equation becomes</p>
+<div class="eq-block" id="eq:HO_DCshifted"><span id="eq:HO_DCshifted"></span><span id="eq-H-1"></span><span class="katex-display" data-tex="\dot z = (a + i\omega)\,z +c."></span><span class="eq-number">(H.1)</span></div>
+<p>Introduce a constant shift <span class="katex-inline" data-tex="C\in\mathbb{C}"></span> and define the change of variables (a translation)</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="u = z + C."></span></div>
+<p>Then, the equation for <span class="katex-inline" data-tex="u"></span> is</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot u = \dot z
+        = (a + i\omega)\,(u - C) +c
+        = (a + i\omega)\,u \;-\; (a + i\omega)\,C +c."></span></div>
+<p>The last term is just a complex constant and we can set it to zero with
+<span class="katex-inline" data-tex=""></span>
+C= ca+i
+<span class="katex-inline" data-tex=""></span>
+so that <span class="katex-inline" data-tex="\dot u =(a+i\omega) u"></span>  &mdash; we recover the harmonic oscillator equation in the new coordinates. Hence, the generalized, shifted harmonic oscillator in Equation&nbsp;<a href="#eq:HO_DCshifted" class="ref-link">H.1</a>
+is a translation of the harmonic oscillator with a center at  <span class="katex-inline" data-tex="-C = -c/(a+i\omega)"></span> &mdash; see Figure&nbsp;<a href="#fig:SLtimeseries" class="ref-link">Fig. H.15</a> (top left) for examples. 
+The explicit solution is</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="z(t) = \Bigl(z_0 + \frac{c}{a+i\omega}\Bigr)e^{(a+i\omega)t}
+       - \frac{c}{a+i\omega}."></span></div>
+<p>Hence, for <span class="katex-inline" data-tex="a=0"></span>, the motion is a uniform circular orbit around 
+the displaced center <span class="katex-inline" data-tex=" -\,c/(i\omega)"></span>; for <span class="katex-inline" data-tex="a&lt;0"></span>, trajectories form logarithmic spirals 
+converging to the point <span class="katex-inline" data-tex=" -\,c/(a+i\omega)"></span>.</p>
+<p>Stuart-Landau.  Similarly to the HO case, a naive way to do so is to add a constant term <span class="katex-inline" data-tex="c\in\mathbb{C}"></span> to the Stuart–Landau (SL) equation:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot z = (\mu + i\omega)\,z \;-\;(g + i\beta)\,|z|^2z \;+\; c."></span></div>
+<p>This <em>DC–shifted SL</em> now has</p>
+<ul>
+<li><p>a limit cycle displaced away from the origin,</p></li>
+<li><p>broken <span class="katex-inline" data-tex="U(1)"></span> symmetry,</p></li>
+<li><p>and modified amplitude/frequency balance.</p></li>
+</ul>
+<p>To recover a zero‐mean description, one sets</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="z = v + z_0,
+\quad\text{where }z_0\text{ solves }(\mu + i\omega)z_0 - (g + i\beta)|z_0|^2z_0 + c = 0."></span></div>
+<p>Substitution gives</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot v
+= (\mu + i\omega)\,v
+- (g + i\beta)\,\bigl|v + z_0\bigr|^2\,(v + z_0)
+\;+\;\underbrace{(\mu + i\omega)z_0 + c - (g + i\beta)|z_0|^2z_0}_{=0},"></span></div>
+<p>so that the constant offset disappears.  However, the <em>new</em> equation for <span class="katex-inline" data-tex="v"></span> contains extra quadratic and linear terms arising from the expansion of <span class="katex-inline" data-tex="\lvert v+z_0\rvert^2(v+z_0)"></span>; it is no longer in the simple SL form.</p>
+<p>Despite this complication, <em>normal form theory</em> guarantees that any smooth perturbation of a Hopf normal form can be brought back—through a further smooth, near‐identity change of variables—into the canonical Stuart–Landau structure, up to higher–order corrections. Le&rsquo;on and Nakao (2023) [<a href="paper.html#ref-288" class="cite-link">288</a>] provide expressions for the frequency and amplitude shifts up to second order in DC shift.</p>
+<p>More generally,</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="v = u + H(u,\bar u),"></span></div>
+<p>for a suitable cubic function <span class="katex-inline" data-tex="H"></span>, eliminates all non‐resonant quadratic and shifted cubic terms, leaving</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\boxed{
+\dot u = (\tilde\mu + i\tilde\omega)\,u - (\tilde g + i\tilde\beta)\,\lvert u\rvert^2u
+}"></span></div>
+<p>to leading order.  The new parameters <span class="katex-inline" data-tex="\tilde\mu,\tilde\omega,\tilde g,\tilde\beta"></span> absorb the effects of the original bias <span class="katex-inline" data-tex="c"></span> and shift <span class="katex-inline" data-tex="z_0"></span>.  Thus, <em>even with a DC offset</em>, the local oscillatory dynamics near the Hopf bifurcation remain of Stuart–Landau type: a self-saturating limit cycle with phase–neutral drift or fixed point (depending on parameters).</p>
+<figure class="paper-figure" id="fig:SLtimeseries"><img src="assets/paper/Figure15.png" loading="lazy" alt=""><img src="assets/paper/Figure16.png" loading="lazy" alt=""><img src="assets/paper/Figure17.png" loading="lazy" alt=""><figcaption><span class="fig-number">Figure H.15.</span> <strong>Top: Harmonic Oscillator (HO) and Stuart–Landau (SL) with a bias: phase portraits.</strong> Simulations display the effects of a small or larger DC bias offset, which induce frequency and amplitude changes, or destroy the limit cycle in SL while producing simple displacements in HO.
+We integrate <span class="katex-inline" data-tex="\dot z=(\mu+i\omega)z-(g+i\beta)\lvert z\rvert^2 z + c"></span> with
+<span class="katex-inline" data-tex="\mu=1"></span>, <span class="katex-inline" data-tex="g=1"></span>, <span class="katex-inline" data-tex="\omega=2"></span>, <span class="katex-inline" data-tex="\beta=0"></span>, using RK4 (<span class="katex-inline" data-tex="\Delta t=0.01"></span>).
+Cases: (i) centered SL (<span class="katex-inline" data-tex="c=0"></span>), (ii) small DC shift (<span class="katex-inline" data-tex="c=0.5+0i"></span>) yielding a displaced
+limit cycle, (iii) large DC shift (<span class="katex-inline" data-tex="c=2+0i"></span>) leading to convergence to the fixed point. Initial condition for all runs: <span class="katex-inline" data-tex="z_0=2R_0"></span> with <span class="katex-inline" data-tex="R_0=\sqrt{\mu/g}=1"></span>.
+Trajectories shown after transients to emphasize the displaced cycle and the decay. <strong>Bottom: SL time-series overlay.</strong> The three cases are shown, highlighting changes in frequency and amplitude as well as extinction.</figcaption></figure>
+<p>However, introducing a constant DC bias to the Stuart–Landau oscillator modifies its equilibrium position, breaks the symmetry, and shifts the critical Hopf bifurcation threshold, thus altering both amplitude and frequency of oscillations (see Figure&nbsp;<a href="#fig:SLtimeseries" class="ref-link">Fig. H.15</a> for an example). Small biases result in second-order reductions in oscillation amplitude and frequency shifts, whereas sufficiently large DC offsets can completely eliminate the limit cycle. Analytically, this can be described as an imperfect Hopf bifurcation: the effective bifurcation parameter (<span class="katex-inline" data-tex="\mu"></span>) is renormalized by the DC term, requiring a higher original parameter value to sustain oscillations. Hence, persistent oscillations occur only when the system’s gain overcomes the bias-induced suppression; otherwise, the oscillator settles into a stable equilibrium without oscillations.</p>
+<h2 id="app:L-op" class="paper-heading"><span class="sec-num">I</span> Linear Operators, Green&ndash;Laplace Tools, and E-I Oscillations: a Pedagogical View</h2>
+<p>Linear differential operators appear throughout neural modeling (synaptic kinetics, population filters, dendritic cable reductions). A compact way to see why they behave like filters is to write</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="L[x](t)=u(t),\qquad L=\sum_{k=0}^n a_k\,\partial_t^k,"></span></div>
+<p>and study two canonical objects. The <em>homogeneous</em> solution <span class="katex-inline" data-tex="L[x_h]=0"></span> reveals the system&rsquo;s natural modes, while the <em>impulse response</em> <span class="katex-inline" data-tex="h"></span> solves <span class="katex-inline" data-tex="L[h]=\delta"></span> with <span class="katex-inline" data-tex="h(t)=0"></span> for <span class="katex-inline" data-tex="t&lt;0"></span> and encodes the system&rsquo;s causal memory. If the characteristic polynomial <span class="katex-inline" data-tex="p(\lambda)=\sum_{k=0}^n a_k\lambda^k"></span> factors as <span class="katex-inline" data-tex="\prod_i(\lambda-\lambda_i)"></span> with distinct <span class="katex-inline" data-tex="\lambda_i"></span>, then <span class="katex-inline" data-tex="x_h(t)=\sum_i c_i e^{\lambda_i t}"></span>. The corresponding <span class="katex-inline" data-tex="h(t)"></span> is also a linear combination of the same exponentials for <span class="katex-inline" data-tex="t&gt;0"></span>, pinned by standard continuity conditions at <span class="katex-inline" data-tex="t=0"></span> (all derivatives up to order <span class="katex-inline" data-tex="n-2"></span> are continuous; <span class="katex-inline" data-tex="x^{(n-1)}"></span> jumps by <span class="katex-inline" data-tex="1/a_n"></span>)  [<a href="paper.html#ref-289" class="cite-link">289</a>].</p>
+<h3 id="auto-h-two-complementary-tools-laplace-and-green-61" class="paper-heading"><span class="sec-num">I.1</span> Two complementary tools: Laplace and Green</h3>
+<p class="runin-heading"><strong>Laplace viewpoint.</strong></p>
+<p>With zero initial conditions, <span class="katex-inline" data-tex="\mathcal{L}\{L[x]\}(s)=P(s)X(s)"></span> where <span class="katex-inline" data-tex="P(s)=\sum_k a_k s^k"></span>. The <em>transfer function</em> is <span class="katex-inline" data-tex="H(s)=X(s)/U(s)=1/P(s)"></span>. Poles of <span class="katex-inline" data-tex="H"></span> set decay rates, oscillation frequencies, and phase lag. Evaluating on the imaginary axis, <span class="katex-inline" data-tex="H(j\omega)"></span>, gives magnitude and phase; the <em>group delay</em> is <span class="katex-inline" data-tex="\tau_g(\omega)=-\frac{d}{d\omega}\arg H(j\omega)"></span>.</p>
+<p class="runin-heading"><strong>Green (time‑domain) viewpoint.</strong></p>
+<p>Equivalently, the causal Green&rsquo;s function <span class="katex-inline" data-tex="G(t,t_0)"></span> satisfies <span class="katex-inline" data-tex="L[G(\cdot,t_0)]=\delta(\cdot-t_0)"></span> with <span class="katex-inline" data-tex="G=0"></span> for <span class="katex-inline" data-tex="t&lt;t_0"></span>. For any input <span class="katex-inline" data-tex="u"></span>,</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="x(t)=\int_{-\infty}^t G(t,t_0)\,u(t_0)\,dt_0=(h*u)(t),\qquad h(t)=G(t,0)."></span></div>
+<p>Laplace uses exponentials <span class="katex-inline" data-tex="e^{st}"></span> (an eigenbasis of <span class="katex-inline" data-tex="\partial_t"></span>) to expose poles and phase directly; Green uses time‑localized impulses <span class="katex-inline" data-tex="\delta(t-t_0)"></span> to show how past inputs are weighted and delayed  [<a href="paper.html#ref-289" class="cite-link">289</a>]. Both are the same mathematics seen from two bases.</p>
+<h4 id="auto-h-a-gentle-taxonomy-by-order-with-worked-examples-62" class="paper-heading">A gentle taxonomy by order (with worked examples)</h4>
+<p>For clarity we use <span class="katex-inline" data-tex="L=a\,\partial_t+b"></span> for first order and <span class="katex-inline" data-tex="L=m\,\partial_t^2+a\,\partial_t+b"></span> for second order, with <span class="katex-inline" data-tex="m&gt;0"></span>, <span class="katex-inline" data-tex="a\ge0"></span>, <span class="katex-inline" data-tex="b&gt;0"></span>. When convenient we switch to <span class="katex-inline" data-tex="\omega_n"></span> and <span class="katex-inline" data-tex="\zeta"></span> via <span class="katex-inline" data-tex="b/m=\omega_n^2"></span> and <span class="katex-inline" data-tex="a/m=2\zeta\omega_n"></span>.</p>
+<p class="runin-heading"><strong>Zeroth order: memoryless gain.</strong></p>
+<p><span class="katex-inline" data-tex="b\,y=f\Rightarrow h(t)=\frac{1}{b}\delta(t)"></span>. There is no temporal memory.</p>
+<p class="runin-heading"><strong>First order: leaky integrator (and integrator limit).</strong></p>
+<p><span class="katex-inline" data-tex="a\,\dot y+b\,y=f"></span> has <span class="katex-inline" data-tex="h(t)=\frac{1}{a}e^{-(b/a)t}H(t)"></span>. The time constant is <span class="katex-inline" data-tex="\tau=a/b"></span>. In Laplace, <span class="katex-inline" data-tex="H(s)=1/(a s+b)=(1/b)\,1/(1+s\tau)"></span>, so <span class="katex-inline" data-tex="\tau_g(\omega)=\tau/(1+(\omega\tau)^2)"></span>. If <span class="katex-inline" data-tex="b=0"></span>, <span class="katex-inline" data-tex="h(t)=\frac{1}{a}H(t)"></span> and <span class="katex-inline" data-tex="H(s)=1/(a s)"></span>: an ideal integrator with perfect memory.</p>
+<p class="runin-heading"><strong>Second order: rise&ndash;decay, critical, underdamped, and negative damping.</strong></p>
+<p>With <span class="katex-inline" data-tex="L=m\,\ddot y+a\,\dot y+b\,y"></span>, the roots</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="r_{1,2}=\frac{-a\pm\sqrt{a^2-4mb}}{2m}"></span></div>
+<p>organize all cases. Overdamped (<span class="katex-inline" data-tex="a^2&gt;4mb"></span>): <span class="katex-inline" data-tex="h(t)=\dfrac{e^{r_1 t}-e^{r_2 t}}{m(r_1-r_2)}H(t)"></span>, a difference of decays with a delayed peak. Critical (<span class="katex-inline" data-tex="a^2=4mb"></span>): <span class="katex-inline" data-tex="h(t)=(1/m)\,t\,e^{-\frac{a}{2m}t}H(t)"></span> (the alpha form). Underdamped (<span class="katex-inline" data-tex="a^2&lt;4mb"></span>): writing <span class="katex-inline" data-tex="\alpha=\frac{a}{2m}"></span> and <span class="katex-inline" data-tex="\omega_d=\frac{\sqrt{4mb-a^2}}{2m}"></span>,</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="h(t)=\frac{1}{m\omega_d}e^{-\alpha t}\sin(\omega_d t)\,H(t),"></span></div>
+<p>an exponentially damped sinusoid. If <span class="katex-inline" data-tex="a&lt;0"></span> (negative friction) the real part of the poles is positive and the response grows.</p>
+<h3 id="auto-h-the-synapse-as-a-emph-forced-harmonic-oscillator-63" class="paper-heading"><span class="sec-num">I.2</span> The synapse as a <em>forced harmonic oscillator</em></h3>
+<p>It is perhaps more intuitive to understand synaptic delay and inertia by <em>recognizing the operator</em> <span class="katex-inline" data-tex="L=m\,\partial_t^2+a\,\partial_t+b"></span> as the mass-spring-damper driven by a force <span class="katex-inline" data-tex="f(t)"></span>:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="m\,\ddot y(t)+a\,\dot y(t)+b\,y(t)=f(t)."></span></div>
+<p>Apply an impulse <span class="katex-inline" data-tex="f=\delta"></span>. The mass first acquires velocity, not displacement; energy shuttles between kinetic and spring energy, and damping removes energy. This automatically produces a <em>delayed</em> peak in <span class="katex-inline" data-tex="y"></span>: the output must build up after the impulse. The same reasoning holds for the electrical RLC analog. In neural mass models, <span class="katex-inline" data-tex="y"></span> is a postsynaptic potential and <span class="katex-inline" data-tex="f"></span> is the presynaptic drive; the &ldquo;mass&rdquo; <span class="katex-inline" data-tex="m"></span> summarizes effective inertial storage across coupled first‑order elements, while <span class="katex-inline" data-tex="a"></span> and <span class="katex-inline" data-tex="b"></span> summarize leak and restoring tendencies.</p>
+<p class="runin-heading"><strong>Worked example (critical alpha).</strong></p>
+<p>Choose <span class="katex-inline" data-tex="h(t)=A\,a\,t\,e^{-a t}H(t)"></span>. Then <span class="katex-inline" data-tex="\mathcal{L}\{h\}(s)=A a/(s+a)^2"></span> and</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="(s+a)^2 Y(s)=A a\,\Sigma(s)\quad\Longleftrightarrow\quad (\partial_t+a)^2 y(t)=A a\,\sigma(t)."></span></div>
+<p>Thus the alpha kernel <em>is</em> the impulse response of a critically damped oscillator driven by the presynaptic input. Its delayed peak illustrates a causal, buffer‑like delay with smoothing, not a noncausal time shift.</p>
+<p class="runin-heading"><strong>Peak time and inertia: how mass slows the response.</strong></p>
+<p>Factor <span class="katex-inline" data-tex="L=m(\partial_t+a_r)(\partial_t+a_d)"></span> with <span class="katex-inline" data-tex="a_r+a_d=a/m"></span> and <span class="katex-inline" data-tex="a_r a_d=b/m"></span>. In the overdamped case, <span class="katex-inline" data-tex="h(t)=\frac{e^{-a_d t}-e^{-a_r t}}{m(a_r-a_d)}H(t)"></span> peaks at</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="t_{\mathrm{peak}}=\frac{1}{a_r-a_d}\ln\!\frac{a_r}{a_d}."></span></div>
+<p>At the double pole <span class="katex-inline" data-tex="a_r=a_d=a/(2m)"></span> one gets <span class="katex-inline" data-tex="h(t)=(1/m)\,t\,e^{-\frac{a}{2m}t}"></span> with <span class="katex-inline" data-tex="t_{\mathrm{peak}}=2m/a"></span>. In the underdamped case,</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="h(t)=\frac{1}{m\omega_d}e^{-\alpha t}\sin(\omega_d t)H(t),\qquad
+t_{\mathrm{peak}}=\frac{1}{\omega_d}\arctan\!\frac{\omega_d}{\alpha},"></span></div>
+<p>with <span class="katex-inline" data-tex="\alpha=\tfrac{a}{2m}"></span> and <span class="katex-inline" data-tex="\omega_d=\tfrac{\sqrt{4mb-a^2}}{2m}"></span>. For fixed <span class="katex-inline" data-tex="a,b&gt;0"></span> and <span class="katex-inline" data-tex="m\to\infty"></span>, <span class="katex-inline" data-tex="\alpha\to0"></span>, <span class="katex-inline" data-tex="\omega_d\sim \sqrt{b/m}"></span>, and <span class="katex-inline" data-tex="\arctan(\omega_d/\alpha)\to\pi/2"></span>, hence</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="t_{\mathrm{peak}}\sim \frac{\pi}{2}\sqrt{\frac{m}{b}}\to\infty."></span></div>
+<p>Inertia therefore <em>increases</em> the causal delay. Importantly, the overdamped log formula must not be used once the poles become complex; the underdamped expression governs the peak.</p>
+<h3 id="app:barkhausen" class="paper-heading"><span class="sec-num">I.3</span> E&ndash;I motifs, Barkhausen conditions, and where the phase lag comes from</h3>
+<p>A pedagogical route to oscillation is to rewrite the undamped oscillator as a pair of coupled first‑order filters. Let <span class="katex-inline" data-tex="z=x+i y"></span> and consider</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot z=(a+i\omega)z,\qquad a\ge0,\ \omega&gt;0."></span></div>
+<p>Separating real and imaginary parts gives</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot x=a x-\omega y,\qquad \dot y=a y+\omega x."></span></div>
+<p>Each equation is a leaky integrator driven by the other in <span class="katex-inline" data-tex="90^\circ"></span> phase. When <span class="katex-inline" data-tex="a=0"></span> the loop produces sustained oscillations; when <span class="katex-inline" data-tex="a&gt;0"></span> the envelope decays as <span class="katex-inline" data-tex="e^{-a t}"></span>. This &ldquo;push&ndash;pull&rdquo; view is the simplest template to keep in mind as we turn to E-I populations.</p>
+<p class="runin-heading"><strong>Barkhausen as a phase-gain budget.</strong></p>
+<p>For a feedback loop with transfer <span class="katex-inline" data-tex="L(s)"></span>, <strong>necessary conditions for linear self‑oscillation</strong> at <span class="katex-inline" data-tex="\omega_0"></span> are <span class="katex-inline" data-tex="|L(j\omega_0)|=1"></span> and <span class="katex-inline" data-tex="\arg L(j\omega_0)=0^\circ \pmod{360^\circ}"></span> [<a href="paper.html#ref-290" class="cite-link">290</a>]. The phase condition pins <span class="katex-inline" data-tex="\omega_0"></span> by balancing element lags; the magnitude condition pins the product of gains, including the slope <span class="katex-inline" data-tex="\kappa"></span> of the nonlinearity at the bias point. Nonlinear saturation then stabilizes amplitude [<a href="paper.html#ref-291" class="cite-link">291</a>].</p>
+<p class="runin-heading"><strong>Wilson&ndash;Cowan with first‑order synapses.</strong></p>
+<p>Linearize about a fixed point with slope <span class="katex-inline" data-tex="\kappa"></span> and unit time constants:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot{x}=-(1-w_{ee}\kappa)x - w_{ei}\kappa\,y + I_x,\qquad
+\dot{y}=-y + w_{ie}\kappa\,x - w_{ii}\kappa\,y."></span></div>
+<p>The E<span class="katex-inline" data-tex="\to"></span>I<span class="katex-inline" data-tex="\to"></span>E loop has</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="T_{EI}(s)=\frac{w_{ei}w_{ie}\kappa^2}{(s+1)^2},"></span></div>
+<p>which can supply up to <span class="katex-inline" data-tex="-180^\circ"></span> of phase&mdash;not enough alone to close the loop at a finite <span class="katex-inline" data-tex="\omega"></span>. Excitatory self‑coupling adds</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="T_{EE}(s)=\frac{w_{ee}\kappa}{s+1},"></span></div>
+<p>so the characteristic equation <span class="katex-inline" data-tex="1-T_{EE}(s)-T_{EI}(s)=0"></span> can satisfy Barkhausen at some <span class="katex-inline" data-tex="\omega_0"></span>. A bias <span class="katex-inline" data-tex="I_x"></span> ensuring <span class="katex-inline" data-tex="\kappa&gt;0"></span> is essential [<a href="paper.html#ref-147" class="cite-link">147</a>]. This matches the intuition that two first‑order elements need additional phase (or an explicit transmission delay) to reach <span class="katex-inline" data-tex="360^\circ"></span>.</p>
+<p class="runin-heading"><strong>Jansen&ndash;Rit with second‑order synapses.</strong></p>
+<p>For the cortical column with second‑order synapses,</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\ddot{x}+2a\dot{x}+a^2 x=A a\,\kappa(-w\,y+I_x),\qquad
+\ddot{y}+2b\dot{y}+b^2 y=B b\,\kappa(w\,x),"></span></div>
+<p>the linearized synapses are band‑pass filters</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="H_{\mathrm{exc}}(s)=\frac{A a\,\kappa}{(s+a)^2},\qquad
+H_{\mathrm{inh}}(s)=\frac{B b\,\kappa}{(s+b)^2}."></span></div>
+<p>The E<span class="katex-inline" data-tex="\to"></span>I<span class="katex-inline" data-tex="\to"></span>E loop transfer</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="T(s)=-\,w^2\,H_{\mathrm{exc}}(s)\,H_{\mathrm{inh}}(s)"></span></div>
+<p>can contribute <span class="katex-inline" data-tex="-360^\circ"></span> of phase on its own, so self‑excitation is <em>not</em> required to meet the phase condition. A bias <span class="katex-inline" data-tex="I_x"></span> maintaining <span class="katex-inline" data-tex="\kappa&gt;0"></span> sets <span class="katex-inline" data-tex="|T(j\omega_0)|=1"></span> at the selected frequency  [<a href="paper.html#ref-120" class="cite-link">120</a>]. Empirically, <span class="katex-inline" data-tex="\omega_0"></span> follows the loop&rsquo;s effective delay, which is controlled by synaptic poles <span class="katex-inline" data-tex="a,b"></span> and any axonal conduction delay.</p>
+<p class="runin-heading"><strong>Information flow and effective loop delay.</strong></p>
+<p>For narrowband loops, each element&rsquo;s phase behaves as <span class="katex-inline" data-tex="\varphi_k(\omega)\approx -\omega\,\tau_k"></span> near resonance, so <span class="katex-inline" data-tex="\sum_k \varphi_k(\omega_0)=0^\circ"></span> implies <span class="katex-inline" data-tex="\omega_0 \approx 2\pi n/\tau_{\mathrm{loop}}"></span>, where <span class="katex-inline" data-tex="\tau_{\mathrm{loop}}\approx -\sum_k \varphi_k(\omega_0)/\omega_0"></span>. Second‑order synapses provide larger group delay around their passband than single‑pole synapses. This is one reason gamma‑range E-I oscillations arise robustly once the synaptic dynamics are at least second order  [<a href="paper.html#ref-174" class="cite-link">174</a>].</p>
+<p class="runin-heading"><strong>First-order worked example (frequency response to a sinusoid).</strong></p>
+<p>To fix ideas, solve <span class="katex-inline" data-tex="\dot x + a x = e^{j\omega t}"></span> with <span class="katex-inline" data-tex="a&gt;0"></span>. In Laplace,</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="(s+a)X(s)=\frac{1}{s-j\omega}\quad\Rightarrow\quad
+X(s)=\frac{1}{(s+a)(s-j\omega)}."></span></div>
+<p>Partial fractions and inversion give</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="x(t)=\frac{e^{-a t}}{-(a+j\omega)}+\frac{e^{j\omega t}}{a+j\omega}."></span></div>
+<p>The transient term dies as <span class="katex-inline" data-tex="t\to\infty"></span>; the steady state is <span class="katex-inline" data-tex="x(t)=H(j\omega)\,e^{j\omega t}"></span> with <span class="katex-inline" data-tex="H(j\omega)=1/(a+j\omega)"></span>. Hence <span class="katex-inline" data-tex="|H(j\omega)|=1/\sqrt{a^2+\omega^2}"></span> and <span class="katex-inline" data-tex="\arg H(j\omega)=-\arctan(\omega/a)"></span>, and <span class="katex-inline" data-tex="\tau_g(\omega)=a/(a^2+\omega^2)"></span>. This calculation makes explicit how a pole at <span class="katex-inline" data-tex="-a"></span> sets both decay and phase lag.</p>
+<p class="runin-heading"><strong>Time-domain worked example (convolution with an alpha kernel).</strong></p>
+<p>Consider <span class="katex-inline" data-tex="h(t)=A a t e^{-a t}H(t)"></span> and an input <span class="katex-inline" data-tex="\sigma(t)"></span>. Then <span class="katex-inline" data-tex="y(t)=(h*\sigma)(t)"></span> and <span class="katex-inline" data-tex="\mathcal{L}\{h\}=A a/(s+a)^2"></span>. Multiplication in <span class="katex-inline" data-tex="s"></span>-space becomes</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="Y(s)=\frac{A a}{(s+a)^2}\,\Sigma(s)\quad\Longleftrightarrow\quad
+\left(\partial_t+a\right)^2 y(t)=A a\,\sigma(t),"></span></div>
+<p>realizing the second‑order operator directly from the kernel. This is the synaptic analog of driving a critically damped mass-spring-damper.</p>
+<h3 id="auto-h-pointers-for-further-reading-64" class="paper-heading">Pointers for further reading</h3>
+<p>A rigorous, operator‑theoretic treatment of <span class="katex-inline" data-tex="L[h]=\delta"></span> and the jump conditions appears in  Stakgold &amp; Holst (2011)  [<a href="paper.html#ref-289" class="cite-link">289</a>]. For feedback, phase, and the Barkhausen criterion in context see  str"om &amp; Murray (2008) [<a href="paper.html#ref-291" class="cite-link">291</a>] and the clarification in  vonWangenheim (2010) [<a href="paper.html#ref-290" class="cite-link">290</a>]. For neural mass modeling with first‑ and second‑order synapses see  Wilson &amp; Cowan (1972)  [<a href="paper.html#ref-147" class="cite-link">147</a>] and  Jansen &amp; Rit (1995) [<a href="paper.html#ref-120" class="cite-link">120</a>]; for conductance‑based synaptic kinetics and canonical PSP shapes see  Destexhe<em> et al.</em> (1994) [<a href="paper.html#ref-112" class="cite-link">112</a>]; and for a broader review of E&ndash;I mechanisms of cortical rhythms see Buzs&rsquo;aki&amp;Wang (2012)  [<a href="paper.html#ref-174" class="cite-link">174</a>].</p>
+<h2 id="app:oscillation" class="paper-heading"><span class="sec-num">J</span> Oscillations, Topology and Simplicity</h2>
+<p>The term <em>oscillation</em> is used across mathematics, engineering and neurophysiology, yet each community defines it  differently  (see Table&nbsp;<a href="#tab:osc_types" class="ref-link">Table J.6</a>).  In this section we show how
+all views — dynamical systems, spectral tests, and Koopman eigenanalysis share the same core intuition: <em>an oscillation is present when the data are better explained (or more concisely described) starting from the baseline of circular motion (<span class="katex-inline" data-tex="S^1"></span> topology) than by any simpler alternative.</em> We will formalize this through an algorithmic definition that more or less says "an oscillation is something that essentially goes around a circle".</p>
+<p>An intuitive <strong>classical definition</strong> is the following.</p>
+<p class="runin-heading"><strong>Definition 1.</strong></p>
+<p><em>A dynamical variable is said to oscillate when it exhibits sustained, approximately periodic departures around a reference value such that the system returns to a similar state after a characteristic approximate interval <span class="katex-inline" data-tex="T"></span> (its period), or, equivalently, at a dominant frequency <span class="katex-inline" data-tex="f=1/T"></span>.  The repetition can be exact (strictly periodic) or approximate (quasi‑periodic, weakly modulated, or noise‑jittered); what matters is the recognisable cycle pattern.</em></p>
+<p>This phrasing captures the intuition of &ldquo;a signal that roughly repeats&rdquo; while making explicit (i) the presence of a characteristic timescale and (ii) tolerance for imperfect cycles.</p>
+<p>This practical notion—a pattern that <em>roughly</em> repeats—is compatible both with modern spectrum‑based detectors and with the dynamical‑systems idea of an attracting limit cycle.  But it can be generalized to include damped behavior:</p>
+<p class="runin-heading"><strong>Definition 2.</strong></p>
+<p><em>An oscillation is a self‑sustained or externally driven fluctuation that revisits comparable states at quasi‑regular intervals, identifiable either as a closed trajectory in state space or as a narrow‑band spectral peak above the aperiodic background.</em></p>
+<p>This sentence bridges physics, signal processing, and neuroscience, preparing the ground for the algorithmic‑information view developed in the following sections. We revise first the definitions in different sub-fields.</p>
+<div class="paper-table-wrap" id="tab:field_views"><p>[t!]</p><div class="table-caption">Table J.5. How major fields articulate the notion of oscillation.</div></div>
+<p class="runin-heading"><strong>Oscillations and the Koopman Operator.</strong></p>
+<p>A <em>limit cycle</em> is a closed orbit <span class="katex-inline" data-tex="\gamma"></span> of an autonomous ODE to which at least one neighbouring trajectory spirals (stable Floquet multipliers) [<a href="paper.html#ref-295" class="cite-link">295</a>]. The system’s intrinsic period <span class="katex-inline" data-tex="T"></span> is exact, and, as we explain, next, its Koopman operator possesses an eigenpair <span class="katex-inline" data-tex="(\psi,\lambda=i\omega)"></span> whose argument <span class="katex-inline" data-tex="\theta=\arg\psi"></span> advances uniformly, embedding the dynamics on the circle <span class="katex-inline" data-tex="S^{1}"></span> [<a href="paper.html#ref-296" class="cite-link">296</a>].</p>
+<p>Thus,  periodic behavior can be precisely described from the  Koopman operator perspective [<a href="paper.html#ref-296" class="cite-link">296</a>]. Relaxation oscillators (e.g. FitzHugh–Nagumo) fit the same definition but spend long intervals on slow manifolds, producing nonsinusoidal waveforms with rich harmonic content.</p>
+<p>This approach fundamentally reframes the analysis. Instead of studying the nonlinear evolution of the system&rsquo;s state vector <span class="katex-inline" data-tex="\mathbf{x}(t) \in \mathbb{R}^n"></span> (governed by <span class="katex-inline" data-tex="\dot{\mathbf{x}} = \mathbf{f}(\mathbf{x})"></span>), the Koopman operator <span class="katex-inline" data-tex="\mathcal{K}^t"></span> describes the <em>linear</em> evolution of   &ldquo;observables&rdquo; <span class="katex-inline" data-tex="g(\mathbf{x})"></span> (cleverly chosen functions of the state). The operator is defined by how it advances any such function along the system&rsquo;s trajectories: <span class="katex-inline" data-tex="(\mathcal{K}^t g)(\mathbf{x}_0) = g(\mathbf{x}(t))"></span>, where <span class="katex-inline" data-tex="\mathbf{x}(t)"></span> is the flow starting from <span class="katex-inline" data-tex="\mathbf{x}_0"></span>. The crucial insight is that <span class="katex-inline" data-tex="\mathcal{K}^t"></span> is a <strong>linear operator</strong> acting on the (infinite-dimensional) space of observables, even when the underlying dynamics <span class="katex-inline" data-tex="\mathbf{f}(\mathbf{x})"></span> are nonlinear.</p>
+<p>Because <span class="katex-inline" data-tex="\mathcal{K}^t"></span> is linear, we can use spectral methods. For a limit cycle, the operator&rsquo;s <em>infinitesimal generator</em> <span class="katex-inline" data-tex="L"></span> (where <span class="katex-inline" data-tex="\mathcal{K}^t = e^{Lt}"></span>) possesses an eigenpair <span class="katex-inline" data-tex="(\psi, \lambda=i\omega)"></span> corresponding to the system&rsquo;s fundamental frequency <span class="katex-inline" data-tex="\omega = 2\pi/T"></span>. This special observable <span class="katex-inline" data-tex="\psi"></span>, the <strong>Koopman eigenfunction</strong>, evolves simply in time: <span class="katex-inline" data-tex="\psi(\mathbf{x}(t)) = (\mathcal{K}^t \psi)(\mathbf{x}_0) = e^{\lambda t} \psi(\mathbf{x}_0) = e^{i\omega t} \psi(\mathbf{x}_0)"></span>. Consequently, its argument <span class="katex-inline" data-tex="\theta=\arg\psi"></span> advances uniformly (<span class="katex-inline" data-tex="\theta(t) = \theta_0 + \omega t"></span>), embedding the complex, multi-dimensional dynamics onto a simple rotation on the circle <span class="katex-inline" data-tex="S^{1}"></span>. Relaxation oscillators (e.g. FitzHugh–Nagumo) fit the same definition, but their corresponding eigenfunctions <span class="katex-inline" data-tex="\psi"></span> are more complex (capturing all the harmonics), resulting in nonsinusoidal waveforms.</p>
+<p>It is important to clarify what the eigenfunction <span class="katex-inline" data-tex="\psi"></span> represents. It is a special <strong>observable</strong>, meaning it is a function of the state vector, <span class="katex-inline" data-tex="\psi(\mathbf{x})"></span>, that maps the <span class="katex-inline" data-tex="n"></span>-dimensional state space (where the dynamics are nonlinear) to the complex plane <span class="katex-inline" data-tex="\mathbb{C}"></span> (where the dynamics are linear). Its special property is that when evaluated <em>along</em> a trajectory <span class="katex-inline" data-tex="\mathbf{x}(t)"></span>, its value evolves with perfect simplicity according to <span class="katex-inline" data-tex="\psi(\mathbf{x}(t)) = e^{i\omega t}\psi(\mathbf{x}_0)"></span>.</p>
+<p>In essence, <span class="katex-inline" data-tex="\psi"></span> acts as a &ldquo;magic&rdquo; coordinate transformation. While the state <span class="katex-inline" data-tex="\mathbf{x}(t)"></span> traces a complex orbit, the scalar observable <span class="katex-inline" data-tex="\psi(\mathbf{x}(t))"></span> simply rotates in the complex plane at a constant frequency <span class="katex-inline" data-tex="\omega"></span>. The level sets of its phase, <span class="katex-inline" data-tex="\theta = \arg \psi(\mathbf{x})"></span>, are the system&rsquo;s <strong>isochrons</strong>: surfaces of points in the state space that all share the same asymptotic phase on the limit cycle.</p>
+<p class="runin-heading"><strong>Koopman perspective as compression.</strong></p>
+<p>Finding an eigenfunction <span class="katex-inline" data-tex="\psi"></span> with generator eigenvalue <span class="katex-inline" data-tex=" \lambda=i\omega"></span> represents a form of compression. Once this function <span class="katex-inline" data-tex="\psi"></span> is known, the full <span class="katex-inline" data-tex="n"></span>‑dimensional trajectory <span class="katex-inline" data-tex="\mathbf x(t)"></span> can be encoded (losslessly near the attractor) by a single complex phase variable <span class="katex-inline" data-tex="\psi(\mathbf{x}(t))"></span>, or separated into its phase <span class="katex-inline" data-tex="\theta(t)=\arg\psi(\mathbf x(t))"></span> and amplitude <span class="katex-inline" data-tex="r(t)=|\psi(\mathbf x(t))|"></span> [<a href="paper.html#ref-296" class="cite-link">296</a>]. In effect, the Koopman transform finds a &ldquo;magic&rdquo; coordinate system <span class="katex-inline" data-tex="\psi"></span> in which the nonlinear dynamics become simple linear rotation. It replaces a complex waveform with uniform rotation on <span class="katex-inline" data-tex="S^{1}"></span>, turning geometry into a one‑line program: <code>output <span class="katex-inline" data-tex="r(t) \cdot \cos(\theta(t))"></span></code>.</p>
+<p class="runin-heading"><strong>Signal‑processing criteria</strong></p>
+<p>.
+In experimental neurophysiology, oscillations are said to  be  <em>detected</em> according to some criteria.  
+Two widely used operational rules are  
+(i) the BOSC power,+,duration test [<a href="paper.html#ref-297" class="cite-link">297</a>] and  
+(ii) spectral parameterisation (&ldquo;FOOOF&rdquo;) that labels any narrow‑band bump lying above the aperiodic 1/<em>f</em> background as oscillatory [<a href="paper.html#ref-294" class="cite-link">294</a>].  
+Both are statistical surrogates for asking whether a periodic template explains the data substantially better than a broadband model. Spectral peaks are suggestive of reduced entropy or increased compressibility.</p>
+<p>Table <a href="#tab:osc_types" class="ref-link">Table J.6</a> aligns the main modeling traditions—from classical limit–cycle theory to modern information–theoretic views—while the text links them through the common intuition that  <em>circular motion in an abstract coordinate revealed by compression</em>.</p>
+<p>Next, we discuss the formalization of this intuition and  generalization of the above definitions using the language of algorithmic information theory and compression (AIT)[<a href="paper.html#ref-298" class="cite-link">298</a>].</p>
+<div class="paper-table-wrap" id="tab:osc_types"><p>[t!]</p><div class="table-caption">Table J.6. Representative oscillator types and the lenses through which they are defined or detected.</div></div>
+<h3 id="auto-h-algorithmic-information-definition-65" class="paper-heading">Algorithmic‑information definition</h3>
+<p>Algorithmic Information Theory (AIT) takes a computational perspective and quantifies the information content of <em>individual</em> objects via computation rather than probability. 
+For a binary string <span class="katex-inline" data-tex="x"></span>, the (prefix) Kolmogorov complexity <span class="katex-inline" data-tex="K_U(x)"></span> is defined as the length (in bits) of the shortest program <span class="katex-inline" data-tex="p"></span> that makes a fixed universal prefix-free Turing machine <span class="katex-inline" data-tex="U"></span> output <span class="katex-inline" data-tex="x"></span> and halt,</p>
+<div class="eq-block" id="eq-J-1"><span id="eq-J-1"></span><span class="katex-display" data-tex="K_U(x) = \min_{p \in \{0,1\}^*} \{\, |p| \; : \; U(p) = x \,\}."></span><span class="eq-number">(J.1)</span></div>
+<p>By the <em>Kolmogorov invariance theorem</em>, <span class="katex-inline" data-tex="K_U(x)"></span> depends on the choice of <span class="katex-inline" data-tex="U"></span> only up to an additive constant independent of <span class="katex-inline" data-tex="x"></span>, and one typically writes <span class="katex-inline" data-tex="K(x)"></span>. 
+The conditional version <span class="katex-inline" data-tex="K(x\,|\,y)"></span> is defined analogously (what is the complexity of <span class="katex-inline" data-tex="x"></span> if we know <span class="katex-inline" data-tex="y"></span>?). 
+Kolmogorov complexity is uncomputable (though upper-semicomputable) and provides the foundation for formal notions of randomness, structure, and the ultimate limits of lossless compression.
+For a detailed treatment, see classical textbooks on algorithmic information theory [<a href="paper.html#ref-298" class="cite-link">298</a>,<a href="paper.html#ref-304" class="cite-link">304</a>].</p>
+<p class="runin-heading"><strong>Compressing data from an oscillator.</strong></p>
+<p>Let <span class="katex-inline" data-tex="x_{1:N}"></span> be the measured signal.  
+Our compressor stores the following program: 
+(i) a periodic template <span class="katex-inline" data-tex="u_{1:T}"></span> with some frequency (U1 limit‑cycle model with nonlinear mapping / Koopman operator, <span class="katex-inline" data-tex="K_{\text{LC}}"></span> bits) and  
+(ii) a residual code <span class="katex-inline" data-tex="e"></span> (modulation, burst gaps,  remaining error / noise) of length <span class="katex-inline" data-tex="K_e"></span>.  
+If</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="K_{\text{LC}} + K_{\text{e}} \;\; \ll \;\; L_{\text{raw}} \; ,"></span></div>
+<p>where <span class="katex-inline" data-tex="L_{\text{raw}}"></span> is the length of a generic lossless code (e.g. LZ‑77 or Huffman on the empirical alphabet), we say the sequence <em>contains an oscillation</em>.  
+No reference model is required—the gain is measured against the unstructured data description.</p>
+<p class="runin-heading"><strong>Relation to Koopman.</strong></p>
+<p>The ideal template <span class="katex-inline" data-tex="u_{1:T}"></span> corresponds to one traversal of the Koopman phase; storing <span class="katex-inline" data-tex="\theta_0"></span> and <span class="katex-inline" data-tex="\omega"></span> plus a small update map for <span class="katex-inline" data-tex="r"></span> therefore yields the shortest program in the Kolmogorov sense.  
+Thus, the &ldquo;kernel&rdquo; of every oscillator is circular motion, and oscillation = substantial description‑length reduction via an <span class="katex-inline" data-tex="S^{1}"></span> code.</p>
+<p class="runin-heading"><strong>Generative view.</strong></p>
+<p>We say that a dataset contains an oscillation if it can be Lie-generated by the U(1) group. In other words, the latent space coordinate of the generative model is <span class="katex-inline" data-tex="\theta \in S^1"></span>. The generative  (compressive) model is of the form data = <span class="katex-inline" data-tex="M(\theta)"></span> + noise.
+ In AIT, an <em>algorithmic agent</em> would declare, <em>&ldquo;An oscillation is a detected pattern: a signal that approximately repeats."</em>  A bit more precisely, a dynamical dataset is said to contain an oscillation when a periodic‑template model (program) compresses the data significantly better than any model that lacks periodic structure.  But we can be more precise using the notion of Lie-generated model [<a href="paper.html#ref-305" class="cite-link">305</a>,<a href="paper.html#ref-306" class="cite-link">306</a>]:</p>
+<div class="paper-box"><div class="box-body"><p><strong>Propoed definition:</strong>  A dataset is said to represent an oscillation when it can be most succinctly Lie-generated from a representation of U1 plus noise.</p></div></div>
+<p>Topologically, every limit cycle is a circle. Hence, a compression algorithm will naturally start from the specification of the circle (the U1 group) plus a mapping and corrections. Or, more generally, from the specification of a U1 invariant object.  We analyze this further in the next section.</p>
+<h3 id="app:limitcycles" class="paper-heading">U1 and the topology of the Stuart-Landau equation</h3>
+<p>The origin of U1 and the topology of <span class="katex-inline" data-tex="S^1"></span> can be unearthed cleanly in the case of the Hopf bifurcation.</p>
+<p>Oscillatory dynamics&mdash;limit cycles in the phase space of a dynamical system&mdash;play a central role in modeling neural population activity and other biological rhythms.</p>
+<p>We begin this journey with the simplest possible oscillator: a <em>phase clock</em>, defined by a variable <span class="katex-inline" data-tex="\theta(t)"></span> advancing at constant rate <span class="katex-inline" data-tex="\dot{\theta} = \omega"></span>. This system has no amplitude, only phase, and its trajectory lies on a circle. Importantly, it enjoys continuous phase-shift invariance: the dynamics are unchanged under <span class="katex-inline" data-tex="\theta \to \theta + \phi"></span>, for any fixed phase offset <span class="katex-inline" data-tex="\phi"></span>. This is the defining symmetry of the circle group <span class="katex-inline" data-tex="U(1)"></span>&mdash;the group of rotations in the plane.</p>
+<p>The next natural step introduces amplitude: the <em>harmonic oscillator</em> (HO). It describes circular motion in two dimensions at a fixed radius, and takes the form</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot z = i\omega z,"></span></div>
+<p>in complex notation. The solution is <span class="katex-inline" data-tex="z(t) = z_0 e^{i\omega t}"></span>, and the motion traces a perfect circle in phase space. Again, we see the same <span class="katex-inline" data-tex="U(1)"></span> phase symmetry: multiplying a solution by <span class="katex-inline" data-tex="e^{i\phi}"></span> simply rotates the initial condition, leaving the dynamics invariant. However, the amplitude <span class="katex-inline" data-tex="|z|"></span> remains constant&mdash;there is no mechanism for growth, decay, or saturation. Any initial amplitude persists indefinitely, and the system is neutrally stable.</p>
+<p>Real-world oscillators behave differently. In practice, oscillations may grow or decay, but often they settle onto a stable limit cycle: a rhythm of fixed amplitude that persists after transients decay. To capture this, we must go beyond the linear HO and introduce nonlinearities that regulate amplitude. Consider adding smooth perturbations to the harmonic oscillator:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot z = (\mu + i\omega)\,z + F(z,\bar z),"></span></div>
+<p>where <span class="katex-inline" data-tex="F"></span> contains higher-order nonlinear terms. The goal is to find the simplest nonlinear correction that leads to amplitude saturation&mdash;i.e., to a self-limiting oscillator.</p>
+<p>To identify the relevant terms, we use tools from normal form theory: center manifold reduction followed by a near-identity change of coordinates [<a href="paper.html#ref-307" class="cite-link">307</a>,<a href="paper.html#ref-90" class="cite-link">90</a>]. These procedures systematically eliminate all <em>non-resonant</em> terms&mdash;i.e., terms whose angular dependence does not match that of the linear part and thus oscillate out of phase. At third order, the only resonant term that survives the coordinate transformation process is</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="F(z,\bar z) = - (g + i\beta)\,|z|^2 z."></span></div>
+<p>All other cubic combinations, such as <span class="katex-inline" data-tex="z^2"></span> or <span class="katex-inline" data-tex="\bar z^2"></span>, are non-resonant and can be removed by choosing proper coordinates. The resulting simplified system is the <em>Stuart-Landau equation</em>:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot z = (\mu + i\omega)\,z - (g + i\beta)\,|z|^2 z,"></span></div>
+<p>which describes a self-excited oscillator: for <span class="katex-inline" data-tex="\mu &gt; 0"></span>, the amplitude <span class="katex-inline" data-tex="r = |z|"></span> grows until it stabilizes at <span class="katex-inline" data-tex="r = \sqrt{\mu/g}"></span>; for <span class="katex-inline" data-tex="\mu &lt; 0"></span>, oscillations decay to rest. The equation also governs the phase evolution <span class="katex-inline" data-tex="\theta = \arg(z)"></span>, with <span class="katex-inline" data-tex="\dot\theta = \omega - \beta r^2"></span>.</p>
+<p class="runin-heading"><strong>The emergence of <span class="katex-inline" data-tex="U(1)"></span>U(1) symmetry.</strong></p>
+<p>At no point did we assume that the nonlinear system was <span class="katex-inline" data-tex="U(1)"></span>-symmetric. We began with a generic perturbation of the harmonic oscillator. However, after applying normal form reduction, we find that only <em>resonant</em> terms cannot be removed—those that transform under rotation in the same way as the linear term. At third order, the only such term is <span class="katex-inline" data-tex="|z|^2 z"></span>, which happens to be <span class="katex-inline" data-tex="U(1)"></span>-covariant. All non-covariant terms are eliminated by a coordinate transformation. Thus, the <span class="katex-inline" data-tex="U(1)"></span> symmetry of the Stuart-Landau equation emerges <em>as a consequence</em> of the reduction process.  But the ultimate origin of this is topological: limit cycles are topological circles, and the &ldquo;simplest" description of a cycle, the &ldquo;platonic" cycle is a circle.</p>
+<p class="runin-heading"><strong>Cohomology and emergence of resonant terms.</strong></p>
+<p>The emergence of the Stuart-Landau normal form from generic nonlinear oscillators can thus be understood by appealing to topology and cohomology. Near a Hopf bifurcation, the system dynamics collapse onto a limit cycle—a smooth, closed loop in phase space that is topologically equivalent to the circle, <span class="katex-inline" data-tex="S^1"></span>.   The circle <span class="katex-inline" data-tex="S^1"></span> is a simple but topologically rich space. It admits a special type of 1-form, <span class="katex-inline" data-tex="d\theta"></span>, which is <em>closed</em>, meaning that its exterior derivative vanishes (<span class="katex-inline" data-tex="d(d\theta)=0"></span>), but it is not <em>exact</em>, meaning it cannot be expressed globally as the differential of any smooth scalar function. Exact forms represent trivial cohomological classes because they can be integrated globally, whereas closed but non-exact forms represent fundamental, nontrivial topological features. This distinction is captured by the nontrivial first de Rham cohomology of the circle, <span class="katex-inline" data-tex="
+H^1_{\mathrm{dR}}(S^1)\cong \mathbb{R}.
+"></span>
+To eliminate nonlinear terms near the bifurcation, we perform a near-identity coordinate transformation, attempting to remove as many nonlinear perturbations as possible. Specifically, we consider coordinate changes of the form</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="z \mapsto z + H(z,\bar{z}),"></span></div>
+<p>and ask whether a given nonlinear perturbation <span class="katex-inline" data-tex="F(z,\bar z)"></span> can be eliminated. Under the linearized dynamics, characterized by pure rotations with frequency <span class="katex-inline" data-tex="\omega"></span>, the infinitesimal rotation operator naturally arises as the Lie derivative,</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\mathcal{L}_0 = \omega \frac{\partial}{\partial \theta},"></span></div>
+<p>which describes how functions and vector fields vary as we rotate around the limit cycle. Formally, solving the normal-form reduction involves repeatedly solving equations of the form</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\mathcal{L}_0 H = F - N,"></span></div>
+<p>where <span class="katex-inline" data-tex="F"></span> is the nonlinear perturbation we start with, <span class="katex-inline" data-tex="N"></span> is the simplified normal form we desire, and <span class="katex-inline" data-tex="H"></span> is the coordinate change we seek to perform.</p>
+<p>The crucial point is that certain nonlinear terms are <em>resonant</em>: their angular frequency exactly matches the natural rotation frequency <span class="katex-inline" data-tex="\omega"></span>. Such resonant terms belong to the kernel (null space) of the Lie derivative <span class="katex-inline" data-tex="\mathcal{L}_0"></span>. Geometrically, these terms correspond precisely to closed but non-exact forms on <span class="katex-inline" data-tex="S^1"></span>. Cohomologically, resonant terms represent nontrivial elements of the first cohomology group associated with <span class="katex-inline" data-tex="\mathcal{L}_0"></span>:</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="H^1(\mathcal{L}_0)=\frac{\ker \mathcal{L}_0}{\mathrm{im}\,\mathcal{L}_0}\cong H^1_{\mathrm{dR}}(S^1)\cong \mathbb{R}."></span></div>
+<p>Therefore, no smooth local coordinate transformation (which can only add exact forms) can eliminate these resonant terms, and thus they constitute genuine cohomological obstructions.</p>
+<p>At cubic order, this resonance condition selects uniquely the term <span class="katex-inline" data-tex="|z|^2 z"></span>, ensuring its survival after normal-form reduction. Similarly, higher-order resonant terms take the general form <span class="katex-inline" data-tex="|z|^{2m} z"></span>, while non-resonant terms oscillate out of synchrony with the natural rotation and lie within the image of <span class="katex-inline" data-tex="\mathcal{L}_0"></span>. Thus, these non-resonant terms correspond to exact forms and can always be removed by appropriate coordinate changes.</p>
+<p>This topological argument generalizes straightforwardly to higher-order nonlinear terms, ensuring that at every odd order only terms of the form <span class="katex-inline" data-tex="|z|^{2m} z"></span> survive. Hence, the general normal form near a Hopf bifurcation is universally structured as</p>
+<div class="eq-block eq-unnumbered"><span class="katex-display" data-tex="\dot z = (\mu+i\omega)z + z\,g(|z|^2),"></span></div>
+<p>a direct consequence of the underlying circle geometry and its associated cohomological constraints.</p>
+</main>
+
+<footer class="site-footer">Companion web page to the paper — figures, equations, and section numbers match the manuscript.</footer>
+
+<script src="assets/katex/katex.min.js"></script>
+<script>
+(function(){
+  var macros = {"\\bs": "\\boldsymbol{#1}"};
+  function renderAll(){
+    document.querySelectorAll('[data-tex]').forEach(function(el){
+      var tex = el.getAttribute('data-tex');
+      var display = el.classList.contains('katex-display');
+      try {
+        katex.render(tex, el, {throwOnError: false, displayMode: display, macros: macros});
+      } catch (e) {
+        el.textContent = tex;
+      }
+    });
+  }
+  renderAll();
+
+  function highlightTarget(){
+    var hash = decodeURIComponent(location.hash || '').replace(/^#/, '');
+    if (!hash) return;
+    var el = document.getElementById(hash);
+    if (!el) return;
+    el.scrollIntoView({block: 'center', behavior: 'smooth'});
+    var flashEl = el.classList.contains('eq-block') || el.classList.contains('paper-figure') ||
+                  el.classList.contains('paper-table-wrap') || /^(H2|H3|H4)$/.test(el.tagName)
+                  ? el : (el.closest('.eq-block, .paper-figure, .paper-table-wrap') || el);
+    flashEl.classList.remove('flash-highlight');
+    void flashEl.offsetWidth;
+    flashEl.classList.add('flash-highlight');
+    setTimeout(function(){ flashEl.classList.remove('flash-highlight'); }, 2300);
+  }
+  window.addEventListener('DOMContentLoaded', function(){ setTimeout(highlightTarget, 60); });
+  window.addEventListener('hashchange', highlightTarget);
+})();
+</script>
+</body>
+</html>
