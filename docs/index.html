@@ -145,6 +145,13 @@
     gap: 1.4rem;
   }
 
+  .card-wrap { display: flex; flex-direction: column; }
+  .card-paperlink {
+    align-self: flex-start; margin-top: 0.55rem; font-size: 0.8rem; font-weight: 600;
+    color: var(--faint); text-decoration: none;
+  }
+  .card-paperlink:hover { color: var(--coral); text-decoration: underline; }
+
   .card {
     display: block;
     background: var(--card-bg);
@@ -243,7 +250,7 @@
   </div>
   <p class="intro">
     This site is the interactive companion to
-    <em><a href="https://arxiv.org/abs/2512.10982" target="_blank" rel="noopener">"Rosetta Stone of Neural Mass Models"</a></em>. It walks through six models of brain rhythms, from the simplest oscillator to a full neural mass model, showing how each one builds on the last. Select a model below to explore its equations and parameters directly.
+    <em><a href="paper.html" target="_blank" rel="noopener">"Rosetta Stone of Neural Mass Models"</a></em>. It walks through six models of brain rhythms, from the simplest oscillator to a full neural mass model, showing how each one builds on the last. Select a model below to explore its equations and parameters directly.
   </p>
 </header>
 
@@ -260,6 +267,7 @@
 
   <div class="card-grid">
 
+    <div class="card-wrap">
     <a class="card" href="explorer.html?model=kuramoto">
       <div class="card-body">
         <div class="card-title"><span class="num">1</span><h3>Phase-only</h3><span class="rung">phase oscillators</span></div>
@@ -268,7 +276,10 @@
         <div class="tags"><span class="tag accent">Interactive</span><span class="tag">network only</span></div>
       </div>
     </a>
+    <a class="card-paperlink" href="paper.html#sec:kuramoto" target="_blank" rel="noopener">Read the full derivation →</a>
+    </div>
 
+    <div class="card-wrap">
     <a class="card" href="explorer.html?model=ho">
       <div class="card-body">
         <div class="card-title"><span class="num">2</span><h3>HO</h3><span class="rung">harmonic oscillator</span></div>
@@ -277,7 +288,10 @@
         <div class="tags"><span class="tag accent">Interactive</span><span class="tag">+ network</span></div>
       </div>
     </a>
+    <a class="card-paperlink" href="paper.html#sec:ho" target="_blank" rel="noopener">Read the full derivation →</a>
+    </div>
 
+    <div class="card-wrap">
     <a class="card" href="explorer.html?model=sl">
       <div class="card-body">
         <div class="card-title"><span class="num">3</span><h3>Stuart–Landau</h3></div>
@@ -286,7 +300,10 @@
         <div class="tags"><span class="tag accent">Interactive</span><span class="tag">+ network</span></div>
       </div>
     </a>
+    <a class="card-paperlink" href="paper.html#sec:Stuart-Landau" target="_blank" rel="noopener">Read the full derivation →</a>
+    </div>
 
+    <div class="card-wrap">
     <a class="card" href="explorer.html?model=wilco">
       <div class="card-body">
         <div class="card-title"><span class="num">4</span><h3>WILCO</h3><span class="rung">Wilson–Cowan</span></div>
@@ -295,7 +312,10 @@
         <div class="tags"><span class="tag accent">Interactive</span><span class="tag">+ network</span></div>
       </div>
     </a>
+    <a class="card-paperlink" href="paper.html#sec:WILCO" target="_blank" rel="noopener">Read the full derivation →</a>
+    </div>
 
+    <div class="card-wrap">
     <a class="card" href="explorer.html?model=nmm1">
       <div class="card-body">
         <div class="card-title"><span class="num">5</span><h3>NMM1</h3></div>
@@ -304,7 +324,10 @@
         <div class="tags"><span class="tag accent">Interactive</span><span class="tag">+ network</span></div>
       </div>
     </a>
+    <a class="card-paperlink" href="paper.html#sec:NMM1" target="_blank" rel="noopener">Read the full derivation →</a>
+    </div>
 
+    <div class="card-wrap">
     <a class="card" href="explorer.html?model=nmm2">
       <div class="card-body">
         <div class="card-title"><span class="num">6</span><h3>NMM2</h3><span class="rung">next-generation mean field</span></div>
@@ -313,6 +336,8 @@
         <div class="tags"><span class="tag accent">Interactive</span><span class="tag">+ network</span></div>
       </div>
     </a>
+    <a class="card-paperlink" href="paper.html#sec:NMM2" target="_blank" rel="noopener">Read the full derivation →</a>
+    </div>
 
   </div>
 
