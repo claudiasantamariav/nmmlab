@@ -2009,8 +2009,6 @@ function renderInfoPanel(){
   const info=MODEL_INFO[activeModel];
   const panel=document.getElementById('infoPanel');
   if(!info){ panel.innerHTML=''; return; }
-  const modelOrder=Object.keys(MODELS);
-  const nextModelId=modelOrder[modelOrder.indexOf(activeModel)+1];
   panel.innerHTML=`
     <h2>${info.title}</h2>
     <div class="tagline">${info.tagline}</div>
@@ -2054,7 +2052,7 @@ function renderInfoPanel(){
       <a href="paper.html#${MODEL_PAPER_SECTION[activeModel]}" target="_blank" rel="noopener">Read the full derivation →</a>
       <a href="tutorial.html">Read the shared concepts →</a>
       <a href="map.html">How do they connect →</a>
-      ${nextModelId ? `<a href="#" onclick="selectModel('${nextModelId}');window.scrollTo(0,0);return false;">Next: ${MODELS[nextModelId].label} →</a>` : ''}
+      <a href="#" onclick="selectTab('demo');window.scrollTo(0,0);return false;">See the demo/simulation →</a>
     </div>`;
 }
 
