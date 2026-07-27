@@ -1310,8 +1310,7 @@ const NMM1 = {
       eqHtml:`<div class="eq-main">τₓ² ẍ + 2τₓ ẋ + x = γₓ σ(−wₓᵧy + Fₑ)</div>
         <div class="eq-main">τᵧ² ÿ + 2τᵧ ẏ + y = γᵧ σ(wᵧₓx)</div>
         <hr class="eq-hr">
-        <div class="eq-sub">σ(v) = tanh(a·v) &nbsp;·&nbsp; K = γₓγᵧwₓᵧwᵧₓa²</div>
-        <div class="eq-sub">Oscillates when K &gt; K<sub>crit</sub> = 2 + τₓ/τᵧ + τᵧ/τₓ &nbsp;(≥ 4, lowest when τₓ = τᵧ)</div>`,
+        <div class="eq-sub">σ(v) = tanh(a·v) &nbsp;·&nbsp; K = γₓγᵧwₓᵧwᵧₓa²</div>`,
       explain:'x and y are excitatory/inhibitory post-synaptic potentials, not firing rates — each obeys a critically-damped second-order filter, so a single synapse alone can never oscillate. Once the loop gain K crosses K_crit, the two synapses\' own phase lag is enough to sustain a rhythm with no self-coupling at all (the Barkhausen criterion). Fₑ shifts the operating point on the sigmoid and can quench an oscillation that exists at Fₑ = 0.',
       fixed:{N:1, G:0},
       params:[
@@ -1676,14 +1675,23 @@ kuramoto: {
       <div class="eq-note">No amplitude, so nothing to damp, force, or saturate — the phase just advances at a constant rate. This triviality is exactly why Phase-only has no "single node" Simulator variant on this site, unlike every other model: there's nothing worth showing until at least two oscillators are coupled.</div>
     </div>
     <div class="info-eq-box">
-      <div class="eq-name">Coupled network (<a href="paper.html#auto-h-the-kuramoto-model-6" target="_blank" rel="noopener">§2.1.4</a>, Eq. <a href="paper.html#eq:kuramoto-effective-coupling" target="_blank" rel="noopener">2.19</a>, <a href="paper-appendix.html#app:kuramoto" target="_blank" rel="noopener">App. D</a>)</div>
+      <div class="eq-name">Coupled network (<a href="paper.html#auto-h-the-kuramoto-model-6" target="_blank" rel="noopener">§2.1.4</a>, Eq. <a href="paper.html#eq:kuramoto_original" target="_blank" rel="noopener">2.20</a>, <a href="paper-appendix.html#app:kuramoto" target="_blank" rel="noopener">App. D</a>)</div>
       <div class="eq-main">θ̇ᵢ = ωᵢ + (G/N) Σⱼ sin(θⱼ − θᵢ)</div>
       <div class="eq-note">Each oscillator is pulled toward every other oscillator's phase by the sine of their phase difference — a genuinely different functional form from the linear/diffusive and additive-sigmoid coupling used everywhere else on this site.</div>
+    </div>
+    <div class="breakdown-item">
+      <div class="breakdown-header" onclick="toggleInfoBox(this)">
+        <span class="bd-title" style="color:var(--coral);">In the Simulator</span>
+        <span class="breakdown-chevron">&#9660;</span>
+      </div>
+      <div class="breakdown-body">
+        <div class="breakdown-prose" style="font-size:0.85rem;">The Simulator's one variant, "Network," uses this uniform, all-to-all form (Eq. 2.20) — every oscillator pulled toward every other with equal weight 1/N. The paper's general connectome form with per-edge weights Cᵢⱼ, delay τᵢⱼ, and phase-lag φᵢⱼ is Eq. 2.21, not instantiated here. There's no separate "Single Node" variant: a lone phase-only oscillator is just θ̇ = ω, constant rotation with nothing to show, so unlike every other model on this site, coupling isn't optional — it's the entire model.</div>
+      </div>
     </div>`,
   params: [
     {name:'θᵢ', unit:'rad', meaning:'Phase of oscillator i', effect:'The model\'s only state variable — no amplitude exists at all.'},
     {name:'ωᵢ', unit:'rad/s', meaning:'Natural (intrinsic) frequency of oscillator i', effect:'How fast oscillator i would spin on its own, absent coupling. A spread of ωᵢ across nodes is what coupling has to overcome to synchronize.'},
-    {name:'G', unit:'s⁻¹', meaning:'Global coupling gain', effect:'Strength of the pull toward the group\'s phase; synchrony grows smoothly and continuously from zero once G exceeds a critical value set by the spread of ωᵢ — no sudden jump, unlike the abrupt transitions this model can show under different conditions (skewed frequency distributions, phase lag, or higher-harmonic coupling).'},
+    {name:'G', unit:'s⁻¹', meaning:'Global coupling gain', effect:'Strength of the pull toward the group\'s phase; synchrony grows smoothly and continuously from zero once G exceeds a critical value set by the spread of ωᵢ — no sudden jump.'},
     {name:'N', unit:'count', meaning:'Number of oscillators', effect:'Network size — the order parameter r becomes a sharper, less noisy measure of synchrony as N grows.'},
     {name:'r (order parameter)', unit:'dimensionless, 0–1', meaning:'r = |1/N · Σ e^(iθ)|', effect:'r = 1 means every oscillator shares the same phase (fully locked); r = 0 means phases are spread uniformly around the circle (incoherent).'},
   ],
@@ -1691,7 +1699,7 @@ kuramoto: {
 
 ho: {
   title: 'Harmonic Oscillator (HO)',
-  tagline: 'The starting point of the ladder — every later model on this ladder is a more biologically detailed version of the same push–pull loop, where two variables continuously drive each other and, written as one complex number z = x + iy, trace out a rotating circle. It\'s the "hydrogen atom" of the ladder: the simplest system that can oscillate at all, and the template every later model elaborates on. Damping turns that circle into a spiral, and coupling many oscillators together reduces, in the right limit, to the Kuramoto model.',
+  tagline: 'The starting point of the ladder — every later model on this ladder is a more biologically detailed version of the same push–pull loop, where two variables continuously drive each other and, written as one complex number z = x + iy, trace out a rotating circle. It\'s the simplest system on the ladder that can oscillate at all, and the template every later model elaborates on. Damping turns that circle into a spiral, and coupling many oscillators together reduces, in the right limit, to the Kuramoto model.',
   oneNodeViz: `
       <line x1="34" y1="42" x2="34" y2="108" stroke="#e8edf7" stroke-width="4" stroke-linecap="round" opacity="0.85"/>
       <line x1="34" y1="52" x2="20" y2="64" stroke="#e8edf7" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
@@ -1721,12 +1729,12 @@ ho: {
       <div class="eq-note">Constant amplitude r(t) = r(0), phase advancing linearly: θ(t) = ωt + θ(0).</div>
     </div>
     <div class="info-eq-box">
-      <div class="eq-name">Damped (<a href="paper.html#sec:ho" target="_blank" rel="noopener">§2.2</a>, Eq. <a href="paper.html#eq:kuramoto_connectome" target="_blank" rel="noopener">2.21</a>–<a href="paper.html#eq:damped_cart_y" target="_blank" rel="noopener">2.25</a>)</div>
+      <div class="eq-name">Damped (<a href="paper.html#sec:ho" target="_blank" rel="noopener">§2.2</a>, Eq. <a href="paper.html#eq:damped_polar_r" target="_blank" rel="noopener">2.22</a>–<a href="paper.html#eq:damped_complex" target="_blank" rel="noopener">2.26</a>)</div>
       <div class="eq-main">ż = (α + iω)z</div>
       <div class="eq-note">α &lt; 0 → decaying spiral (stable focus), α &gt; 0 → growing spiral (unstable).</div>
     </div>
     <div class="info-eq-box">
-      <div class="eq-name">Forced (Eq. <a href="paper.html#eq:forced_time_complex" target="_blank" rel="noopener">2.11</a>, <a href="paper.html#eq:damped_complex" target="_blank" rel="noopener">2.26</a>–<a href="paper.html#eq-2-27" target="_blank" rel="noopener">2.27</a>)</div>
+      <div class="eq-name">Forced (Eq. <a href="paper.html#eq:forced_time_complex" target="_blank" rel="noopener">2.11</a>, <a href="paper.html#eq:damped_complex" target="_blank" rel="noopener">2.26</a>–<a href="paper.html#eq-2-28" target="_blank" rel="noopener">2.28</a>)</div>
       <div class="eq-main">ż = (α + iω)z + F̂(t)</div>
       <div class="eq-note">A constant F shifts the fixed point to z* = −F/(α+iω); a time-varying F(t) can transiently entrain phase and amplitude.</div>
     </div>
@@ -1736,9 +1744,14 @@ ho: {
       <div class="eq-main">Eq. 2.30 (general): żᵢ = (α + iωᵢ)zᵢ + G Σⱼ Cᵢⱼ(zⱼ(t−τᵢⱼ) − zᵢ(t)) + F̂ₑ,ᵢ(t)</div>
       <div class="eq-note">Eq. 2.29 is the uniform, all-to-all special case (Cᵢⱼ = 1/N, no delays); Eq. 2.30 generalizes to a weighted connectome with optional delays τᵢⱼ, with no 1/N factor.</div>
     </div>
-    <div class="info-eq-box" style="border-left-color:var(--coral);">
-      <div class="eq-name" style="color:var(--coral);">In the Simulator</div>
-      <div class="eq-note" style="font-size:0.85rem;">Undamped, damped, and forced are the same equation with different parameters, so the Simulator tab combines them into one "Oscillator" — set α = 0 for the undamped case, or F₀ = 0 to remove forcing. Coupled networks are structurally different (many oscillators), so they stay a separate variant. The phase-only limit of this network — amplitude dropped entirely, only relative phase left — is the Kuramoto model, presented as its own rung on this site rather than a variant here; see the <a href="explorer.html?model=kuramoto">Phase-only tab</a>.</div>
+    <div class="breakdown-item">
+      <div class="breakdown-header" onclick="toggleInfoBox(this)">
+        <span class="bd-title" style="color:var(--coral);">In the Simulator</span>
+        <span class="breakdown-chevron">&#9660;</span>
+      </div>
+      <div class="breakdown-body">
+        <div class="breakdown-prose" style="font-size:0.85rem;">Undamped, damped, and forced are the same equation with different parameters, so the Simulator tab combines them into one "Oscillator" — set α = 0 for the undamped case, or F₀ = 0 to remove forcing. Coupled networks are structurally different (many oscillators), so they stay a separate variant. The phase-only limit of this network — amplitude dropped entirely, only relative phase left — is the Kuramoto model, presented as its own rung on this site rather than a variant here; see the <a href="explorer.html?model=kuramoto">Phase-only tab</a>.</div>
+      </div>
     </div>`,
   params: [
     {name:'ω (omega)', unit:'rad/s', meaning:'Natural angular frequency', effect:'Sets rotation speed; frequency in Hz is f = ω/2π. Reflects effective synaptic/membrane time constants.'},
@@ -1797,6 +1810,15 @@ sl: {
       <div class="eq-main">Eq. 3.8 (all-to-all): żᵢ = (α + iωᵢ)zᵢ − (γ + iβ)|zᵢ|²zᵢ + (G/N) Σⱼ(zⱼ − zᵢ) + F̂ₑ,ᵢ(t)</div>
       <div class="eq-main">Eq. 3.9 (general): żᵢ = (α + iωᵢ)zᵢ − (γ + iβ)|zᵢ|²zᵢ + G Σⱼ Cᵢⱼ(zⱼ − zᵢ) + F̂ₑ,ᵢ(t)</div>
       <div class="eq-note">Eq. 3.8 is the uniform, all-to-all special case (Cᵢⱼ = 1/N); Eq. 3.9 generalizes to a weighted connectome, with no 1/N factor.</div>
+    </div>
+    <div class="breakdown-item">
+      <div class="breakdown-header" onclick="toggleInfoBox(this)">
+        <span class="bd-title" style="color:var(--coral);">In the Simulator</span>
+        <span class="breakdown-chevron">&#9660;</span>
+      </div>
+      <div class="breakdown-body">
+        <div class="breakdown-prose" style="font-size:0.85rem;">Undamped, damped, and forced are the same equation with different parameters, so the Simulator tab combines them into one "Oscillator" — set α = 0 for the undamped case, or F₀ = 0 to remove forcing, exactly as for the HO. The Simulator's "Network" variant uses the diffusive, all-to-all form (Eq. 3.8) — each node pulled toward the network mean z̄ by coupling G. The paper's general weighted-connectome form with Cᵢⱼ (Eq. 3.9) isn't instantiated here; see the <a href="tutorial.html#coupling" target="_blank">Intro</a> for why every model on this site simplifies coupling the same way.</div>
+      </div>
     </div>`,
   params: [
     {name:'α (alpha)', unit:'s⁻¹', meaning:'Bifurcation parameter (linear growth/decay)', effect:'α &lt; 0 → damped, noise-driven fluctuations; α &gt; 0 → self-sustained limit cycle of radius √(α/γ).'},
@@ -1821,7 +1843,7 @@ sl: {
 
 wilco: {
   title: 'Wilson–Cowan Model (WILCO)',
-  tagline: 'The HO/SL push–pull motif made biological: excitatory and inhibitory firing rates interact through a sigmoid instead of a linear term. Near its Hopf bifurcation the equations reduce exactly to the Stuart–Landau normal form — WILCO is "SL in disguise," but every coefficient is now a measurable biophysical quantity (a synaptic weight, a time constant, a drive current). Introduced by Wilson and Cowan in the 1970s, it remains a modeling workhorse today, from single microcircuits to whole-brain simulations fit to MEG, EEG, and fMRI.',
+  tagline: 'The HO/SL push–pull motif made biological: excitatory and inhibitory firing rates interact through a sigmoid instead of a linear term. Near its Hopf bifurcation the equations reduce exactly to the Stuart–Landau normal form, but every coefficient is now a measurable biophysical quantity (a synaptic weight, a time constant, a drive current). Introduced by Wilson and Cowan in the 1970s, it remains a modeling workhorse today, from single microcircuits to whole-brain simulations fit to MEG, EEG, and fMRI.',
   oneNodeViz: `
       <path d="M158,64 Q200,30 242,64" fill="none" stroke="#22c1ff" stroke-width="3" marker-end="url(#arrowBlue)"/>
       <path d="M242,98 Q200,138 158,98" fill="none" stroke="#FF6657" stroke-width="3" marker-end="url(#barCoral)"/>
@@ -1850,9 +1872,14 @@ wilco: {
       <div class="eq-main">τᵧẏᵢ + yᵢ = σᵧ(wᵧₓxᵢ − wᵧᵧyᵢ)</div>
       <div class="eq-note">Long-range excitatory coupling Σⱼ Cᵢⱼxⱼ enters additively inside the sigmoid.</div>
     </div>
-    <div class="info-eq-box" style="border-left-color:var(--coral);">
-      <div class="eq-name" style="color:var(--coral);">In the Simulator</div>
-      <div class="eq-note" style="font-size:0.85rem;">Unforced and forced are the same equation with F₀ = 0 or not, so the Simulator tab combines them into one "Single Node" variant — set A = 0 to remove the rhythmic stimulus. Coupling is structurally different (multiple nodes, a mean-field term), so it gets its own "Network" variant instead of a slider on this one. That variant writes the coupling as G(x̄ − xᵢ) — a diffusive simplification of the paper's row-summed Σⱼ Cᵢⱼxⱼ that keeps each node's coupling input centered on the network average and bounded regardless of network size N, rather than growing with it — see the <a href="tutorial.html#coupling" target="_blank">Intro</a>.</div>
+    <div class="breakdown-item">
+      <div class="breakdown-header" onclick="toggleInfoBox(this)">
+        <span class="bd-title" style="color:var(--coral);">In the Simulator</span>
+        <span class="breakdown-chevron">&#9660;</span>
+      </div>
+      <div class="breakdown-body">
+        <div class="breakdown-prose" style="font-size:0.85rem;">Unforced and forced are the same equation with F₀ = 0 or not, so the Simulator tab combines them into one "Single Node" variant — set A = 0 to remove the rhythmic stimulus. Coupling is structurally different (multiple nodes, a mean-field term), so it gets its own "Network" variant instead of a slider on this one. That variant writes the coupling as G(x̄ − xᵢ) — a diffusive simplification of the paper's row-summed Σⱼ Cᵢⱼxⱼ that keeps each node's coupling input centered on the network average and bounded regardless of network size N, rather than growing with it — see the <a href="tutorial.html#coupling" target="_blank">Intro</a>.</div>
+      </div>
     </div>`,
   params: [
     {name:'τₓ, τᵧ', unit:'ms', meaning:'Membrane/synaptic time constants', effect:'Sets how fast each population responds; the E–I timescale separation shapes the oscillation frequency.'},
@@ -1894,9 +1921,14 @@ nmm1: {
       <div class="eq-main">L̂ₘₙ[uₘₙ] = Cₘₙ rₙ,&nbsp;&nbsp; vₘ = Σₙ uₘₙ + [field terms],&nbsp;&nbsp; rₘ = σₘ(vₘ)</div>
       <div class="eq-note">A synapse filter turns each incoming firing rate into a PSP; PSPs sum into a membrane perturbation; a sigmoid converts that back into a firing rate.</div>
     </div>
-    <div class="info-eq-box" style="border-left-color:var(--coral);">
-      <div class="eq-name" style="color:var(--coral);">In the Simulator</div>
-      <div class="eq-note" style="font-size:0.85rem;">The L̂/C formalism above is deliberately general — it doesn't commit to a specific connectivity, and <a href="paper.html#auto-h-coupling-17" target="_blank" rel="noopener">§5.3</a> (which NMM1's <a href="paper.html#eq:multiNMM1" target="_blank" rel="noopener">Eq. 6.5</a> mirrors) is explicit that the paper's own coupling is additive, not diffusive: each node sums weighted inputs from its neighbours, Σⱼ Cᵢⱼxⱼ, specifically because this avoids the homeostatic constraints of diffusive schemes. For consistency with every other model on this site, the interactive demo instead instantiates a diffusive simplification: a "Network" variant adds G(x̄ − xᵢ) inside the excitatory sigmoid, pulling each node toward the network's mean excitatory PSP x̄ rather than summing a full connectivity matrix — see the <a href="tutorial.html#coupling" target="_blank">Intro</a>.</div>
+    <div class="breakdown-item">
+      <div class="breakdown-header" onclick="toggleInfoBox(this)">
+        <span class="bd-title" style="color:var(--coral);">In the Simulator</span>
+        <span class="breakdown-chevron">&#9660;</span>
+      </div>
+      <div class="breakdown-body">
+        <div class="breakdown-prose" style="font-size:0.85rem;">The L̂/C formalism above is deliberately general — it doesn't commit to a specific connectivity, and <a href="paper.html#auto-h-coupling-17" target="_blank" rel="noopener">§5.3</a> (which NMM1's <a href="paper.html#eq:multiNMM1" target="_blank" rel="noopener">Eq. 6.5</a> mirrors) is explicit that the paper's own coupling is additive, not diffusive: each node sums weighted inputs from its neighbours, Σⱼ Cᵢⱼxⱼ, specifically because this avoids the homeostatic constraints of diffusive schemes. For consistency with every other model on this site, the interactive demo instead instantiates a diffusive simplification: a "Network" variant adds G(x̄ − xᵢ) inside the excitatory sigmoid, pulling each node toward the network's mean excitatory PSP x̄ rather than summing a full connectivity matrix — see the <a href="tutorial.html#coupling" target="_blank">Intro</a>.</div>
+      </div>
     </div>`,
   params: [
     {name:'x, y', unit:'mV', meaning:'Excitatory / inhibitory post-synaptic potentials (PSPs)', effect:'Outputs of the second-order synaptic filters — not firing rates themselves.'},
@@ -1910,7 +1942,7 @@ nmm1: {
   buildup: [
     {id:'onset', step:1, title:'Uncoupled — cross the Barkhausen threshold', param:'gx', startVal:0.1,
      fixed:{gy:1, wxy:1, wyx:1, tau_x:0.5, tau_y:0.5, a:2.5, Fe:0, N:1, G:0},
-     prose:'Start with γₓ near 0 — loop gain K = γₓγᵧwₓᵧwᵧₓa² far below threshold, both PSPs decay to their fixed point — and drag it up. Cross K_crit = 2 + τₓ/τᵧ + τᵧ/τₓ and a Hopf bifurcation switches on a sustained limit cycle, with no self-coupling term anywhere in the model — the synapses\' own second-order phase lag alone is enough to close the Barkhausen loop. This is NMM1\'s version of the HO\'s undamped/damped split and WILCO\'s silent/oscillating onset, driven here by synaptic gain instead of a tonic drive.'},
+     prose:'Start with γₓ near 0 — loop gain K = γₓγᵧwₓᵧwᵧₓa² far below threshold, both PSPs decay to their fixed point — and drag it up. Cross the critical loop gain and a Hopf bifurcation switches on a sustained limit cycle, with no self-coupling term anywhere in the model — the synapses\' own second-order phase lag alone is enough to close the Barkhausen loop. This is NMM1\'s version of the HO\'s undamped/damped split and WILCO\'s silent/oscillating onset, driven here by synaptic gain instead of a tonic drive.'},
     {id:'coupled', step:2, title:'Coupled network', param:'G', startVal:0,
      fixed:{gx:1, gy:1, wxy:1, wyx:1, tau_x:0.5, tau_y:0.5, a:2.5, Fe:0, N:3},
      prose:'Finally, connect three nodes — each with a slightly different sigmoid slope a — and drag the coupling gain G. At G = 0 every node oscillates independently at its own rate; increasing G pulls the network toward a shared rhythm, the same long-range coupling mechanism as every other model on this site.'},
@@ -1956,6 +1988,15 @@ nmm2: {
       <div class="eq-name">Coupled E–I pair (<a href="paper.html#auto-h-forcing-and-coupling-25" target="_blank" rel="noopener">§7.1</a>, Eq. <a href="paper.html#eq:nmm2-EI-pushpull" target="_blank" rel="noopener">7.9</a>)</div>
       <div class="eq-main">ṙₓ = Δₓ/π + 2rₓvₓ,&nbsp;&nbsp; v̇ₓ = vₓ² − π²rₓ² + Jₓsₓ − Cₓᵧsᵧ + η̄ₓ + F̂ₑ</div>
       <div class="eq-note">Driven only on the excitatory population, mirroring every other model on this site.</div>
+    </div>
+    <div class="breakdown-item">
+      <div class="breakdown-header" onclick="toggleInfoBox(this)">
+        <span class="bd-title" style="color:var(--coral);">In the Simulator</span>
+        <span class="breakdown-chevron">&#9660;</span>
+      </div>
+      <div class="breakdown-body">
+        <div class="breakdown-prose" style="font-size:0.85rem;">The Simulator's "Network" variant adds G·r̄ₓ to the excitatory mean-voltage equation — a diffusive stand-in for the paper's general connectome coupling term (<a href="paper.html#eq:nmm2-general" target="_blank" rel="noopener">Eq. 7.11</a>), Σⱼ Cᵢⱼsᵢⱼ, specialised to uniform all-to-all connectivity with the raw rate in place of the filtered synaptic current. A node held below its own Hopf point can be dragged into rhythm by its oscillating neighbours — see the <a href="tutorial.html#coupling" target="_blank">Intro</a>.</div>
+      </div>
     </div>`,
   params: [
     {name:'r(t)', unit:'s⁻¹', meaning:'Population mean firing rate', effect:'The model\'s output variable — replaces the static sigmoid\'s instantaneous readout with genuine dynamics.'},
@@ -2163,6 +2204,15 @@ function toggleBuildupStep(header, modelId, stepId, hostId){
   body.classList.toggle('visible');
   chevron.classList.toggle('open');
   if(opening) renderBuildupDemo(modelId, stepId, hostId);
+}
+// Generic collapsible toggle for static (non-demo) info boxes, e.g. "In the
+// Simulator" — reuses the same breakdown-item/-header/-chevron/-body classes
+// as the buildup steps above, just without any demo-rendering side effect.
+function toggleInfoBox(header){
+  const body=header.nextElementSibling;
+  const chevron=header.querySelector('.breakdown-chevron');
+  body.classList.toggle('visible');
+  chevron.classList.toggle('open');
 }
 
 function cfgAllParams(cfg){

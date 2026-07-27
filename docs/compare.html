@@ -167,7 +167,7 @@ function layPP(title, xl, yl) {
 // Classified from the actual simulated amplitude/resting level, not a fixed Px cutoff
 // (the real Hopf point shifts with wxx/taux and isn't at a round Px number anyway).
 function wilcoTimeSeriesCaptionFromData(amp, meanX){
-  if (amp>0.01) return 'Steady rhythm — the inhibitory population always lags the excitatory by a quarter cycle.';
+  if (amp>0.01) return 'Steady rhythm — near the Hopf point, the inhibitory population lags the excitatory by about a quarter cycle.';
   return meanX>0.5 ? 'Both populations saturated at maximum firing rate.' : 'System is silent — no rhythm, both populations at rest.';
 }
 function seededNetworkMatrix(N, seed){
@@ -259,10 +259,10 @@ const VARIANTS = {
     }
   },
   'HO — Coupled': {
-    eq:'dzᵢ/dt = (α+iωᵢ)zᵢ + GΣⱼCᵢⱼ(zⱼ−zᵢ)',
+    eq:'dzᵢ/dt = (αᵢ+iωᵢ)zᵢ + GΣⱼCᵢⱼ(zⱼ−zᵢ)',
     params:[
       {id:'G',     label:'G (coupling)', min:0, max:5, step:0.05, def:0.1},
-      {id:'alpha', label:'α (damping)',  min:-1, max:0, step:0.01, def:-0.1, shared:true},
+      {id:'alpha', label:'α (damping)',  min:-1, max:1, step:0.01, def:-0.1, shared:true},
       {id:'N',     label:'N (oscillators)', min:2, max:5, step:1, def:3},
     ],
     simulate(p){
@@ -446,7 +446,7 @@ const VARIANTS = {
     }
   },
   'NMM1 — Single Node': {
-    eq:'τₓ²ẍ+2τₓẋ+x=γₓσ(−wₓᵧy+Fₑ);  τᵧ²ÿ+2τᵧẏ+y=γᵧσ(wᵧₓx)   [σ(v)=tanh(a·v)]',
+    eq:'τₓ²ẍ+2τₓẋ+x=γₓσ(−wₓᵧy+Fₑ);  τᵧ²ÿ+2τᵧẏ+y=γᵧσ(wᵧₓx)   [σ(v)=tanh(a·v) — here: tanh, for simplicity; paper uses a logistic sigmoid]',
     params:[
       {id:'tau_x', label:'τx (exc. time, s)', min:0.05, max:3, step:0.05, def:0.5},
       {id:'tau_y', label:'τy (inh. time, s)', min:0.05, max:3, step:0.05, def:0.5},
@@ -480,7 +480,7 @@ const VARIANTS = {
     }
   },
   'NMM1 — Network': {
-    eq:'+ C·Σⱼ≠ᵢ xⱼ coupling into σ (N nodes, slightly different a)',
+    eq:'+ C·Σⱼ≠ᵢ xⱼ coupling into σ (N nodes, slightly different a)   [same tanh sigmoid as Single Node — paper uses a logistic sigmoid]',
     params:[
       {id:'C', label:'C (coupling)', min:0, max:0.6, step:0.02, def:0.15},
       {id:'N', label:'N (nodes)', min:2, max:5, step:1, def:3},
@@ -524,22 +524,23 @@ const VARIANTS = {
     }
   },
   'NMM2 — Single Node': {
-    eq:'ṙₓ=Δ/π+2rₓvₓ;  v̇ₓ=vₓ²−π²rₓ²+η̄+Jₓrₓ−Cₓᵧrᵧ+I   [ṙᵧ,v̇ᵧ same form, driven by Cᵧₓrₓ]',
+    eq:'ṙₓ=Δ/π+2rₓvₓ;  v̇ₓ=vₓ²−π²rₓ²+η̄+Jₓrₓ−Cₓᵧrᵧ+I   [ṙᵧ,v̇ᵧ same form, driven by −Jᵧrᵧ+Cᵧₓrₓ]',
     params:[
       {id:'eta',   label:'η̄ (mean excitability)', min:-10, max:10, step:0.5, def:0},
       {id:'delta', label:'Δ (excitability spread)', min:0.1, max:3, step:0.05, def:1},
       {id:'Jx',    label:'Jₓ (E self-coupling)', min:0, max:25, step:0.5, def:15},
+      {id:'Jy',    label:'Jᵧ (I self-coupling)', min:0, max:25, step:0.5, def:0},
       {id:'Cxy',   label:'Cₓᵧ (I→E)', min:0, max:20, step:0.5, def:8},
       {id:'Cyx',   label:'Cᵧₓ (E→I)', min:0, max:20, step:0.5, def:8},
       {id:'I',     label:'I (external input)', min:-8, max:12, step:0.25, def:4},
     ],
     simulate(p){
-      const {eta,delta,Jx,Cxy,Cyx,I}=p; const dpi=delta/Math.PI;
+      const {eta,delta,Jx,Jy,Cxy,Cyx,I}=p; const dpi=delta/Math.PI;
       const f=(t,[rx,vx,ry,vy])=>[
         dpi + 2*rx*vx,
         vx*vx - PISQ*rx*rx + eta + Jx*rx - Cxy*ry + I,
         dpi + 2*ry*vy,
-        vy*vy - PISQ*ry*ry + eta + Cyx*rx,
+        vy*vy - PISQ*ry*ry + eta - Jy*ry + Cyx*rx,
       ];
       return integrate(f,[0.3,-2,0.1,-2],4000,0.01,4);
     },
@@ -566,6 +567,7 @@ const VARIANTS = {
       {id:'eta',   label:'η̄ (mean excitability)', min:-10, max:10, step:0.5, def:0},
       {id:'delta', label:'Δ (excitability spread)', min:0.1, max:3, step:0.05, def:1},
       {id:'Jx',    label:'Jₓ (E self-coupling)', min:0, max:25, step:0.5, def:15},
+      {id:'Jy',    label:'Jᵧ (I self-coupling)', min:0, max:25, step:0.5, def:0},
       {id:'Cxy',   label:'Cₓᵧ (I→E)', min:0, max:20, step:0.5, def:8},
       {id:'Cyx',   label:'Cᵧₓ (E→I)', min:0, max:20, step:0.5, def:8},
       {id:'I',     label:'I (external input)', min:-8, max:12, step:0.25, def:4},
@@ -573,7 +575,7 @@ const VARIANTS = {
       {id:'G',     label:'G (E→E coupling)', min:0, max:3, step:0.05, def:0.5},
     ],
     simulate(p){
-      const {eta,delta,Jx,Cxy,Cyx,I,N,G}=p; const dpi=delta/Math.PI;
+      const {eta,delta,Jx,Jy,Cxy,Cyx,I,N,G}=p; const dpi=delta/Math.PI;
       const etas=Array.from({length:N},(_,i)=>eta+2.5*(i-(N-1)/2));
       const r0=Array.from({length:N},(_,i)=>0.3-0.03*i);
       const state0=[...r0, ...Array(N).fill(-2), ...Array(N).fill(0.1), ...Array(N).fill(-2)];
@@ -586,7 +588,7 @@ const VARIANTS = {
           drx[i]=dpi + 2*rx[i]*vx[i];
           dvx[i]=vx[i]*vx[i] - PISQ*rx[i]*rx[i] + etas[i] + Jx*rx[i] - Cxy*ry[i] + coup + I;
           dry[i]=dpi + 2*ry[i]*vy[i];
-          dvy[i]=vy[i]*vy[i] - PISQ*ry[i]*ry[i] + etas[i] + Cyx*rx[i];
+          dvy[i]=vy[i]*vy[i] - PISQ*ry[i]*ry[i] + etas[i] - Jy*ry[i] + Cyx*rx[i];
         }
         return [...drx, ...dvx, ...dry, ...dvy];
       };

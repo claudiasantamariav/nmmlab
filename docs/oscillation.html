@@ -115,8 +115,8 @@
   <section class="block" id="meanings">
     <h2><span class="num">1</span>Two different meanings, one word</h2>
 
-    <p>The paper is careful about this (<a href="paper.html#sec:keyconcepts" target="_blank" rel="noopener">§1.1.2(b)</a>): "oscillator" and "oscillation" aren't quite the same claim. An
-    <em class="term">oscillator</em> is a property of a model — a system built to sustain rhythmic motion, usually
+    <p>The paper is careful about this (<a href="paper.html#sec:keyconcepts" target="_blank" rel="noopener">§1.1, concept (2)</a>): "oscillator" and "oscillation" aren't quite the same claim. An
+    <em class="term">oscillator</em> is a system built to sustain rhythmic motion, usually
     through an attracting limit cycle, or, in the idealized undamped case, a neutrally stable center. An
     <em class="term">oscillation</em> is a property of data — a signal with a dominant timescale, typically visible
     as a narrow peak in a power spectrum. Usually these line up. But not always: a damped system driven by noise
@@ -131,13 +131,13 @@
 
     <div class="quote-strip">
       "In algorithmic information theory terms, we would say that a signal is an oscillation if it can be efficiently compressed by exploiting its approximate periodicity."
-      <cite>— Castaldo et al., <a href="paper.html#sec:keyconcepts" target="_blank" rel="noopener">§1.1.2(b)</a></cite>
+      <cite>— Castaldo et al., <a href="paper.html#sec:keyconcepts" target="_blank" rel="noopener">§1.1, concept (2)</a></cite>
     </div>
 
     <p>Here's the intuition. If a signal roughly repeats, you don't need to store every value — one cycle plus a
-    short note on how each repeat differs from the last is enough to reconstruct the rest. The paper's <a href="paper.html#auto-h-algorithmic-information-definition-65" target="_blank" rel="noopener">Appendix J</a>
-    formalizes exactly this: a dataset counts as an oscillation when a "periodic template plus small correction"
-    description of it is dramatically shorter than any description that doesn't assume periodicity. No reference
+    short note on how each repeat differs from the last is enough to reconstruct the rest. The paper's <a href="paper-appendix.html#auto-h-algorithmic-information-definition-65" target="_blank" rel="noopener">Appendix J</a>
+    formalizes exactly this: a dataset counts as an oscillation when a description built from a "periodic template"
+    plus a small correction is dramatically shorter than any description that doesn't assume periodicity. No reference
     model required. The test is just whether assuming a repeating pattern makes the data cheaper to describe than
     not assuming it.</p>
 
@@ -164,14 +164,14 @@
       </svg>
       <div class="diagram-caption">Left: stored value-by-value, a signal has no shortcuts. Right: if it's
       roughly periodic, one clean cycle plus a small correction reconstructs the whole thing — same signal,
-      far less to write down. The paper's compression test (<a href="paper.html#auto-h-algorithmic-information-definition-65" target="_blank" rel="noopener">Appendix J</a>) is just this idea made precise.</div>
+      far less to write down. The paper's compression test (<a href="paper-appendix.html#auto-h-algorithmic-information-definition-65" target="_blank" rel="noopener">Appendix J</a>) is just this idea made precise.</div>
     </div>
   </section>
 
   <section class="block" id="circle">
     <h2><span class="num">3</span>The circle underneath everything</h2>
 
-    <p>Push the idea one step further (<a href="paper.html#app:limitcycles" target="_blank" rel="noopener">Appendix J</a>) and every oscillator on this ladder — however many state
+    <p>Push the idea one step further (<a href="paper-appendix.html#app:limitcycles" target="_blank" rel="noopener">Appendix J</a>) and every oscillator on this ladder — however many state
     variables, however much biological detail — reduces to the same topological object: a phase circling a loop.</p>
 
     <p>The paper builds this up literally, and it's worth watching happen. Start with the barest possible
@@ -182,7 +182,7 @@
 
     <p>Real oscillators settle back to a fixed rhythm after a disturbance. That takes a nonlinearity — and here's
     the part that isn't just narrative convenience. When the paper derives Stuart–Landau's cubic term from first
-    principles (normal-form reduction near a Hopf bifurcation), it doesn't start by assuming the equation should
+    principles (normal-form reduction near a <a href="paper.html#sec:keyconcepts" target="_blank" rel="noopener">Hopf bifurcation</a> — the point where a pair of complex-conjugate eigenvalues crosses the imaginary axis, flipping a fixed point's stability), it doesn't start by assuming the equation should
     respect circular symmetry. It starts from a <em>generic</em> nonlinear correction to the harmonic oscillator
     and asks which terms survive the reduction. Almost everything cancels. The one term that can't be removed is
     −(γ+iβ)|z|²z — and that term happens to be exactly the one that respects the same rotational symmetry the bare
