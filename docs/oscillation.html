@@ -134,7 +134,7 @@
       <cite>— Castaldo et al., <a href="paper.html#sec:keyconcepts" target="_blank" rel="noopener">§1.1, concept (2)</a></cite>
     </div>
 
-    <p>Here's the intuition. If a signal roughly repeats, you don't need to store every value — one cycle plus a
+    <p>If a signal roughly repeats, you don't need to store every value — one cycle plus a
     short note on how each repeat differs from the last is enough to reconstruct the rest. The paper's <a href="paper-appendix.html#auto-h-algorithmic-information-definition-65" target="_blank" rel="noopener">Appendix J</a>
     formalizes exactly this: a dataset counts as an oscillation when a description built from a "periodic template"
     plus a small correction is dramatically shorter than any description that doesn't assume periodicity. No reference
@@ -174,14 +174,13 @@
     <p>Push the idea one step further (<a href="paper-appendix.html#app:limitcycles" target="_blank" rel="noopener">Appendix J</a>) and every oscillator on this ladder — however many state
     variables, however much biological detail — reduces to the same topological object: a phase circling a loop.</p>
 
-    <p>The paper builds this up literally, and it's worth watching happen. Start with the barest possible
+    <p>Start with the barest possible
     oscillator: a phase clock, θ̇ = ω, tracing a circle with no amplitude at all — that's the Kuramoto rung on this
     site. Add amplitude and you get the undamped harmonic oscillator, z = z₀e<sup>iωt</sup>: still a perfect
     circle, now with a radius that never changes. Neither of these has any mechanism to self-correct — nudge them
     and they stay nudged.</p>
 
-    <p>Real oscillators settle back to a fixed rhythm after a disturbance. That takes a nonlinearity — and here's
-    the part that isn't just narrative convenience. When the paper derives Stuart–Landau's cubic term from first
+    <p>Real oscillators settle back to a fixed rhythm after a disturbance. That takes a nonlinearity. When the paper derives Stuart–Landau's cubic term from first
     principles (normal-form reduction near a <a href="paper.html#sec:keyconcepts" target="_blank" rel="noopener">Hopf bifurcation</a> — the point where a pair of complex-conjugate eigenvalues crosses the imaginary axis, flipping a fixed point's stability), it doesn't start by assuming the equation should
     respect circular symmetry. It starts from a <em>generic</em> nonlinear correction to the harmonic oscillator
     and asks which terms survive the reduction. Almost everything cancels. The one term that can't be removed is
@@ -219,8 +218,7 @@
       normal-form reduction — the term that pulls a perturbed trajectory (dashed) back onto the ring.</div>
     </div>
 
-    <p>The circle isn't decoration on top of these models. It's the one piece of structure the math can't remove
-    — which is exactly why it shows up again, in some more detailed costume, at every single rung above it.</p>
+    <p>The circle is structural — it's the one piece of geometry that persists across every model in the ladder, which is why it shows up again, in some more detailed costume, at every single rung above it.</p>
   </section>
 
   <div class="cta-row">
