@@ -4,19 +4,20 @@ from scipy.integrate import solve_ivp
 
 #SIGMOID FUNCTION
 def sigmoid(v, a):
-    """Static sigmoid transfer function. Rosetta Stone §6.
+    """Static sigmoid transfer function. Rosetta Stone §6, Eq. 1533 (e0 = 1).
 
-    σ(v) = tanh(a·v)
-    Maps membrane perturbation to a firing-rate-like output in (-1, 1).
+    σ(v) = 2 / (1 + exp(-a·v))
+    Maps membrane perturbation to a firing-rate-like output in (0, 2) — a
+    firing rate can't go negative, so the curve saturates at 0, not -1.
 
     Parameters
     ----------
     v : float or array — membrane perturbation
     a : float or array — slope (excitability)
 
-    Returns float or array in (-1, 1)
+    Returns float or array in (0, 2)
     """
-    return np.tanh(a * v)
+    return 2 / (1 + np.exp(-a * v))
 
 
 #═══════════════════════════════════════════════════════════════════════════════
@@ -46,7 +47,12 @@ def nmm1(tau_x, tau_y, gx, gy, wxy, wyx, a, Fe, x0, t, noise_std=0.0, rng=None):
 
     x, y = excitatory / inhibitory postsynaptic potentials (not firing rates).
     No self-coupling needed: the synapses' own phase lag sustains the rhythm once the
-    loop gain K = γx·γy·wxy·wyx·a² exceeds K_crit = 2 + τx/τy + τy/τx (Barkhausen criterion).
+    loop gain K — the product of γx·wxy·wyx·γy and the two sigmoids' slopes at the
+    system's (self-consistent, generally nonzero) fixed point — exceeds
+    K_crit = 2 + τx/τy + τy/τx (Barkhausen criterion). Unlike an odd sigmoid, σ(0)=1
+    here, so that fixed point isn't at v=0 by default and moves with every parameter —
+    there's no closed form for K in terms of a alone; Fe is what places the operating
+    point in the sigmoid's steep region.
 
     Parameters
     ----------

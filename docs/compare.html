@@ -97,6 +97,27 @@ footer { text-align: center; font-size: 0.78rem; color: var(--muted); padding: 1
 // ============================================================
 // RK4 integrator + helpers (self-contained copy, see explorer.html)
 // ============================================================
+// NMM1's sigmoid: σ(v) = 2/(1+e^(-av)), a firing rate in (0,2) — matches paper Eq. 1533
+// (e0=1). Unlike tanh, σ(0)=1 (not 0), so the resting fixed point isn't at v=0 in
+// general; nmm1FixedPoint/nmm1LoopGain solve for it rather than assuming it.
+function nmm1Sigma(v,a){ return 2/(1+Math.exp(-a*v)); }
+function nmm1SigmaPrime(v,a){ const s=nmm1Sigma(v,a); return a*s*(1-s/2); }
+function nmm1FixedPoint(gx,gy,wxy,wyx,a,Fe){
+  const xOfY=(y)=>gx*nmm1Sigma(-wxy*y+Fe,a);
+  const G=(y)=>gy*nmm1Sigma(wyx*xOfY(y),a) - y;
+  let lo=0, hi=2*gy, glo=G(lo);
+  for(let i=0;i<60;i++){
+    const mid=0.5*(lo+hi), gm=G(mid);
+    if((glo>=0)===(gm>=0)){ lo=mid; glo=gm; } else { hi=mid; }
+  }
+  const y=0.5*(lo+hi);
+  return {x:xOfY(y), y};
+}
+function nmm1LoopGain(gx,gy,wxy,wyx,a,Fe){
+  const {x,y}=nmm1FixedPoint(gx,gy,wxy,wyx,a,Fe);
+  const slopeX=gx*nmm1SigmaPrime(-wxy*y+Fe,a), slopeY=gy*nmm1SigmaPrime(wyx*x,a);
+  return wxy*wyx*slopeX*slopeY;
+}
 function rk4step(f, y, t, dt) {
   const k1 = f(t, y);
   const k2 = f(t+dt/2, y.map((v,i)=>v+dt/2*k1[i]));
@@ -446,29 +467,29 @@ const VARIANTS = {
     }
   },
   'NMM1 — Single Node': {
-    eq:'τₓ²ẍ+2τₓẋ+x=γₓσ(−wₓᵧy+Fₑ);  τᵧ²ÿ+2τᵧẏ+y=γᵧσ(wᵧₓx)   [σ(v)=tanh(a·v) — here: tanh, for simplicity; paper uses a logistic sigmoid]',
+    eq:'τₓ²ẍ+2τₓẋ+x=γₓσ(−wₓᵧy+Fₑ);  τᵧ²ÿ+2τᵧẏ+y=γᵧσ(wᵧₓx)   [σ(v)=2/(1+e^(−a·v)), firing rate in (0,2), per the paper; γₓ=1, γᵧ=2, wₓᵧ=2, wᵧₓ=0.2 fixed]',
     params:[
       {id:'tau_x', label:'τx (exc. time, s)', min:0.05, max:3, step:0.05, def:0.5},
       {id:'tau_y', label:'τy (inh. time, s)', min:0.05, max:3, step:0.05, def:0.5},
-      {id:'a',     label:'a (sigmoid slope)', min:0.3, max:4, step:0.05, def:2.5},
-      {id:'Fe',    label:'Fe (drive)', min:0, max:2, step:0.05, def:0},
+      {id:'a',     label:'a (sigmoid slope)', min:0.3, max:20, step:0.1, def:12},
+      {id:'Fe',    label:'Fe (drive)', min:0, max:10, step:0.1, def:7},
     ],
     simulate(p){
-      const {tau_x,tau_y,a,Fe}=p; const gx=1,gy=1,wxy=1,wyx=1;
+      const {tau_x,tau_y,a,Fe}=p; const gx=1,gy=2,wxy=2,wyx=0.2;
       const f=(t,[x,vx,y,vy])=>{
-        const dvx=(gx*Math.tanh(a*(-wxy*y+Fe))-x-2*tau_x*vx)/(tau_x*tau_x);
-        const dvy=(gy*Math.tanh(a*(wyx*x))    -y-2*tau_y*vy)/(tau_y*tau_y);
+        const dvx=(gx*nmm1Sigma(-wxy*y+Fe,a)-x-2*tau_x*vx)/(tau_x*tau_x);
+        const dvy=(gy*nmm1Sigma(wyx*x,a)    -y-2*tau_y*vy)/(tau_y*tau_y);
         return [vx,dvx,vy,dvy];
       };
       return integrate(f,[0.05,0,0,0],1500,0.01,2);
     },
     twoPlots(sim,p){
-      const {ts,ys}=sim; const {tau_x,tau_y,a}=p; const gx=1,gy=1,wxy=1,wyx=1;
+      const {ts,ys}=sim; const {tau_x,tau_y,a,Fe}=p; const gx=1,gy=2,wxy=2,wyx=0.2;
       const X=ys.map(y=>y[0]), Y=ys.map(y=>y[2]);
       const tD=downsample(ts,1000), XD=downsample(X,1000), YD=downsample(Y,1000);
       const tail=X.slice(Math.floor(X.length*2/3)), tailY=Y.slice(Math.floor(Y.length*2/3));
       const amp=(Math.max(...tail)-Math.min(...tail))/2; const isOsc=amp>0.01;
-      const K=gx*gy*wxy*wyx*a*a, Kcrit=2+tau_x/tau_y+tau_y/tau_x;
+      const K=nmm1LoopGain(gx,gy,wxy,wyx,a,Fe), Kcrit=2+tau_x/tau_y+tau_y/tau_x;
       return [
         {data:[{x:tD,y:XD,name:'x (E PSP)',line:{color:BLUE,width:1.2}},{x:tD,y:YD,name:'y (I PSP)',line:{color:CORAL,width:1.2}}],
           layout:lay('Time series','t (s)','PSP'), capS:'Excitatory and inhibitory post-synaptic potentials.',
@@ -480,14 +501,14 @@ const VARIANTS = {
     }
   },
   'NMM1 — Network': {
-    eq:'+ C·Σⱼ≠ᵢ xⱼ coupling into σ (N nodes, slightly different a)   [same tanh sigmoid as Single Node — paper uses a logistic sigmoid]',
+    eq:'+ C·Σⱼ≠ᵢ xⱼ coupling into σ (N nodes, slightly different a)   [same σ(v)=2/(1+e^(−a·v)) firing-rate sigmoid as Single Node, with the drive Fₑ=7 fixed]',
     params:[
-      {id:'C', label:'C (coupling)', min:0, max:0.6, step:0.02, def:0.15},
+      {id:'C', label:'C (coupling)', min:0, max:0.12, step:0.01, def:0.08},
       {id:'N', label:'N (nodes)', min:2, max:5, step:1, def:3},
-      {id:'a', label:'a (mean sigmoid slope)', min:1.5, max:3.5, step:0.05, def:2.5},
+      {id:'a', label:'a (mean sigmoid slope)', min:8, max:16, step:0.1, def:12},
     ],
     simulate(p){
-      const {C,N,a}=p; const tau_x=0.5,tau_y=0.5,gx=1,gy=1,wxy=1,wyx=1;
+      const {C,N,a}=p; const tau_x=0.5,tau_y=0.5,gx=1,gy=2,wxy=2,wyx=0.2,Fe=7;
       const aVals=Array.from({length:N},(_,i)=>a+0.2*(i-(N-1)/2));
       const x0=Array.from({length:N},(_,i)=>0.05*(i%2===0?1:-1)*(1-i*0.1));
       const state0=[...x0, ...Array(N).fill(0), ...Array(N).fill(0), ...Array(N).fill(0)];
@@ -497,8 +518,8 @@ const VARIANTS = {
         const dvx=new Array(N), dvy=new Array(N);
         for(let i=0;i<N;i++){
           const coup=C*(xsum-x[i]);
-          dvx[i]=(gx*Math.tanh(aVals[i]*(-wxy*yy[i]+coup))-x[i]-2*tau_x*vx[i])/(tau_x*tau_x);
-          dvy[i]=(gy*Math.tanh(aVals[i]*(wyx*x[i]))        -yy[i]-2*tau_y*vy[i])/(tau_y*tau_y);
+          dvx[i]=(gx*nmm1Sigma(-wxy*yy[i]+Fe+coup,aVals[i])-x[i]-2*tau_x*vx[i])/(tau_x*tau_x);
+          dvy[i]=(gy*nmm1Sigma(wyx*x[i],aVals[i])           -yy[i]-2*tau_y*vy[i])/(tau_y*tau_y);
         }
         return [...vx, ...dvx, ...vy, ...dvy];
       };

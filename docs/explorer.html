@@ -1273,7 +1273,35 @@ const WILCO = {
 // ============================================================
 // NMM1 — second-order synapses (Jansen–Rit-style push-pull), §6 Eq. 6.1
 // state = [x, ẋ, y, ẏ]; x,y are PSPs (not firing rates); dt = 0.01 s
-// ============================================================
+// σ(v) = 2/(1+e^(-av)) — firing rate in (0,2), matches the paper's Eq. 1533 (e0=1).
+// Unlike tanh, σ(0)=1 (not 0), so the resting fixed point is generally NOT at v=0:
+// nmm1FixedPoint/nmm1LoopGain below solve for it explicitly rather than assuming it.
+function nmm1Sigma(v,a){ return 2/(1+Math.exp(-a*v)); }
+function nmm1SigmaPrime(v,a){ const s=nmm1Sigma(v,a); return a*s*(1-s/2); }
+
+// G(y) = gy·σ(wyx·gx·σ(-wxy·y+Fe,a), a) - y is strictly decreasing in y (increasing y
+// lowers x(y), which lowers y's own drive), so it has a unique root — bisection is exact
+// and doesn't care whether that fixed point is stable or not (unlike Picard iteration).
+function nmm1FixedPoint(gx,gy,wxy,wyx,a,Fe){
+  const xOfY=(y)=>gx*nmm1Sigma(-wxy*y+Fe,a);
+  const G=(y)=>gy*nmm1Sigma(wyx*xOfY(y),a) - y;
+  let lo=0, hi=2*gy, glo=G(lo);
+  for(let i=0;i<60;i++){
+    const mid=0.5*(lo+hi), gm=G(mid);
+    if((glo>=0)===(gm>=0)){ lo=mid; glo=gm; } else { hi=mid; }
+  }
+  const y=0.5*(lo+hi);
+  return {x:xOfY(y), y};
+}
+// Loop gain at the true (self-consistent) fixed point. With tanh this collapsed to the
+// closed form gx·gy·wxy·wyx·a² because (0,0) was always the fixed point at max slope;
+// the real firing-rate sigmoid has no such shortcut, so this solves for it numerically.
+function nmm1LoopGain(gx,gy,wxy,wyx,a,Fe){
+  const {x,y}=nmm1FixedPoint(gx,gy,wxy,wyx,a,Fe);
+  const slopeX=gx*nmm1SigmaPrime(-wxy*y+Fe,a), slopeY=gy*nmm1SigmaPrime(wyx*x,a);
+  return wxy*wyx*slopeX*slopeY;
+}
+
 // Scalar (no array allocation) RK4 for one (a) sweep point — same technique as WILCO's
 // bifurcationCell. Used to trace amplitude vs. loop gain K by varying the sigmoid slope a.
 function nmm1AmplitudeAt(tau_x,tau_y,gx,gy,wxy,wyx,a,Fe,T,dt){
@@ -1282,8 +1310,8 @@ function nmm1AmplitudeAt(tau_x,tau_y,gx,gy,wxy,wyx,a,Fe,T,dt){
   const tx2=tau_x*tau_x, ty2=tau_y*tau_y;
   let tailMax=-Infinity, tailMin=Infinity;
   const deriv=(X,VX,Y,VY)=>[
-    VX, (gx*Math.tanh(a*(-wxy*Y+Fe)) - X - 2*tau_x*VX)/tx2,
-    VY, (gy*Math.tanh(a*(wyx*X))     - Y - 2*tau_y*VY)/ty2,
+    VX, (gx*nmm1Sigma(-wxy*Y+Fe,a) - X - 2*tau_x*VX)/tx2,
+    VY, (gy*nmm1Sigma(wyx*X,a)     - Y - 2*tau_y*VY)/ty2,
   ];
   for(let i=0;i<=steps;i++){
     if(i>=tailStart){ if(x>tailMax) tailMax=x; if(x<tailMin) tailMin=x; }
@@ -1302,7 +1330,7 @@ let _nmm1BifCache={key:null,aVals:null,amps:null};
 function computeNMM1Bifurcation(tau_x,tau_y,gx,gy,wxy,wyx,Fe){
   const key=[tau_x,tau_y,gx,gy,wxy,wyx,Fe].map(v=>v.toFixed(3)).join('_');
   if(_nmm1BifCache.key===key) return _nmm1BifCache;
-  const aVals=[]; for(let a=0.3;a<=3.5001;a+=(3.5-0.3)/24) aVals.push(a);
+  const aVals=[]; for(let a=1;a<=20.0001;a+=(20-1)/24) aVals.push(a);
   const amps=aVals.map(a=>nmm1AmplitudeAt(tau_x,tau_y,gx,gy,wxy,wyx,a,Fe,120,0.02));
   _nmm1BifCache={key,aVals,amps};
   return _nmm1BifCache;
@@ -1315,18 +1343,18 @@ const NMM1 = {
       eqHtml:`<div class="eq-main">τₓ² ẍ + 2τₓ ẋ + x = γₓ σ(−wₓᵧy + Fₑ)</div>
         <div class="eq-main">τᵧ² ÿ + 2τᵧ ẏ + y = γᵧ σ(wᵧₓx)</div>
         <hr class="eq-hr">
-        <div class="eq-sub">σ(v) = tanh(a·v) &nbsp;·&nbsp; K = γₓγᵧwₓᵧwᵧₓa²</div>`,
-      explain:'x and y are excitatory/inhibitory post-synaptic potentials, not firing rates — each obeys a critically-damped second-order filter, so a single synapse alone can never oscillate. Once the loop gain K crosses K_crit, the two synapses\' own phase lag is enough to sustain a rhythm with no self-coupling at all (the Barkhausen criterion). Fₑ shifts the operating point on the sigmoid and can quench an oscillation that exists at Fₑ = 0.',
+        <div class="eq-sub">σ(v) = 2/(1 + e^(−a·v)) &nbsp;·&nbsp; K = loop gain at the fixed point</div>`,
+      explain:'x and y are excitatory/inhibitory post-synaptic potentials, not firing rates — each obeys a critically-damped second-order filter, so a single synapse alone can never oscillate. Once the loop gain K crosses K_crit, the two synapses\' own phase lag is enough to sustain a rhythm with no self-coupling at all (the Barkhausen criterion). σ outputs a firing rate in (0,2), not (−1,1), so — unlike a symmetric sigmoid — the resting point sits away from v=0 by default: Fₑ is what pulls the operating point into the sigmoid\'s steep region, and only a window of Fₑ values sustains a rhythm (too little or too much drive both quench it).',
       fixed:{N:1, G:0},
       params:[
         {id:'tau_x', label:'τₓ  (exc. synaptic time)', min:0.05, max:3, step:0.05, def:0.5},
         {id:'tau_y', label:'τᵧ  (inh. synaptic time)', min:0.05, max:3, step:0.05, def:0.5},
         {id:'gx',    label:'γₓ  (exc. synaptic gain)', min:0.1, max:4.5, step:0.05, def:1},
-        {id:'gy',    label:'γᵧ  (inh. synaptic gain)', min:0.1, max:2, step:0.05, def:1},
-        {id:'wxy',   label:'wₓᵧ  (I→E, "pull")', min:0.1, max:2, step:0.05, def:1},
-        {id:'wyx',   label:'wᵧₓ  (E→I, "push")', min:0.1, max:2, step:0.05, def:1},
-        {id:'a',     label:'a  (sigmoid slope)', min:0.3, max:4, step:0.05, def:2.5},
-        {id:'Fe',    label:'Fₑ  (exogenous drive)', min:0, max:2, step:0.05, def:0},
+        {id:'gy',    label:'γᵧ  (inh. synaptic gain)', min:0.1, max:3, step:0.05, def:2},
+        {id:'wxy',   label:'wₓᵧ  (I→E, "pull")', min:0.1, max:3, step:0.05, def:2},
+        {id:'wyx',   label:'wᵧₓ  (E→I, "push")', min:0.1, max:2, step:0.05, def:0.2},
+        {id:'a',     label:'a  (sigmoid slope)', min:0.3, max:20, step:0.1, def:12},
+        {id:'Fe',    label:'Fₑ  (exogenous drive)', min:0, max:10, step:0.1, def:7},
       ],
     },
     Network:{
@@ -1339,11 +1367,11 @@ const NMM1 = {
         {id:'tau_x', label:'τₓ  (exc. synaptic time)', min:0.05, max:3, step:0.05, def:0.5},
         {id:'tau_y', label:'τᵧ  (inh. synaptic time)', min:0.05, max:3, step:0.05, def:0.5},
         {id:'gx',    label:'γₓ  (exc. synaptic gain)', min:0.1, max:4.5, step:0.05, def:1},
-        {id:'gy',    label:'γᵧ  (inh. synaptic gain)', min:0.1, max:2, step:0.05, def:1},
-        {id:'wxy',   label:'wₓᵧ  (I→E, "pull")', min:0.1, max:2, step:0.05, def:1},
-        {id:'wyx',   label:'wᵧₓ  (E→I, "push")', min:0.1, max:2, step:0.05, def:1},
-        {id:'a',     label:'a  (sigmoid slope)', min:0.3, max:4, step:0.05, def:2.5},
-        {id:'Fe',    label:'Fₑ  (exogenous drive)', min:0, max:2, step:0.05, def:0},
+        {id:'gy',    label:'γᵧ  (inh. synaptic gain)', min:0.1, max:3, step:0.05, def:2},
+        {id:'wxy',   label:'wₓᵧ  (I→E, "pull")', min:0.1, max:3, step:0.05, def:2},
+        {id:'wyx',   label:'wᵧₓ  (E→I, "push")', min:0.1, max:2, step:0.05, def:0.2},
+        {id:'a',     label:'a  (sigmoid slope)', min:0.3, max:20, step:0.1, def:12},
+        {id:'Fe',    label:'Fₑ  (exogenous drive)', min:0, max:10, step:0.1, def:7},
         {id:'N', label:'N  (network size)', min:2, max:5, step:1, def:3},
         {id:'G', label:'G  (coupling strength)', min:0, max:50, step:0.5, def:0.5},
       ],
@@ -1354,8 +1382,8 @@ const NMM1 = {
     const {tau_x,tau_y,gx,gy,wxy,wyx,a,Fe,N,G}=p;
     if(N<=1){
       const f=(t,[x,vx,y,vy])=>{
-        const dvx=(gx*Math.tanh(a*(-wxy*y+Fe)) - x - 2*tau_x*vx)/(tau_x*tau_x);
-        const dvy=(gy*Math.tanh(a*(wyx*x))     - y - 2*tau_y*vy)/(tau_y*tau_y);
+        const dvx=(gx*nmm1Sigma(-wxy*y+Fe,a) - x - 2*tau_x*vx)/(tau_x*tau_x);
+        const dvy=(gy*nmm1Sigma(wyx*x,a)     - y - 2*tau_y*vy)/(tau_y*tau_y);
         return [vx,dvx,vy,dvy];
       };
       return integrate(f,[0.05,0,0,0],1500,0.01,2);
@@ -1373,8 +1401,8 @@ const NMM1 = {
       const dvx=new Array(N), dvy=new Array(N);
       for(let i=0;i<N;i++){
         const coup=G*(xbar-x[i]);
-        dvx[i]=(gx*Math.tanh(aVals[i]*(-wxy*yy[i]+Fe+coup)) - x[i] - 2*tau_x*vx[i])/(tau_x*tau_x);
-        dvy[i]=(gy*Math.tanh(aVals[i]*(wyx*x[i]))            - yy[i] - 2*tau_y*vy[i])/(tau_y*tau_y);
+        dvx[i]=(gx*nmm1Sigma(-wxy*yy[i]+Fe+coup,aVals[i]) - x[i] - 2*tau_x*vx[i])/(tau_x*tau_x);
+        dvy[i]=(gy*nmm1Sigma(wyx*x[i],aVals[i])            - yy[i] - 2*tau_y*vy[i])/(tau_y*tau_y);
       }
       return [...vx, ...dvx, ...vy, ...dvy];
     };
@@ -1395,10 +1423,10 @@ const NMM1 = {
       const isOsc=amp>0.01;
       const XppD=downsample(tail,1200), YppD=downsample(tailY,1200);
 
-      const K=gx*gy*wxy*wyx*a*a;
+      const K=nmm1LoopGain(gx,gy,wxy,wyx,a,Fe);
       const Kcrit=2+tau_x/tau_y+tau_y/tau_x;
       const bif=computeNMM1Bifurcation(tau_x,tau_y,gx,gy,wxy,wyx,Fe);
-      const Kvals=bif.aVals.map(av=>gx*gy*wxy*wyx*av*av);
+      const Kvals=bif.aVals.map(av=>nmm1LoopGain(gx,gy,wxy,wyx,av,Fe));
       const maxAmp=Math.max(0.05, ...bif.amps);
 
       const tsCap = isOsc
@@ -1423,8 +1451,8 @@ const NMM1 = {
           {x:Kvals,y:bif.amps,mode:'lines',line:{color:BLUE,width:2.2},showlegend:false},
           {x:[Kcrit,Kcrit],y:[0,maxAmp*1.15],mode:'lines',line:{color:CORAL,width:1.5,dash:'dot'},name:`K_crit = ${Kcrit.toFixed(2)}`},
           {x:[K],y:[amp],mode:'markers',marker:{color:'#FF6F00',size:10},name:`current K = ${K.toFixed(2)}`},
-        ], kind:'bifurcation', layout:lay('Bifurcation diagram','loop gain K = γₓγᵧwₓᵧwᵧₓa²','long-run amplitude of x',{yaxis:{range:[0,maxAmp*1.2],gridcolor:'#e0e4ef',title:'amplitude'}}),
-          capS:'Long-run amplitude of x as the loop gain K is swept by varying the sigmoid slope a (τₓ,τᵧ,γₓ,γᵧ,wₓᵧ,wᵧₓ,Fₑ held at their current slider values).',
+        ], kind:'bifurcation', layout:lay('Bifurcation diagram','loop gain K (at the fixed point)','long-run amplitude of x',{yaxis:{range:[0,maxAmp*1.2],gridcolor:'#e0e4ef',title:'amplitude'}}),
+          capS:'Long-run amplitude of x as the loop gain K is swept by varying the sigmoid slope a (τₓ,τᵧ,γₓ,γᵧ,wₓᵧ,wᵧₓ,Fₑ held at their current slider values). K is computed at the true self-consistent fixed point, not a fixed formula — the operating point moves as a changes, since σ is not odd about zero.',
           capD:`Onset (Hopf bifurcation) at K_crit = 2+τₓ/τᵧ+τᵧ/τₓ = ${Kcrit.toFixed(2)} — lowest when the two synapses are matched (τₓ=τᵧ).`},
       ];
     }
