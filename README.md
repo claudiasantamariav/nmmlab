@@ -2,6 +2,8 @@
 
 **Live site: [claudiasantamariav.github.io/nmmlab](https://claudiasantamariav.github.io/nmmlab/)**
 
+Built by Claudia Santamaria Velasco and Lucia Ruffini.
+
 This repo hosts a companion website and Python package for *Rosetta Stone of Neural Mass Models*, a paper proposing a unifying "ladder" for neural mass models (NMMs) — the equations used to describe how populations of neurons generate the oscillations seen in EEG, MEG, and fMRI.
 
 The core idea: instead of treating each NMM formalism (lumped-parameter models, firing-rate equations, multi-layer generators, ...) as its own island, start from the simplest possible oscillator — a coupled excitatory/inhibitory push-pull pair — and climb a systematic ladder of biological detail. Each rung is presented unforced, then forced, then as a coupled network, mirroring the move from single-node to whole-brain modeling. The website is an interactive companion to that argument: you can read the derivation, then immediately play with the model that was just derived.
